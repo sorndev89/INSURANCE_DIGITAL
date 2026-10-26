@@ -170,6 +170,8 @@ Payment: { id, invoiceId, amount, method, paidAt }
 
 ```http
 GET  /api/tenant/dashboard
+GET  /api/tenant/reports/summary|sales|policies|quotations|claims|customers|agents|teams|commissions|finance?from&to
+GET  /api/tenant/reports/export?type&from&to&format=csv|xlsx|pdf
 GET  /api/tenant/users/stats
 GET  /api/tenant/customers              POST /api/tenant/customers              PATCH /api/tenant/customers/:id
 GET  /api/tenant/customers/:id

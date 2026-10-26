@@ -27,8 +27,55 @@ const stats = computed(() => {
   const active = tenants.value.filter((t) => t.status === 'active').length
   const trial = tenants.value.filter((t) => t.status === 'trial').length
   const suspended = tenants.value.filter((t) => t.status === 'suspended').length
-  return { total, active, trial, suspended }
+  const other = tenants.value.length - active - trial - suspended
+  return { total, active, trial, suspended, other }
 })
+
+const recentTenants = computed(() => tenants.value.slice(0, 5))
+
+const tenantStatusSeries = computed(() => [
+  stats.value.active,
+  stats.value.trial,
+  stats.value.suspended,
+  Math.max(0, stats.value.other),
+])
+const tenantStatusOptions = computed(() => ({
+  labels: ['Active', 'Trial', 'Suspended', 'Other'],
+  legend: { position: 'bottom' },
+  tooltip: { y: { formatter: (value) => `${number(value)} ອົງກອນ` } },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '68%',
+        labels: {
+          show: true,
+          total: { show: true, label: 'ລວມ', formatter: () => number(tenants.value.length) },
+        },
+      },
+    },
+  },
+}))
+
+const planDistribution = computed(() => {
+  const counts = new Map()
+  tenants.value.forEach((tenant) => {
+    const plan = tenant.planName || 'Unassigned'
+    counts.set(plan, (counts.get(plan) || 0) + 1)
+  })
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((left, right) => right.count - left.count)
+})
+
+const planChartSeries = computed(() => [
+  { name: 'ອົງກອນ', data: planDistribution.value.map((item) => item.count) },
+])
+const planChartOptions = computed(() => ({
+  xaxis: { categories: planDistribution.value.map((item) => item.name) },
+  yaxis: { labels: { formatter: (value) => number(value) } },
+  tooltip: { y: { formatter: (value) => `${number(value)} ອົງກອນ` } },
+  plotOptions: { bar: { borderRadius: 6, columnWidth: '48%' } },
+}))
 
 // Impersonation state
 const impersonating = ref(false)
@@ -64,7 +111,7 @@ const loadData = async () => {
   loading.value = true
   try {
     const [tenantsRes, plansRes, auditsRes] = await Promise.allSettled([
-      request('/platform/tenants', { query: { pageSize: 5 } }),
+      request('/platform/tenants', { query: { pageSize: 100 } }),
       request('/platform/plans'),
       request('/platform/audit-logs', { query: { pageSize: 5 } }),
     ])
@@ -153,6 +200,35 @@ onMounted(() => {
       />
     </div>
 
+    <!-- Charts -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div class="sf-card p-5">
+        <div class="mb-2">
+          <h2 class="text-base font-extrabold text-foreground">ສະຖານະອົງກອນ</h2>
+          <p class="text-xs text-muted">ການແຈກຢາຍ tenant ຕາມສະຖານະ</p>
+        </div>
+        <ApexChart
+          type="donut"
+          :height="260"
+          :options="tenantStatusOptions"
+          :series="tenantStatusSeries"
+        />
+      </div>
+
+      <div class="sf-card p-5">
+        <div class="mb-2">
+          <h2 class="text-base font-extrabold text-foreground">ການໃຊ້ແຜນບໍລິການ</h2>
+          <p class="text-xs text-muted">ຈຳນວນອົງກອນໃນແຕ່ລະແຜນ</p>
+        </div>
+        <ApexChart
+          type="bar"
+          :height="260"
+          :options="planChartOptions"
+          :series="planChartSeries"
+        />
+      </div>
+    </div>
+
     <!-- Main Content 2-Column Grid -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <!-- Left Column (2 Cols wide): Recent Tenants Table -->
@@ -185,13 +261,13 @@ onMounted(() => {
                     ກຳລັງໂຫຼດຂໍ້ມູນ...
                   </td>
                 </tr>
-                <tr v-else-if="!tenants.length">
+                <tr v-else-if="!recentTenants.length">
                   <td colspan="5" class="py-12 text-center text-muted">
                     ຍັງບໍ່ມີອົງກອນໃນລະບົບ
                   </td>
                 </tr>
                 <template v-else>
-                  <tr v-for="tenant in tenants" :key="tenant.id">
+                  <tr v-for="tenant in recentTenants" :key="tenant.id">
                     <td>
                       <NuxtLink
                         :to="`/tenants/${tenant.id}`"

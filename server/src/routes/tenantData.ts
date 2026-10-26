@@ -48,6 +48,19 @@ import {
   payCommission,
 } from '../controllers/finance.js';
 import { getDashboard } from '../controllers/dashboard.js';
+import {
+  exportReport,
+  reportAgents,
+  reportClaims,
+  reportCommissions,
+  reportCustomers,
+  reportFinance,
+  reportPolicies,
+  reportQuotations,
+  reportSales,
+  reportSummary,
+  reportTeams,
+} from '../controllers/reports.js';
 import { uploadFile } from '../controllers/uploads.js';
 import { get as getSettings, update as updateSettings } from '../controllers/settings.js';
 
@@ -58,6 +71,18 @@ export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   const fieldRoles = [...auth, requireRole('admin', 'staff', 'agent')];
 
   router.get('/dashboard', ...auth, getDashboard);
+
+  router.get('/reports/summary', ...adminStaff, reportSummary);
+  router.get('/reports/sales', ...adminStaff, reportSales);
+  router.get('/reports/policies', ...adminStaff, reportPolicies);
+  router.get('/reports/quotations', ...adminStaff, reportQuotations);
+  router.get('/reports/claims', ...adminStaff, reportClaims);
+  router.get('/reports/customers', ...adminStaff, reportCustomers);
+  router.get('/reports/agents', ...adminStaff, reportAgents);
+  router.get('/reports/teams', ...adminStaff, reportTeams);
+  router.get('/reports/commissions', ...adminStaff, reportCommissions);
+  router.get('/reports/finance', ...adminStaff, reportFinance);
+  router.get('/reports/export', ...adminStaff, exportReport);
   router.get('/settings', ...auth, getSettings);
   router.patch('/settings', ...auth, requireRole('admin'), updateSettings);
   router.post('/uploads', ...auth, uploadFile);

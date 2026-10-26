@@ -9,6 +9,7 @@ RUN npm ci --include=dev
 FROM server-deps AS server-build
 COPY server/tsconfig.json ./
 COPY server/src ./src
+COPY server/assets ./assets
 COPY server/drizzle ./drizzle
 RUN npm run db:check:static && npm run build && npm prune --omit=dev
 
@@ -38,6 +39,7 @@ RUN apk add --no-cache curl \
   && chown -R app:app /app/uploads
 COPY --from=server-build /server/node_modules ./node_modules
 COPY --from=server-build /server/dist ./dist
+COPY --from=server-build /server/assets ./assets
 COPY server/drizzle ./drizzle
 COPY server/package.json ./
 COPY --from=admin-build /admin/.output/public ./admin

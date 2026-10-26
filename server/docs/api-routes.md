@@ -15,6 +15,8 @@
 /api/tenant/users
 /api/tenant/users/stats
 /api/tenant/dashboard
+/api/tenant/reports/{summary,sales,policies,quotations,claims,customers,agents,teams,commissions,finance}?from=YYYY-MM-DD&to=YYYY-MM-DD
+/api/tenant/reports/export?type=<report>&from=YYYY-MM-DD&to=YYYY-MM-DD&format=csv|xlsx|pdf
 /api/tenant/customers[/stats|/:id]
 /api/tenant/agents[/stats|/:id]
 /api/tenant/teams

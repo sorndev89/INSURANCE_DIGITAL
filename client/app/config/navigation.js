@@ -94,14 +94,73 @@ export const navigationGroups = [
     ],
   },
   {
-    title: 'ລາຍງານ ແລະ ລະບົບ',
+    title: 'ລາຍງານ',
     items: [
       {
-        label: 'ລາຍງານທຸລະກິດ',
-        icon: 'analytics',
-        to: '/reports',
+        label: 'ສະຫຼຸບ',
+        icon: 'summarize',
+        to: '/reports/summary',
         permission: PERM.REPORT_VIEW,
       },
+      {
+        label: 'ຍອດຂາຍ',
+        icon: 'payments',
+        to: '/reports/sales',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ປະກັນໄພ',
+        icon: 'description',
+        to: '/reports/policies',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ສະເໜີລາຄາ',
+        icon: 'request_quote',
+        to: '/reports/quotations',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ເຄມ',
+        icon: 'assignment_late',
+        to: '/reports/claims',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ລູກຄ້າ',
+        icon: 'people_alt',
+        to: '/reports/customers',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ຕົວແທນ',
+        icon: 'badge',
+        to: '/reports/agents',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ທີມ',
+        icon: 'diversity_3',
+        to: '/reports/teams',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ຄອມມິດຊັ່ນ',
+        icon: 'percent',
+        to: '/reports/commissions',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        label: 'ການເງິນ',
+        icon: 'receipt_long',
+        to: '/reports/finance',
+        permission: PERM.REPORT_VIEW,
+      },
+    ],
+  },
+  {
+    title: 'ລະບົບ',
+    items: [
       {
         label: 'ຜູ້ໃຊ້ງານ',
         icon: 'manage_accounts',
