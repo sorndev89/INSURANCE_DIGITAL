@@ -32,7 +32,7 @@ NUXT_PUBLIC_ROOT_DOMAIN=saiyfon.app
 |---|---|
 | `/login` | platform login |
 | `/tenants` | list/search/create tenant, ສະແດງ DNS ຫຼັງສ້າງ |
-| `/tenants/:id` | settings/branding, domains + verify, usage, impersonate, suspend/delete |
+| `/tenants/:id` | settings/branding, domains + verify, usage, users list, impersonate, suspend/delete |
 | `/plans` | ສ້າງ plan, ເປີດ/ປິດ |
 | `/audit` | audit log + filter |
 

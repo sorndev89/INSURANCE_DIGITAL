@@ -32,7 +32,7 @@ import {
 import { provisionTenant } from '../services/provisioning.js';
 import { invalidateTenantCache } from '../services/tenantCache.js';
 import { writeAuditLog } from '../services/audit.js';
-import { findUserById } from '../repositories/users.js';
+import { findUserById, listUsers as queryUsers } from '../repositories/users.js';
 
 const actor = (req: Request) => ({
   actorId: req.platformAuth?.platformUserId ?? null,
@@ -508,6 +508,22 @@ export const impersonate = async (req: Request, res: Response) => {
       },
       tenant: { id: tenant.id, slug: tenant.slug, name: tenant.name },
     },
+  });
+};
+
+export const listUsers = async (req: Request, res: Response) => {
+  const id = requireTenantId(req);
+  await getTenantOrThrow(id);
+
+  const { page, pageSize } = parsePagination(req.query as Record<string, unknown>);
+  const search = typeof req.query.search === 'string' ? req.query.search : undefined;
+  const role = typeof req.query.role === 'string' ? req.query.role : undefined;
+  const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+
+  const result = await queryUsers(id, { search, page, pageSize, role, status });
+  res.json({
+    data: result.items,
+    meta: { total: result.total, page, pageSize },
   });
 };
 

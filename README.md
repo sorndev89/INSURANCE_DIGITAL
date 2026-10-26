@@ -324,6 +324,7 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | POST | `/api/platform/tenants/:id/domains/:domainId/verify` | ກວດ TXT record (`?force=true` = superadmin ຂ້າມ DNS, ມີ audit log) |
 | POST | `/api/platform/tenants/:id/impersonate` | ອອກ token tenant ອາຍຸສັ້ນ + audit |
 | GET | `/api/platform/tenants/:id/usage` | ການໃຊ້ users/customers/policies |
+| GET | `/api/platform/tenants/:id/users` | ລາຍຊື່ຜູ້ໃຊ້ໃນ tenant (search/pagination) |
 | GET/POST/PATCH | `/api/platform/plans` | ຈັດການແຜນ |
 | GET | `/api/platform/audit-logs` | audit log |
 | POST | `/api/tenant/auth/register` | tenant register |

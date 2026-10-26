@@ -16,6 +16,12 @@ const loading = ref(false)
 const error = ref('')
 const notice = ref('')
 
+const users = ref([])
+const usersMeta = reactive({ total: 0, page: 1, pageSize: 20 })
+const usersSearch = ref('')
+const usersLoading = ref(false)
+const usersError = ref('')
+
 const saving = ref(false)
 const edit = reactive({ name: '', planId: '', brandName: '', primaryColor: '#10b981' })
 const loadedBrandName = ref('')
@@ -54,6 +60,35 @@ const loadUsage = async () => {
   } catch {
     usage.value = null
   }
+}
+
+const loadUsers = async (page = 1) => {
+  usersLoading.value = true
+  usersError.value = ''
+  try {
+    const response = await request(`/platform/tenants/${tenantId.value}/users`, {
+      query: {
+        page,
+        pageSize: usersMeta.pageSize,
+        search: usersSearch.value.trim() || undefined,
+      },
+    })
+    users.value = response.data
+    usersMeta.total = response.meta.total
+    usersMeta.page = response.meta.page
+    usersMeta.pageSize = response.meta.pageSize
+  } catch (requestError) {
+    users.value = []
+    usersError.value = apiErrorMessage(requestError)
+  } finally {
+    usersLoading.value = false
+  }
+}
+
+const goUsersPage = (page) => {
+  const pages = Math.ceil(usersMeta.total / usersMeta.pageSize)
+  if (page < 1 || page > pages || page === usersMeta.page) return
+  loadUsers(page)
 }
 
 const loadPlans = async () => {
@@ -207,7 +242,7 @@ const launchTenantApp = () => {
 }
 
 onMounted(async () => {
-  await Promise.all([load(), loadUsage(), loadPlans()])
+  await Promise.all([load(), loadUsage(), loadPlans(), loadUsers()])
 })
 </script>
 
@@ -282,6 +317,93 @@ onMounted(async () => {
           <div class="mt-4 flex justify-end">
             <button type="button" class="sf-btn sf-btn-primary" :disabled="saving" @click="save">
               {{ saving ? 'ກຳລັງບັນທຶກ...' : 'ບັນທຶກ' }}
+            </button>
+          </div>
+        </section>
+
+        <section class="sf-card p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">ຜູ້ໃຊ້ (Users)</h2>
+              <p class="mt-1 text-xs text-slate-500">ລາຍຊື່ຜູ້ໃຊ້ທັງໝົດໃນ tenant ນີ້</p>
+            </div>
+            <span class="text-xs text-slate-500">ທັງໝົດ {{ usersMeta.total }}</span>
+          </div>
+
+          <form class="mt-4 flex flex-wrap items-center gap-2" @submit.prevent="loadUsers(1)">
+            <input
+              v-model="usersSearch"
+              class="sf-input max-w-xs"
+              type="search"
+              placeholder="ຄົ້ນຫາຊື່ ຫຼື ອີເມວ..."
+            />
+            <button type="submit" class="sf-btn sf-btn-secondary">ຄົ້ນຫາ</button>
+          </form>
+
+          <p
+            v-if="usersError"
+            class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"
+          >
+            {{ usersError }}
+          </p>
+
+          <div class="mt-3 overflow-x-auto">
+            <table class="sf-table">
+              <thead>
+                <tr>
+                  <th>ຜູ້ໃຊ້</th>
+                  <th>ອີເມວ</th>
+                  <th>ບົດບາດ</th>
+                  <th>ສະຖານະ</th>
+                  <th>ສ້າງເມື່ອ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="usersLoading">
+                  <td colspan="5" class="py-8 text-center text-slate-400">ກຳລັງໂຫຼດ...</td>
+                </tr>
+                <tr v-else-if="!users.length">
+                  <td colspan="5" class="py-8 text-center text-slate-400">ຍັງບໍ່ມີຜູ້ໃຊ້</td>
+                </tr>
+                <template v-else>
+                  <tr v-for="user in users" :key="user.id">
+                    <td class="font-bold text-slate-800">{{ user.username }}</td>
+                    <td class="text-xs text-slate-600">{{ user.email }}</td>
+                    <td>
+                      <span
+                        class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-600"
+                      >
+                        {{ user.role }}
+                      </span>
+                    </td>
+                    <td><StatusBadge :status="user.status" /></td>
+                    <td class="text-xs text-slate-500">{{ date(user.createdAt) }}</td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+
+          <div
+            v-if="usersMeta.total > usersMeta.pageSize"
+            class="mt-4 flex items-center justify-between"
+          >
+            <button
+              type="button"
+              class="sf-btn sf-btn-secondary"
+              :disabled="usersMeta.page <= 1"
+              @click="goUsersPage(usersMeta.page - 1)"
+            >
+              ກ່ອນໜ້າ
+            </button>
+            <span class="text-xs text-slate-500">ໜ້າ {{ usersMeta.page }}</span>
+            <button
+              type="button"
+              class="sf-btn sf-btn-secondary"
+              :disabled="usersMeta.page >= Math.ceil(usersMeta.total / usersMeta.pageSize)"
+              @click="goUsersPage(usersMeta.page + 1)"
+            >
+              ຕໍ່ໄປ
             </button>
           </div>
         </section>

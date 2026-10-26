@@ -13,6 +13,8 @@ const label = computed(() => {
       return 'ທົດລອງໃຊ້'
     case 'suspended':
       return 'ຖືກລະງັບ'
+    case 'inactive':
+      return 'ປິດໃຊ້ງານ'
     case 'pending':
       return 'ລໍຖ້າກວດສອບ'
     case 'verified':

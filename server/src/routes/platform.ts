@@ -42,5 +42,6 @@ router.delete(
 );
 router.post('/tenants/:id/impersonate', requirePlatformRole('superadmin', 'support'), tenants.impersonate);
 router.get('/tenants/:id/usage', tenants.usage);
+router.get('/tenants/:id/users', tenants.listUsers);
 
 export default router;
