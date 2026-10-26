@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 
 useHead({ title: 'Dashboard ພາບລວມ' })
 
-const config = useRuntimeConfig()
+const { platform } = usePlatformConfig()
 const { request } = useApi()
 const { date } = useFormat()
 
@@ -36,7 +36,7 @@ const impersonateTenant = async (tenant) => {
       // We pass the token in url or set cookie
       const targetHost = window.location.hostname === 'localhost'
         ? `http://localhost:3000?impersonate_token=${data.token}`
-        : `https://${tenant.primaryHostname || `${tenant.slug}.${config.public.rootDomain}`}?impersonate_token=${data.token}`
+        : `https://${tenant.primaryHostname || `${tenant.slug}.${platform.value.rootDomain}`}?impersonate_token=${data.token}`
       window.open(targetHost, '_blank')
     }
   } catch (err) {
@@ -188,7 +188,7 @@ onMounted(() => {
                       <p class="text-[11px] font-mono text-muted">{{ tenant.slug }}</p>
                     </td>
                     <td class="text-xs font-mono text-muted">
-                      {{ tenant.primaryHostname || `${tenant.slug}.${config.public.rootDomain}` }}
+                      {{ tenant.primaryHostname || `${tenant.slug}.${platform.rootDomain}` }}
                     </td>
                     <td>
                       <span class="rounded-md bg-surface-muted px-2 py-1 text-xs font-bold text-foreground">

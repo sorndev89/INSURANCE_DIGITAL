@@ -1,8 +1,20 @@
 import type { Request, Response } from 'express';
 import { resolveTenantByHost, resolveTenantBySlug } from '../services/tenantCache.js';
 import { resolveTenantHost } from '../utils/requestHost.js';
+import { env } from '../config/env.js';
 import { ApiError } from '../utils/errors.js';
 import { activePlans } from './plans.js';
+
+export const config = (_req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({
+    data: {
+      rootDomain: env.rootDomain,
+      adminHost: env.adminHost,
+      cnameTarget: env.cnameTarget,
+    },
+  });
+};
 
 export const tenant = async (req: Request, res: Response) => {
   const slug = typeof req.query.slug === 'string' ? req.query.slug.trim() : '';

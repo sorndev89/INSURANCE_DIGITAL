@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 
 useHead({ title: 'Tenants' })
 
-const config = useRuntimeConfig()
+const { platform } = usePlatformConfig()
 const { request } = useApi()
 const { date } = useFormat()
 
@@ -33,7 +33,9 @@ const form = reactive({
 
 const activePlans = computed(() => plans.value.filter((plan) => plan.active))
 const defaultHost = computed(() =>
-  form.slug ? `${form.slug}.${config.public.rootDomain}` : `slug.${config.public.rootDomain}`,
+  form.slug
+    ? `${form.slug}.${platform.value.rootDomain}`
+    : `slug.${platform.value.rootDomain}`,
 )
 
 const load = async (page = 1) => {
@@ -189,7 +191,7 @@ onMounted(async () => {
                   <p class="text-[11px] font-mono text-muted">{{ tenant.slug }}</p>
                 </td>
                 <td class="font-mono text-xs text-muted">
-                  {{ tenant.primaryHostname || `${tenant.slug}.${config.public.rootDomain}` }}
+                  {{ tenant.primaryHostname || `${tenant.slug}.${platform.rootDomain}` }}
                 </td>
                 <td>
                   <span class="rounded-md bg-surface-muted px-2 py-0.5 text-xs font-bold text-foreground">

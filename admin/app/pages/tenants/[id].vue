@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 useHead({ title: 'Tenant detail' })
 
 const route = useRoute()
+const { platform } = usePlatformConfig()
 const { request } = useApi()
 const { date, dateTime, number } = useFormat()
 
@@ -188,10 +189,9 @@ const impersonate = async () => {
 
 const launchTenantApp = () => {
   if (!impersonation.value?.token) return
-  const config = useRuntimeConfig()
   const targetHost = window.location.hostname === 'localhost'
     ? `http://localhost:3000?impersonate_token=${impersonation.value.token}`
-    : `https://${tenant.value?.primaryHostname || `${tenant.value?.slug}.${config.public.rootDomain}`}?impersonate_token=${impersonation.value.token}`
+    : `https://${tenant.value?.primaryHostname || `${tenant.value?.slug}.${platform.value.rootDomain}`}?impersonate_token=${impersonation.value.token}`
   window.open(targetHost, '_blank')
 }
 

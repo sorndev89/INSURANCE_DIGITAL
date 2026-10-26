@@ -312,6 +312,7 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | Method | Path | ໝາຍເຫດ |
 |---|---|---|
 | GET | `/health`, `/api/health` | healthcheck + DB ping |
+| GET | `/api/public/config` | platform config (`rootDomain`, `adminHost`, `cnameTarget`) |
 | GET | `/api/public/tenant` | resolve tenant ຈາກ `?slug=`, `?host=`, `X-Tenant-Host`, `Origin` ຫຼື `Host` |
 | GET | `/api/public/plans` | ແຜນທີ່ເປີດໃຊ້ |
 | POST | `/api/platform/auth/login` | platform login (email ຫຼື username) |
@@ -737,6 +738,10 @@ openssl rand -hex 32   # TLS_ASK_TOKEN
 >
 > ຄ່າ tuning ອື່ນ (`JWT_ISSUER`, token TTLs, `REDIS_KEY_PREFIX`,
 > `TENANT_CACHE_TTL_MS`, `DB_POOL_SIZE`) ມີ default ໃນ code ແລ້ວ — ຕັ້ງສະເພາະເມື່ອຈຳເປັນ.
+>
+> Admin Console ດຶງ `rootDomain`/`adminHost`/`cnameTarget` ຈາກ `/api/public/config`
+> ຕອນ runtime, ດັ່ງນັ້ນ subdomain ທີ່ສະແດງໃນ form ຈະກົງກັບ `ROOT_DOMAIN` ຂອງ server.
+> Build arg `NUXT_PUBLIC_ROOT_DOMAIN` ເປັນພຽງ fallback ຕອນ API ໃຊ້ບໍ່ໄດ້.
 
 > ຢ່າ commit `.env` ຫຼື secret ລົງ Git. ໃສ່ໃນ Coolify Environment Variables ເທົ່ານັ້ນ.
 

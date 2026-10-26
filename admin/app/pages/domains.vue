@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 
 useHead({ title: 'Custom Domains' })
 
-const config = useRuntimeConfig()
+const { platform } = usePlatformConfig()
 const { request } = useApi()
 const { date } = useFormat()
 
@@ -37,7 +37,7 @@ const domainsList = computed(() => {
       // Fallback
       list.push({
         id: 0,
-        hostname: t.primaryHostname || `${t.slug}.${config.public.rootDomain}`,
+        hostname: t.primaryHostname || `${t.slug}.${platform.value.rootDomain}`,
         isPrimary: true,
         verifiedAt: t.createdAt,
         sslStatus: 'active',
