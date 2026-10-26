@@ -125,16 +125,38 @@ defineProps({
       <line x1="6" y1="6" x2="18" y2="18" />
     </template>
 
-    <!-- Check -->
-    <template v-else-if="name === 'check'">
-      <polyline points="20 6 9 17 4 12" />
+    <!-- Check Circle / Success -->
+    <template v-else-if="name === 'check' || name === 'check-circle' || name === 'check_circle'">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="16 10 11 15 8 12" />
     </template>
 
-    <!-- Alert -->
-    <template v-else-if="name === 'alert'">
+    <!-- Error / X Circle -->
+    <template v-else-if="name === 'error' || name === 'x-circle' || name === 'cancel'">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="15" y1="9" x2="9" y2="15" />
+      <line x1="9" y1="9" x2="15" y2="15" />
+    </template>
+
+    <!-- Alert / Warning -->
+    <template v-else-if="name === 'alert' || name === 'warning' || name === 'alert-circle'">
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
+    </template>
+
+    <!-- Info -->
+    <template v-else-if="name === 'info' || name === 'info-circle'">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </template>
+
+    <!-- Help / Confirm -->
+    <template v-else-if="name === 'help' || name === 'help-circle' || name === 'help_outline'">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </template>
 
     <!-- Arrow / Chevron -->

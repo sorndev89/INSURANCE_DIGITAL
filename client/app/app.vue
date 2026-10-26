@@ -7,6 +7,7 @@
     </NuxtLayout>
     <ToastHost />
     <ConfirmDialog />
+    <AppDialog />
   </div>
 </template>
 

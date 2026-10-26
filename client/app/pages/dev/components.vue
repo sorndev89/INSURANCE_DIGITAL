@@ -160,13 +160,47 @@
             <BaseTabs v-model="tab" :items="tabs" />
             <p class="text-sm text-muted">ແທັບທີ່ເລືອກ: {{ tab }}</p>
             <div class="flex flex-wrap gap-2">
-              <BaseButton size="sm" variant="secondary" @click="toast.success('ບັນທຶກສຳເລັດ')">
-                Toast success
+              <BaseButton size="sm" variant="secondary" @click="toast.success('Toast ສຳເລັດ')">
+                Toast
               </BaseButton>
-              <BaseButton size="sm" variant="secondary" @click="toast.error('ເກີດຂໍ້ຜິດພາດ')">
-                Toast error
+              <BaseButton size="sm" variant="secondary" @click="confirmDelete"
+                >Confirm (Legacy)</BaseButton
+              >
+            </div>
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-line">
+              <BaseButton
+                size="sm"
+                variant="secondary"
+                @click="dialog.success('ບັນທຶກຂໍ້ມູນລົງລະບົບສຳເລັດແລ້ວ', 'ສຳເລັດ')"
+              >
+                Dialog Success
               </BaseButton>
-              <BaseButton size="sm" variant="secondary" @click="confirmDelete">Confirm</BaseButton>
+              <BaseButton
+                size="sm"
+                variant="secondary"
+                @click="dialog.alert('ກະລຸນາກວດສອບເອກະສານກ່ອນດຳເນີນການ', 'ແຈ້ງເຕືອນ')"
+              >
+                Dialog Alert
+              </BaseButton>
+              <BaseButton
+                size="sm"
+                variant="secondary"
+                @click="
+                  dialog.error('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບ ຫຼື ຂໍ້ມູນບໍ່ຖືກຕ້ອງ', 'ເກີດຂໍ້ຜິດພາດ')
+                "
+              >
+                Dialog Error
+              </BaseButton>
+              <BaseButton
+                size="sm"
+                variant="secondary"
+                @click="dialog.info('ລະບົບຈະປິດປັບປຸງເວລາ 23:00 ນີ້', 'ແຈ້ງໃຫ້ຊາບ')"
+              >
+                Dialog Info
+              </BaseButton>
+              <BaseButton size="sm" variant="secondary" @click="testConfirmDialog">
+                Dialog Confirm
+              </BaseButton>
             </div>
           </div>
           <div class="space-y-3 rounded-xl border border-line bg-surface p-5">
@@ -335,7 +369,20 @@ import { PRODUCT_TYPES } from '~/utils/constants'
 const ui = useUiStore()
 const format = useFormat()
 const toast = useToast()
+const dialog = useDialog()
 const { confirm } = useConfirm()
+
+const testConfirmDialog = async () => {
+  const confirmed = await dialog.confirm({
+    title: 'ຢືນຢັນການລຶບຂໍ້ມູນ',
+    message: 'ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບລາຍການນີ້ອອກຈາກລະບົບ? ການກະທຳນີ້ບໍ່ສາມາດກູ້ຄືນໄດ້.',
+    confirmLabel: 'ຢືນຢັນລຶບ',
+    cancelLabel: 'ຍົກເລີກ',
+  })
+  if (confirmed) {
+    dialog.success('ລຶບຂໍ້ມູນສຳເລັດຮຽບຮ້ອຍແລ້ວ')
+  }
+}
 
 const form = reactive({
   name: '',

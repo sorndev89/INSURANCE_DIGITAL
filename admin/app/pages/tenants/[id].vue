@@ -5,10 +5,12 @@ useHead({ title: 'Tenant detail' })
 
 const route = useRoute()
 const { platform } = usePlatformConfig()
+const { user } = usePlatformAuth()
 const { request } = useApi()
 const { date, dateTime, number } = useFormat()
 
 const tenantId = computed(() => Number(route.params.id))
+const canManage = computed(() => user.value?.role === 'superadmin')
 const tenant = ref(null)
 const usage = ref(null)
 const plans = ref([])
@@ -41,6 +43,9 @@ const verifyingId = ref(null)
 
 const impersonation = ref(null)
 const impersonating = ref(false)
+
+const demoLoading = ref(false)
+const resetLoading = ref(false)
 
 const load = async () => {
   loading.value = true
@@ -245,6 +250,53 @@ const impersonate = async () => {
     error.value = apiErrorMessage(requestError)
   } finally {
     impersonating.value = false
+  }
+}
+
+const seedDemo = async () => {
+  if (
+    !window.confirm(
+      'ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo ສຳລັບ tenant ນີ້? ລະບົບຈະເພີ່ມລູກຄ້າ, ປະກັນໄພ, ເຄມ ແລະ ຂໍ້ມູນການເງິນຕົວຢ່າງ.',
+    )
+  ) {
+    return
+  }
+  demoLoading.value = true
+  error.value = ''
+  try {
+    const response = await request(`/platform/tenants/${tenantId.value}/demo-data`, {
+      method: 'POST',
+    })
+    const counts = response.data?.counts
+    await Promise.all([loadUsage(), loadUsers()])
+    flash(
+      counts
+        ? `ສຳເລັດ ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo (${counts.policies} ປະກັນໄພ, ${counts.customers} ລູກຄ້າ)`
+        : 'ສຳເລັດ ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo',
+    )
+  } catch (requestError) {
+    error.value = apiErrorMessage(requestError)
+  } finally {
+    demoLoading.value = false
+  }
+}
+
+const resetData = async () => {
+  if (!tenant.value) return
+  const typed = window.prompt(
+    `Reset ຂໍ້ມູນ tenant ${tenant.value.name}?\n\nຂໍ້ມູນທຸລະກິດທັງໝົດ ແລະ users ທີ່ບໍ່ແມ່ນ admin ຈະຖືກລຶບ. Tenant, domain, plan, settings ແລະ admin ຈະຖືກເກັບໄວ້.\n\nພິມ ${tenant.value.slug} ເພື່ອຢືນຢັນ:`,
+  )
+  if ((typed || '').trim() !== tenant.value.slug) return
+  resetLoading.value = true
+  error.value = ''
+  try {
+    await request(`/platform/tenants/${tenantId.value}/reset-data`, { method: 'POST' })
+    await Promise.all([loadUsage(), loadUsers()])
+    flash('Reset ຂໍ້ມູນ tenant ສຳເລັດ')
+  } catch (requestError) {
+    error.value = apiErrorMessage(requestError)
+  } finally {
+    resetLoading.value = false
   }
 }
 
@@ -534,6 +586,15 @@ onMounted(async () => {
           <h2 class="text-sm font-bold text-red-700">Danger zone</h2>
           <div class="mt-3 flex flex-wrap items-center gap-2">
             <button
+              v-if="canManage"
+              type="button"
+              class="sf-btn sf-btn-danger"
+              :disabled="resetLoading"
+              @click="resetData"
+            >
+              {{ resetLoading ? 'ກຳລັງ reset...' : 'Reset ຂໍ້ມູນ tenant' }}
+            </button>
+            <button
               v-if="tenant.status !== 'suspended'"
               type="button"
               class="sf-btn sf-btn-danger"
@@ -576,6 +637,22 @@ onMounted(async () => {
           <p v-if="tenant.planId" class="mt-3 text-[11px] text-slate-500">
             Plan: {{ plans.find((plan) => plan.id === tenant.planId)?.name || '—' }}
           </p>
+        </section>
+
+        <section v-if="canManage" class="sf-card p-5">
+          <h2 class="text-sm font-bold text-slate-900">ຂໍ້ມູນຕົວຢ່າງ (Demo)</h2>
+          <p class="mt-1 text-xs text-slate-500">
+            ສ້າງລູກຄ້າ, ປະກັນໄພ, ເຄມ, ຄອມມິດຊັ່ນ ແລະ ຂໍ້ມູນການເງິນຕົວຢ່າງ.
+            ຖ້າ tenant ມີຂໍ້ມູນແລ້ວ ຕ້ອງ Reset ກ່ອນ.
+          </p>
+          <button
+            type="button"
+            class="sf-btn sf-btn-primary mt-3 w-full"
+            :disabled="demoLoading"
+            @click="seedDemo"
+          >
+            {{ demoLoading ? 'ກຳລັງສ້າງຂໍ້ມູນ...' : 'ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo' }}
+          </button>
         </section>
 
         <section class="sf-card p-5">

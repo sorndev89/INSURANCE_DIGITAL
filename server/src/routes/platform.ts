@@ -41,6 +41,8 @@ router.delete(
   tenants.removeDomain,
 );
 router.post('/tenants/:id/impersonate', requirePlatformRole('superadmin', 'support'), tenants.impersonate);
+router.post('/tenants/:id/demo-data', requirePlatformRole('superadmin'), tenants.seedDemoData);
+router.post('/tenants/:id/reset-data', requirePlatformRole('superadmin'), tenants.resetData);
 router.get('/tenants/:id/usage', tenants.usage);
 router.get('/tenants/:id/users', tenants.listUsers);
 

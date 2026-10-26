@@ -214,6 +214,7 @@
             <h2 class="text-sm font-bold">ລາຍການເຄື່ອນໄຫວລ່າສຸດ</h2>
           </template>
           <DataTable
+            :bordered="false"
             :columns="transactionColumns"
             :rows="data?.recentTransactions || []"
             :loading="pending"

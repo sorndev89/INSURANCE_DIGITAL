@@ -31,25 +31,9 @@
         <BaseIcon :name="item.icon" size="md" />
       </NuxtLink>
     </nav>
-
-    <div class="flex w-full flex-col items-center gap-2 border-t border-line py-3">
-      <button
-        type="button"
-        class="flex h-11 w-11 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        aria-label="ເປີດເມນູເພີ່ມເຕີມ"
-        @click="ui.openTabletSidebar()"
-      >
-        <BaseIcon name="menu_open" size="md" />
-      </button>
-      <NuxtLink to="/profile" aria-label="ໂປຣໄຟລ໌">
-        <BaseAvatar :src="auth.user?.avatar" :name="auth.displayName" size="sm" />
-      </NuxtLink>
-    </div>
   </aside>
 </template>
 
 <script setup>
-const ui = useUiStore()
-const auth = useAuthStore()
 const { flatItems, isActivePath } = useNavigation()
 </script>

@@ -8,19 +8,27 @@
   <aside :class="asideClass" aria-label="ເມນູຫຼັກ">
     <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
       <NuxtLink to="/" class="flex min-w-0 items-center gap-3 text-primary-text">
-        <img
-          v-if="tenant.logoUrl"
-          :src="tenant.logoUrl"
-          :alt="tenant.brandName"
-          class="h-9 w-9 shrink-0 rounded-lg bg-surface-muted object-contain p-0.5"
-        />
         <span
-          v-else
-          class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white shadow-cta"
+          class="flex shrink-0 transition-transform duration-300 ease-in-out"
+          :class="collapsed ? 'translate-x-1.5' : ''"
         >
-          <BaseIcon name="shield" size="md" />
+          <img
+            v-if="tenant.logoUrl"
+            :src="tenant.logoUrl"
+            :alt="tenant.brandName"
+            class="h-9 w-9 shrink-0 rounded-lg bg-surface-muted object-contain p-0.5"
+          />
+          <span
+            v-else
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white shadow-cta"
+          >
+            <BaseIcon name="shield" size="md" />
+          </span>
         </span>
-        <span v-if="!collapsed" class="truncate text-lg font-bold tracking-tight">
+        <span
+          class="min-w-0 truncate text-lg font-bold tracking-tight transition-all duration-300 ease-in-out"
+          :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-44 opacity-100'"
+        >
           {{ tenant.shortName }}
         </span>
       </NuxtLink>
@@ -36,12 +44,12 @@
     </div>
 
     <nav
-      class="scrollbar-thin min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-5"
+      class="no-scrollbar min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-5"
     >
       <div v-for="group in menuGroups" :key="group.title">
         <p
-          v-if="!collapsed"
-          class="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-muted"
+          class="overflow-hidden px-3 text-xs font-bold uppercase tracking-wider text-muted transition-all duration-300 ease-in-out"
+          :class="collapsed ? 'mb-0 max-h-0 opacity-0' : 'mb-2 max-h-8 opacity-100'"
         >
           {{ group.title }}
         </p>
@@ -57,37 +65,25 @@
               isActivePath(item.to)
                 ? 'bg-primary text-white'
                 : 'text-muted hover:bg-surface-muted hover:text-foreground',
-              collapsed ? 'justify-center px-0' : '',
             ]"
             @click="handleNavigate"
           >
-            <BaseIcon :name="item.icon" size="md" />
-            <span v-if="!collapsed" class="truncate">{{ item.label }}</span>
+            <BaseIcon
+              :name="item.icon"
+              size="md"
+              class="shrink-0 transition-transform duration-300 ease-in-out"
+              :class="collapsed ? 'translate-x-1.5' : ''"
+            />
+            <span
+              class="min-w-0 truncate transition-all duration-300 ease-in-out"
+              :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-44 opacity-100'"
+            >
+              {{ item.label }}
+            </span>
           </NuxtLink>
         </div>
       </div>
     </nav>
-
-    <div class="shrink-0 border-t border-line p-3">
-      <div v-if="!collapsed" class="mb-3 flex items-center gap-2 px-2">
-        <BaseAvatar :src="auth.user?.avatar" :name="auth.displayName" size="sm" />
-        <div class="min-w-0">
-          <p class="truncate text-xs font-bold">{{ auth.displayName }}</p>
-          <p class="text-xs text-muted">{{ auth.roleLabel }}</p>
-        </div>
-      </div>
-      <button
-        v-if="!overlay"
-        type="button"
-        class="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-bold text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-        :class="collapsed ? 'justify-center px-0' : ''"
-        :aria-label="collapsed ? 'ຂະຫຍາຍເມນູ' : 'ຫຍໍ້ເມນູ'"
-        @click="ui.toggleSidebar()"
-      >
-        <BaseIcon :name="collapsed ? 'chevron_right' : 'chevron_left'" size="md" />
-        <span v-if="!collapsed">ຫຍໍ້ເມນູ</span>
-      </button>
-    </div>
   </aside>
 </template>
 
@@ -97,7 +93,6 @@ const props = defineProps({
 })
 
 const ui = useUiStore()
-const auth = useAuthStore()
 const tenant = useTenantStore()
 const { menuGroups, isActivePath } = useNavigation()
 
@@ -107,7 +102,7 @@ const asideClass = computed(() => [
   'flex h-full min-h-0 flex-col overflow-hidden border-r border-line bg-surface',
   props.overlay
     ? 'fixed inset-y-0 left-0 z-50 w-72 shadow-2xl'
-    : 'shrink-0 transition-[width] duration-200',
+    : 'shrink-0 transition-[width] duration-300 ease-in-out',
   !props.overlay && (collapsed.value ? 'w-20' : 'w-64'),
 ])
 

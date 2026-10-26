@@ -323,6 +323,8 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | POST | `/api/platform/tenants/:id/domains` | ເພີ່ມ custom domain |
 | POST | `/api/platform/tenants/:id/domains/:domainId/verify` | ກວດ TXT record (`?force=true` = superadmin ຂ້າມ DNS, ມີ audit log) |
 | POST | `/api/platform/tenants/:id/impersonate` | ອອກ token tenant ອາຍຸສັ້ນ + audit |
+| POST | `/api/platform/tenants/:id/demo-data` | ສ້າງຂໍ້ມູນຕົວຢ່າງ Demo (superadmin, ຕ້ອງບໍ່ມີຂໍ້ມູນເດີມ) |
+| POST | `/api/platform/tenants/:id/reset-data` | Reset ຂໍ້ມູນທຸລະກິດ, ເກັບ admin/settings/plan/domains (superadmin) |
 | GET | `/api/platform/tenants/:id/usage` | ການໃຊ້ users/customers/policies |
 | GET | `/api/platform/tenants/:id/users` | ລາຍຊື່ຜູ້ໃຊ້ໃນ tenant (search/pagination) |
 | GET/POST/PATCH | `/api/platform/plans` | ຈັດການແຜນ |

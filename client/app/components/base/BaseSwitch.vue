@@ -15,7 +15,7 @@
       @click="$emit('update:modelValue', !modelValue)"
     >
       <span
-        class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
+        class="absolute top-1 left-0 h-4 w-4 rounded-full bg-white shadow-sm transition-transform"
         :class="modelValue ? 'translate-x-6' : 'translate-x-1'"
       />
     </button>

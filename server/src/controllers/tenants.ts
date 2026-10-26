@@ -32,6 +32,7 @@ import {
 } from '../services/domains.js';
 import { provisionTenant } from '../services/provisioning.js';
 import { invalidateTenantCache } from '../services/tenantCache.js';
+import { resetTenantData, seedTenantDemoData } from '../services/tenantData.js';
 import { writeAuditLog } from '../services/audit.js';
 import { findUserById, listUsers as queryUsers } from '../repositories/users.js';
 
@@ -534,6 +535,42 @@ export const listUsers = async (req: Request, res: Response) => {
     data: result.items,
     meta: { total: result.total, page, pageSize },
   });
+};
+
+export const seedDemoData = async (req: Request, res: Response) => {
+  const id = requireTenantId(req);
+  const tenant = await getTenantOrThrow(id);
+
+  const counts = await seedTenantDemoData(id);
+  await invalidateTenantCache();
+
+  await writeAuditLog({
+    ...actor(req),
+    tenantId: id,
+    action: 'tenant.demo_seed',
+    target: tenant.slug,
+    meta: { counts },
+  });
+
+  res.status(201).json({ data: { tenantId: id, created: true, counts } });
+};
+
+export const resetData = async (req: Request, res: Response) => {
+  const id = requireTenantId(req);
+  const tenant = await getTenantOrThrow(id);
+
+  const result = await resetTenantData(id);
+  await invalidateTenantCache();
+
+  await writeAuditLog({
+    ...actor(req),
+    tenantId: id,
+    action: 'tenant.data_reset',
+    target: tenant.slug,
+    meta: result,
+  });
+
+  res.json({ data: { tenantId: id, reset: true, ...result } });
 };
 
 export const usage = async (req: Request, res: Response) => {

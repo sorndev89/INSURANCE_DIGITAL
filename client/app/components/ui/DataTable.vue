@@ -1,5 +1,8 @@
 <template>
-  <div class="relative overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+  <div
+    class="relative overflow-hidden bg-surface"
+    :class="bordered ? 'rounded-xl border border-line shadow-card' : ''"
+  >
     <template v-if="isMobileCard">
       <div v-if="loading" class="space-y-3 p-3">
         <div v-for="index in 3" :key="index" class="rounded-xl border border-line p-4">
@@ -255,6 +258,7 @@ const props = defineProps({
   emptyDescription: { type: String, default: '' },
   errorTitle: { type: String, default: 'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ' },
   sort: { type: Object, default: null },
+  bordered: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['update:page', 'update:selected', 'update:sort', 'retry', 'row-click'])

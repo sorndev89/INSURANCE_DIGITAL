@@ -1,15 +1,15 @@
 <template>
   <header
-    class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-4 md:px-6 lg:px-8"
+    class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b border-line bg-surface px-3 md:px-4 lg:px-6"
   >
     <div class="flex min-w-0 items-center gap-3">
       <button
         type="button"
-        class="flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground md:flex lg:hidden"
-        aria-label="ເປີດເມນູ"
-        @click="ui.openTabletSidebar()"
+        class="flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+        :aria-label="ui.sidebarCollapsed ? 'ຂະຫຍາຍເມນູ' : 'ຫຍໍ້ເມນູ'"
+        @click="ui.toggleSidebar()"
       >
-        <BaseIcon name="menu" size="lg" />
+        <BaseIcon :name="ui.sidebarCollapsed ? 'chevron_right' : 'chevron_left'" size="lg" />
       </button>
 
       <Breadcrumb class="hidden sm:block" />

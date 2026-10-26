@@ -81,6 +81,8 @@ Ports ທີ່ໃຊ້: API `5055`, MySQL `3315`, Redis `6390` (ເລືອ�
 | POST | `/api/platform/tenants/:id/domains` | custom domain → pending |
 | POST | `/api/platform/tenants/:id/domains/:domainId/verify` | ກວດ TXT (`?force=true` ໃນ dev) |
 | POST | `/api/platform/tenants/:id/impersonate` | token tenant ອາຍຸສັ້ນ + audit |
+| POST | `/api/platform/tenants/:id/demo-data` | ສ້າງຂໍ້ມູນ Demo, ຖ້າມີຂໍ້ມູນແລ້ວຈະ 409 |
+| POST | `/api/platform/tenants/:id/reset-data` | ລຶບຂໍ້ມູນທຸລະກິດ, ເກັບ admin/settings/plan/domains |
 | GET | `/api/platform/tenants/:id/usage` | users/customers/policies |
 | GET/POST/PATCH | `/api/platform/plans` | |
 | GET | `/api/platform/audit-logs` | |

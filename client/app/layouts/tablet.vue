@@ -7,8 +7,7 @@
       ຂ້າມໄປເນື້ອຫາ
     </a>
 
-    <AppRail class="!flex" />
-    <AppSidebar v-if="ui.tabletSidebarOpen" overlay />
+    <AppSidebar class="flex" />
 
     <div class="flex min-w-0 flex-1 flex-col">
       <ImpersonationBanner />
@@ -22,8 +21,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-// Dedicated tablet layout for 768px - 1023px screens
-const ui = useUiStore()
-</script>
