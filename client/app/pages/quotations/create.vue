@@ -96,12 +96,7 @@
             <div class="grid gap-4 sm:grid-cols-4">
               <BaseInput v-model="form.vehicle.make" label="ຍີ່ຫໍ້ລົດ" placeholder="Toyota" />
               <BaseInput v-model="form.vehicle.model" label="ຮຸ່ນລົດ" placeholder="Fortuner" />
-              <BaseInput
-                v-model="form.vehicle.year"
-                type="number"
-                label="ປີຜະລິດ"
-                placeholder="2023"
-              />
+              <BaseNumberInput v-model="form.vehicle.year" label="ປີຜະລິດ" placeholder="2023" />
               <BaseInput
                 v-model="form.vehicle.plateNumber"
                 label="ທະບຽນລົດ (ຖ້າມີ)"
@@ -180,36 +175,36 @@
                 placeholder="ເຊັ່ນ: ຊັ້ນ 1 ຄົບວົງຈອນ"
                 required
               />
-              <BaseInput
+              <BaseNumberInput
                 v-model.number="option.sumInsured"
-                type="number"
-                label="ທຶນປະກັນ / ວົງເງິນຄຸ້ມຄອງ (₭)"
+                :label="`ທຶນປະກັນ / ວົງເງິນຄຸ້ມຄອງ (${currencyLabel})`"
                 placeholder="150,000,000"
+                allow-decimal
               />
             </div>
 
             <div class="mt-4 grid gap-4 sm:grid-cols-4">
-              <BaseInput
+              <BaseNumberInput
                 v-model.number="option.basePremium"
-                type="number"
-                label="ເບ້ຍປະກັນພື້ນຖານ (₭)"
+                :label="`ເບ້ຍປະກັນພື້ນຖານ (${currencyLabel})`"
                 required
-                @input="calculateOption(option)"
+                allow-decimal
+                @update:model-value="calculateOption(option)"
               />
-              <BaseInput
+              <BaseNumberInput
                 v-model.number="option.discountPercent"
-                type="number"
                 label="ສ່ວນຫຼຸດ Broker (%)"
                 placeholder="0"
                 min="0"
                 max="100"
-                @input="calculateOption(option)"
+                allow-decimal
+                @update:model-value="calculateOption(option)"
               />
-              <BaseInput
+              <BaseNumberInput
                 v-model.number="option.deductible"
-                type="number"
-                label="ຄ່າເສຍຫາຍສ່ວນທຳອິດ (₭)"
+                :label="`ຄ່າເສຍຫາຍສ່ວນທຳອິດ (${currencyLabel})`"
                 placeholder="0"
+                allow-decimal
               />
               <div class="rounded-xl border border-line bg-surface-muted p-2.5">
                 <span class="text-xs text-muted">ເບ້ຍສຸດທິລູກຄ້າຈ່າຍ:</span>
@@ -250,15 +245,16 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { navigateTo, useRouter } from '#app'
 import { useQuotations } from '~/composables/api/useQuotations'
+import { useCompanies } from '~/composables/api/useCompanies'
+import { useProducts } from '~/composables/api/useProducts'
+import { useAgents } from '~/composables/api/useAgents'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { currencyLabel } from '~/utils/currencyDisplay'
 import { CUSTOMER_TYPES, PRODUCT_TYPES } from '~/utils/constants'
-import { companies } from '~/mocks/companies'
-import { agents } from '~/mocks/agents'
-import { products } from '~/mocks/products'
 import { calculatePremium } from '~/utils/premium'
 import { required } from '~/utils/validators'
 
@@ -272,22 +268,31 @@ const router = useRouter()
 const toast = useToast()
 const format = useFormat()
 const { create } = useQuotations({ immediate: false })
+const { list: fetchCompanies } = useCompanies()
+const { list: fetchProducts } = useProducts()
+const { items: agentsList, refresh: fetchAgents } = useAgents({ querySync: false, pageSize: 100 })
 
 const saving = ref(false)
+const companiesList = ref([])
+const productsList = ref([])
 
-const companyOptions = companies.map((c) => ({
-  value: c.id,
-  label: `${c.code} - ${c.name}`,
-}))
+const companyOptions = computed(() =>
+  companiesList.value.map((c) => ({
+    value: c.id,
+    label: `${c.code} - ${c.name}`,
+  })),
+)
 
-const agentOptions = agents.map((a) => {
-  const code = a.agentCode || a.code || ''
-  const name = a.name || a.agentName || 'ຕົວແທນ'
-  return {
-    value: a.id,
-    label: code ? `${code} - ${name}` : name,
-  }
-})
+const agentOptions = computed(() =>
+  agentsList.value.map((a) => {
+    const code = a.agentCode || a.code || ''
+    const name = a.name || a.agentName || 'ຕົວແທນ'
+    return {
+      value: a.id,
+      label: code ? `${code} - ${name}` : name,
+    }
+  }),
+)
 
 // ວັນໝົດອາຍຸໃບສະເໜີລາຄາເລີ່ມຕົ້ນ (15 ວັນຈາກມື້ນີ້)
 const defaultValidDate = new Date()
@@ -300,7 +305,7 @@ const form = reactive({
   customerPhone: '',
   customerEmail: '',
   taxId: '',
-  agentId: agents[0]?.id || 1,
+  agentId: null,
   productType: 'Motor',
   validUntil: defaultValidIso,
   vehicle: {
@@ -368,12 +373,12 @@ const removeOption = (index) => {
 }
 
 const onCompanyChange = (option) => {
-  const match = products.find(
+  const match = productsList.value.find(
     (p) => p.companyId === option.companyId && p.type === form.productType,
   )
   if (match) {
     option.planName = match.name
-    option.basePremium = match.basePremium
+    option.basePremium = match.basePremium || 2000000
     option.sumInsured = match.sumInsured || 100000000
     option.deductible = match.deductible || 0
     calculateOption(option)
@@ -402,7 +407,7 @@ const submit = async () => {
   try {
     // ຄຳນວນເບ້ຍສຳລັບລາຍການທີ່ແນະນຳ ຫຼື option ທຳອິດ
     const primaryOption = form.options.find((o) => o.isRecommended) || form.options[0]
-    const selectedCompany = companies.find((c) => c.id === primaryOption.companyId)
+    const selectedCompany = companiesList.value.find((c) => c.id === primaryOption.companyId)
 
     await create({
       customerType: form.customerType,
@@ -430,4 +435,18 @@ const submit = async () => {
     saving.value = false
   }
 }
+
+onMounted(async () => {
+  try {
+    const [cData, pData] = await Promise.all([fetchCompanies(), fetchProducts()])
+    companiesList.value = cData || []
+    productsList.value = pData || []
+    await fetchAgents()
+    if (!form.agentId && agentsList.value.length > 0) {
+      form.agentId = agentsList.value[0].id
+    }
+  } catch (err) {
+    console.error('Error fetching master data:', err)
+  }
+})
 </script>

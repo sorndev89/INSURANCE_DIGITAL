@@ -153,10 +153,9 @@
             required
             :error="errors.model"
           />
-          <BaseInput
+          <BaseNumberInput
             v-model="form.vehicle.year"
             label="ປີຜະລິດ"
-            type="number"
             placeholder="2024"
             :error="errors.year"
           />
@@ -182,10 +181,9 @@
             label="ເລກຖັງ (Chassis No.)"
             placeholder="MRO..."
           />
-          <BaseInput
+          <BaseNumberInput
             v-model="form.vehicle.engineCapacity"
             label="ຄວາມຈຸກະບອກສູບ (cc)"
-            type="number"
             placeholder="2800"
             :error="errors.engineCapacity"
           />
@@ -303,30 +301,30 @@
 
         <!-- ປັບອັດຕາຄອມມິດຊັ່ນ ແລະ ສ່ວນຫຼຸດ -->
         <div class="grid gap-4 sm:grid-cols-3 rounded-xl border border-line bg-surface-muted p-4">
-          <BaseInput
+          <BaseNumberInput
             v-model.number="form.discountPercent"
-            type="number"
             label="ສ່ວນຫຼຸດໃຫ້ລູກຄ້າ (%)"
             min="0"
             max="100"
             suffix="%"
+            allow-decimal
             :error="errors.discountPercent"
           />
-          <BaseInput
+          <BaseNumberInput
             v-model.number="form.brokerCommissionRate"
-            type="number"
             label="ຄອມມິດຊັ່ນ Broker ຈາກບໍລິສັດ (%)"
             min="0"
             max="100"
             suffix="%"
+            allow-decimal
           />
-          <BaseInput
+          <BaseNumberInput
             v-model.number="form.agentCommissionRate"
-            type="number"
             label="ຄອມມິດຊັ່ນຈ່າຍຕົວແທນ (%)"
             min="0"
             max="100"
             suffix="%"
+            allow-decimal
           />
         </div>
 
@@ -486,11 +484,7 @@
           </div>
         </div>
         <div class="flex flex-col justify-center gap-2 sm:flex-row pt-4">
-          <BaseButton
-            variant="secondary"
-            icon="download"
-            @click="toast.info('ກຳລັງກະກຽມດາວໂຫຼດ (mock)')"
-          >
+          <BaseButton variant="secondary" icon="download" @click="toast.info('ກຳລັງກະກຽມດາວໂຫຼດ')">
             ດາວໂຫຼດເອກະສານ
           </BaseButton>
           <BaseButton icon="visibility" @click="navigateTo(`/policies/${createdPolicy?.id}`)">
@@ -537,9 +531,9 @@ import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
 import { useAuthStore } from '~/stores/auth'
 import { useFormat } from '~/utils/format'
-import { companies } from '~/mocks/companies'
-import { products } from '~/mocks/products'
-import { agents } from '~/mocks/agents'
+import { useCompanies } from '~/composables/api/useCompanies'
+import { useProducts } from '~/composables/api/useProducts'
+import { useAgents } from '~/composables/api/useAgents'
 import {
   maxValue,
   minValue,
@@ -559,6 +553,9 @@ const { confirm } = useConfirm()
 const { create } = usePolicies({ immediate: false })
 const { getById: getQuotation } = useQuotations({ immediate: false })
 const { getById: getCustomer } = useCustomers({ immediate: false })
+const { list: fetchCompanies } = useCompanies()
+const { list: fetchProducts } = useProducts()
+const { items: agentsList, refresh: fetchAgents } = useAgents({ querySync: false, pageSize: 100 })
 
 const steps = [
   { label: 'ຜູ້ເອົາປະກັນ', description: 'ຂໍ້ມູນລູກຄ້າ & KYC' },
@@ -574,20 +571,24 @@ const completed = ref(false)
 const createdPolicy = ref(null)
 const policyDocFile = ref(null)
 const companyFilter = ref('ALL')
+const companiesList = ref([])
+const productsList = ref([])
 
-const companyFilterOptions = [
+const companyFilterOptions = computed(() => [
   { value: 'ALL', label: 'ທຸກບໍລິສັດປະກັນໄພ' },
-  ...companies.map((c) => ({ value: c.id, label: `${c.code} - ${c.name}` })),
-]
+  ...companiesList.value.map((c) => ({ value: c.id, label: `${c.code} - ${c.name}` })),
+])
 
-const agentOptions = agents.map((a) => {
-  const code = a.agentCode || a.code || ''
-  const name = a.name || a.agentName || 'ຕົວແທນ'
-  return {
-    value: a.id,
-    label: code ? `${code} - ${name}` : name,
-  }
-})
+const agentOptions = computed(() =>
+  agentsList.value.map((a) => {
+    const code = a.agentCode || a.code || ''
+    const name = a.name || a.agentName || 'ຕົວແທນ'
+    return {
+      value: a.id,
+      label: code ? `${code} - ${name}` : name,
+    }
+  }),
+)
 
 const form = reactive({
   customerType: 'individual',
@@ -628,7 +629,7 @@ const form = reactive({
   insurerPolicyNumber: '',
   startDate: new Date().toISOString().slice(0, 10),
   endDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().slice(0, 10),
-  agentId: agents[0]?.id || 1,
+  agentId: null,
   quotationId: null,
   discountPercent: 0,
   brokerCommissionRate: 15,
@@ -663,12 +664,12 @@ const customerDisplayName = computed(() => {
 })
 
 const filteredProducts = computed(() => {
-  if (companyFilter.value === 'ALL') return products
-  return products.filter((p) => p.companyId === Number(companyFilter.value))
+  if (companyFilter.value === 'ALL') return productsList.value
+  return productsList.value.filter((p) => p.companyId === Number(companyFilter.value))
 })
 
 const selectedProduct = computed(() =>
-  products.find((product) => product.id === Number(form.productId)),
+  productsList.value.find((product) => product.id === Number(form.productId)),
 )
 
 const premium = computed(() =>
@@ -840,9 +841,9 @@ const applyQuotation = async (id) => {
 
   // ຊອກຫາ product ທີ່ກົງກັບ quotation
   const match =
-    products.find((p) => p.name === quotation.productName) ||
-    products.find((p) => p.companyId === quotation.companyId) ||
-    products.find((p) => p.type === quotation.productType)
+    productsList.value.find((p) => p.name === quotation.productName) ||
+    productsList.value.find((p) => p.companyId === quotation.companyId) ||
+    productsList.value.find((p) => p.type === quotation.productType)
 
   if (match) {
     selectProduct(match)
@@ -891,6 +892,17 @@ const clearDraft = () => {
 
 onMounted(async () => {
   restoreDraft()
+  try {
+    const [cData, pData] = await Promise.all([fetchCompanies(), fetchProducts()])
+    companiesList.value = cData || []
+    productsList.value = pData || []
+    await fetchAgents()
+    if (!form.agentId && agentsList.value.length > 0) {
+      form.agentId = agentsList.value[0].id
+    }
+  } catch (err) {
+    console.error('Error fetching master data:', err)
+  }
   await prefillFromRoute()
 })
 onBeforeUnmount(saveDraft)

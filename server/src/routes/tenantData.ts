@@ -49,6 +49,7 @@ import {
 } from '../controllers/finance.js';
 import { getDashboard } from '../controllers/dashboard.js';
 import { uploadFile } from '../controllers/uploads.js';
+import { get as getSettings, update as updateSettings } from '../controllers/settings.js';
 
 export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   const router = Router();
@@ -57,6 +58,8 @@ export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   const fieldRoles = [...auth, requireRole('admin', 'staff', 'agent')];
 
   router.get('/dashboard', ...auth, getDashboard);
+  router.get('/settings', ...auth, getSettings);
+  router.patch('/settings', ...auth, requireRole('admin'), updateSettings);
   router.post('/uploads', ...auth, uploadFile);
 
   router.get('/customers', ...auth, listCustomers);

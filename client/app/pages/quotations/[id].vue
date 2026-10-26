@@ -10,7 +10,7 @@
     >
       <template #actions>
         <BaseButton variant="secondary" icon="arrow_back" @click="router.back()">ກັບຄືນ</BaseButton>
-        <BaseButton variant="secondary" icon="print" @click="toast.info('ພິມເອກະສານປຽບທຽບ (mock)')">
+        <BaseButton variant="secondary" icon="print" @click="toast.info('ພິມເອກະສານປຽບທຽບ')">
           ພິມໃບສະເໜີລາຄາ
         </BaseButton>
         <BaseButton
@@ -101,7 +101,7 @@
                 block
                 variant="secondary"
                 icon="share"
-                @click="toast.info('ຄັດລອກລິ້ງແບ່ງປັນໃຫ້ລູກຄ້າແລ້ວ (mock)')"
+                @click="toast.info('ຄັດລອກລິ້ງແບ່ງປັນໃຫ້ລູກຄ້າແລ້ວ')"
               >
                 ແບ່ງປັນໃຫ້ລູກຄ້າ (Share)
               </BaseButton>
@@ -169,7 +169,11 @@
                 <div class="flex justify-between">
                   <span class="text-muted">ຄ່າເສຍຫາຍສ່ວນທຳອິດ:</span>
                   <span class="font-bold tabular-nums">
-                    {{ opt.deductible ? format.currency(opt.deductible) : 'ບໍ່ມີ (0 ₭)' }}
+                    {{
+                      opt.deductible
+                        ? format.currency(opt.deductible)
+                        : `ບໍ່ມີ (${format.currency(0)})`
+                    }}
                   </span>
                 </div>
                 <div v-if="opt.discountPercent" class="flex justify-between text-danger">
@@ -213,7 +217,7 @@ import { navigateTo, useRoute, useRouter } from '#app'
 import { useQuotations } from '~/composables/api/useQuotations'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
-import { companies } from '~/mocks/companies'
+import { useCompanies } from '~/composables/api/useCompanies'
 
 definePageMeta({
   layout: 'admin',
@@ -226,15 +230,17 @@ const router = useRouter()
 const format = useFormat()
 const toast = useToast()
 const { getById } = useQuotations({ immediate: false })
+const { list: fetchCompanies } = useCompanies()
 
 const quotation = ref(null)
 const pending = ref(true)
 const error = ref('')
 const selectedOption = ref(null)
+const companiesList = ref([])
 
 const getCompanyName = (companyId) => {
-  const match = companies.find((c) => c.id === Number(companyId))
-  return match ? `${match.code} - ${match.name}` : 'ບໍລິສັດປະກັນໄພ'
+  const match = companiesList.value.find((c) => c.id === Number(companyId))
+  return match ? `${match.code} - ${match.name}` : quotation.value?.companyName || 'ບໍລິສັດປະກັນໄພ'
 }
 
 const displayOptions = computed(() => {
@@ -289,5 +295,12 @@ const convertToPolicy = (opt) => {
   })
 }
 
-onMounted(load)
+onMounted(async () => {
+  try {
+    companiesList.value = (await fetchCompanies()) || []
+  } catch {
+    companiesList.value = []
+  }
+  await load()
+})
 </script>

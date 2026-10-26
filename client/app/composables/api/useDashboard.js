@@ -3,6 +3,7 @@ import { useRuntimeConfig } from '#imports'
 import { clone, delay, mockError, shouldFail } from '~/mocks/_helpers'
 import { dashboard as mockDashboard } from '~/mocks/dashboard'
 import { useApiClient } from './useApiClient'
+import { tenantPath } from '~/config/api'
 
 export const useDashboard = () => {
   const config = useRuntimeConfig()
@@ -22,7 +23,7 @@ export const useDashboard = () => {
         }
         data.value = clone(mockDashboard)
       } else {
-        const response = await apiFetch('/dashboard')
+        const response = await apiFetch(tenantPath('/dashboard'))
         data.value = response.data
       }
     } catch (requestError) {

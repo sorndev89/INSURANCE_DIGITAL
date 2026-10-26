@@ -15,6 +15,7 @@ import { ApiError } from '../utils/errors.js';
 import {
   asObject,
   optionalString,
+  parseCurrencyDisplay,
   parsePagination,
   requireEmail,
   requireHostname,
@@ -232,6 +233,13 @@ export const update = async (req: Request, res: Response) => {
       typeof incomingBrand?.name === 'string' ? incomingBrand.name.trim() : '';
     const previousBrandName =
       typeof currentBrand.name === 'string' ? currentBrand.name.trim() : '';
+    const hasCurrencyDisplay =
+      incomingSettings !== undefined &&
+      Object.prototype.hasOwnProperty.call(incomingSettings, 'currencyDisplay');
+    const currencyDisplay =
+      incomingSettings && hasCurrencyDisplay
+        ? parseCurrencyDisplay(incomingSettings.currencyDisplay)
+        : undefined;
 
     let nextBrandName = mergedBrand.name;
     if (
@@ -245,6 +253,7 @@ export const update = async (req: Request, res: Response) => {
     patch.settings = {
       ...currentSettings,
       ...(incomingSettings ?? {}),
+      ...(hasCurrencyDisplay ? { currencyDisplay: currencyDisplay ?? null } : {}),
       brand: {
         ...mergedBrand,
         ...(typeof nextBrandName === 'string' ? { name: nextBrandName } : {}),

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useCookie } from '#app'
 import { ROLE_LABELS, ROLE_PERMISSIONS } from '~/config/permissions'
+import { setCurrencyUser } from '~/utils/currencyDisplay'
 
 const SESSION_COOKIE = 'saiyfon_session'
 const REMEMBER_SECONDS = 60 * 60 * 24 * 30
@@ -16,6 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(initialSession?.user || null)
   const token = ref(initialSession?.token || null)
   const impersonating = ref(Boolean(initialSession?.impersonating))
+
+  setCurrencyUser(user.value?.id)
 
   const role = computed(() => user.value?.role || null)
   const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
@@ -57,6 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = session.user || null
     token.value = session.token || null
     impersonating.value = Boolean(flag)
+    setCurrencyUser(user.value?.id)
     persistSession(
       { user: session.user || null, token: session.token || null, impersonating: flag },
       remember,
@@ -82,6 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     token.value = null
     impersonating.value = false
+    setCurrencyUser(null)
     sessionCookie.value = null
     const cookie = useCookie(SESSION_COOKIE, { sameSite: 'lax', default: () => null })
     cookie.value = null

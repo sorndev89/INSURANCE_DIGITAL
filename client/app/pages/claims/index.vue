@@ -2,7 +2,7 @@
   <div class="space-y-4 sm:space-y-6">
     <PageHeader title="ລາຍການເຄມ" description="ຕິດຕາມສະຖານະການແຈ້ງເຄມ ແລະ ການອະນຸມັດ.">
       <template #actions>
-        <BaseButton variant="secondary" icon="warning" @click="toast.info('ແຈ້ງເຫດດ່ວນ (mock)')"
+        <BaseButton variant="secondary" icon="warning" @click="toast.info('ແຈ້ງເຫດດ່ວນ')"
           >ແຈ້ງເຫດດ່ວນ</BaseButton
         >
         <BaseButton icon="add_circle" @click="navigateTo('/claims/create')">ແຈ້ງເຄມໃໝ່</BaseButton>

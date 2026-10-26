@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="ຄ່າຄອມມິດຊັ່ນ" description="ສະຫຼຸບຍອດຄອມມິດຊັ່ນ ແລະ ການຈ່າຍເງິນ.">
       <template #actions>
-        <BaseButton icon="payments" @click="toast.info('ຈ່າຍຄອມມິດຊັ່ນທັງໝົດ (mock)')"
+        <BaseButton icon="payments" @click="toast.info('ຈ່າຍຄອມມິດຊັ່ນທັງໝົດ')"
           >ຈ່າຍຄ່າຄອມ</BaseButton
         >
       </template>

@@ -54,6 +54,7 @@ const navGroups = [
     title: 'ລະບົບ & ຄວາມປອດໄພ',
     items: [
       { label: 'Audit Logs', to: '/audit', icon: 'audit' },
+      { label: 'ຕັ້ງຄ່າການສະແດງຜົນ', to: '/settings', icon: 'settings' },
       { label: 'ສະຖານະລະບົບ (Health)', to: '/system/health', icon: 'health' },
     ],
   },

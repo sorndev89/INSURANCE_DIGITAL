@@ -280,10 +280,31 @@ const quotationQuery = () =>
     .leftJoin(customers, eq(customers.id, quotations.customerId))
     .leftJoin(products, eq(products.id, quotations.productId));
 
-const mapQuotation = (row: { premium: unknown; [key: string]: unknown }) => ({
-  ...row,
-  premium: toNumber(row.premium),
-});
+const mapQuotation = (row: { premium: unknown; notes: unknown; [key: string]: unknown }) => {
+  let options = null;
+  let vehicle = null;
+  let rawNotes = typeof row.notes === 'string' ? row.notes : '';
+  if (rawNotes.startsWith('{') && rawNotes.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(rawNotes);
+      if (parsed.__brokerQuote) {
+        options = parsed.options || null;
+        vehicle = parsed.vehicle || null;
+        rawNotes = parsed.note || '';
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    ...row,
+    premium: toNumber(row.premium),
+    notes: rawNotes,
+    options,
+    vehicle,
+  };
+};
 
 export const listQuotations = async (req: Request, res: Response) => {
   const tid = tenantId(req);
@@ -357,6 +378,16 @@ export const createQuotation = async (req: Request, res: Response) => {
     optionalString(body.reference, 'reference', { max: 50 }) ||
     sequenceNumber(`QT-${year}`, toNumber(countRow?.total), 3);
 
+  let notes = optionalString(body.notes ?? body.note, 'notes', { max: 2000 }) || '';
+  if (Array.isArray(body.options) || body.vehicle) {
+    notes = JSON.stringify({
+      __brokerQuote: true,
+      note: notes,
+      options: body.options || [],
+      vehicle: body.vehicle || null,
+    });
+  }
+
   const [result] = await db.insert(quotations).values({
     tenantId: tid,
     reference,
@@ -365,7 +396,7 @@ export const createQuotation = async (req: Request, res: Response) => {
     premium: String(Number(body.premium) || 0),
     validUntil: optionalString(body.validUntil, 'validUntil', { max: 10 }),
     status: optionalString(body.status, 'status', { max: 20 }) || 'draft',
-    notes: optionalString(body.notes ?? body.note, 'notes', { max: 2000 }),
+    notes,
   });
 
   const [row] = await quotationQuery()

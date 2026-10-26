@@ -101,19 +101,19 @@
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <BaseInput
+            <BaseNumberInput
               v-model="form.amount"
-              type="number"
-              label="ມູນຄ່າປະເມີນຄວາມເສຍຫາຍ (₭)"
+              :label="`ມູນຄ່າປະເມີນຄວາມເສຍຫາຍ (${currencyLabel})`"
               placeholder="10,000,000"
               required
+              allow-decimal
               :error="errors.amount"
             />
-            <BaseInput
+            <BaseNumberInput
               v-model="form.coverageLimit"
-              type="number"
-              label="ວົງເງິນຄຸ້ມຄອງຕາມກົມມະທັນ (₭)"
+              :label="`ວົງເງິນຄຸ້ມຄອງຕາມກົມມະທັນ (${currencyLabel})`"
               placeholder="150,000,000"
+              allow-decimal
             />
           </div>
 
@@ -167,14 +167,15 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { navigateTo, useRoute, useRouter } from '#app'
 import { useClaims } from '~/composables/api/useClaims'
 import { usePolicies } from '~/composables/api/usePolicies'
+import { useCompanies } from '~/composables/api/useCompanies'
 import { useFileUpload } from '~/composables/useFileUpload'
 import { useToast } from '~/composables/useToast'
 import { LAO_PROVINCES, PRODUCT_TYPES } from '~/utils/constants'
-import { companies } from '~/mocks/companies'
+import { currencyLabel } from '~/utils/currencyDisplay'
 import { numeric, required, validate } from '~/utils/validators'
 
 definePageMeta({
@@ -188,15 +189,19 @@ const router = useRouter()
 const toast = useToast()
 const { create } = useClaims({ immediate: false })
 const { getById: getPolicy } = usePolicies({ immediate: false })
+const { list: fetchCompanies } = useCompanies()
 const { upload } = useFileUpload()
 
 const saving = ref(false)
 const uploadedAttachment = ref(null)
+const companiesList = ref([])
 
-const companyOptions = companies.map((c) => ({
-  value: c.id,
-  label: `${c.code} - ${c.name}`,
-}))
+const companyOptions = computed(() =>
+  companiesList.value.map((c) => ({
+    value: c.id,
+    label: `${c.code} - ${c.name}`,
+  })),
+)
 
 const form = reactive({
   policyNumber: '',
@@ -272,7 +277,7 @@ const submit = async () => {
       attachment = await upload(form.attachment)
     }
 
-    const selectedCompany = companies.find((c) => c.id === form.companyId)
+    const selectedCompany = companiesList.value.find((c) => c.id === form.companyId)
 
     await create({
       policyNumber: form.policyNumber,
@@ -305,5 +310,13 @@ const submit = async () => {
   }
 }
 
-onMounted(loadPrefill)
+onMounted(async () => {
+  try {
+    const list = await fetchCompanies()
+    companiesList.value = list || []
+  } catch {
+    companiesList.value = []
+  }
+  await loadPrefill()
+})
 </script>

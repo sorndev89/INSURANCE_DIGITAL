@@ -54,9 +54,8 @@
         <BaseInput v-model="form.name" label="ຊື່ທີມ" required :error="errors.name" />
         <BaseSelect v-model="form.headName" label="ຫົວໜ້າທີມ" :options="agentOptions" />
         <BaseInput v-model="form.location" label="ພື້ນທີ່ / ສາຂາ" placeholder="ວຽງຈັນ" />
-        <BaseInput
+        <BaseNumberInput
           v-model="form.members"
-          type="number"
           label="ຈຳນວນສະມາຊິກ"
           min="0"
           :error="errors.members"

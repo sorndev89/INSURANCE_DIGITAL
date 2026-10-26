@@ -8,7 +8,7 @@
         :key="setting.title"
         type="button"
         class="rounded-xl border border-line bg-surface p-5 text-left shadow-card transition-colors hover:border-primary"
-        @click="toast.info(`${setting.title} (mock)`)"
+        @click="toast.info(setting.title)"
       >
         <span
           class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary-text"
@@ -43,8 +43,12 @@
             <dd class="font-bold">1.0.0</dd>
           </div>
           <div class="flex justify-between gap-3">
-            <dt class="text-muted">ສະຖານະ Mock</dt>
-            <dd><BaseBadge tone="success">ເປີດໃຊ້</BaseBadge></dd>
+            <dt class="text-muted">ສະຖານະລະບົບ</dt>
+            <dd>
+              <BaseBadge :tone="config.public.useMock ? 'warning' : 'success'">
+                {{ config.public.useMock ? 'Mock Mode' : 'Live API (ຂໍ້ມູນຈິງ)' }}
+              </BaseBadge>
+            </dd>
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-muted">ພາສາ</dt>
@@ -53,12 +57,51 @@
         </dl>
       </BaseCard>
     </div>
+
+    <BaseCard>
+      <template #header>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold">ການສະແດງຈຳນວນເງິນ</h2>
+            <p class="mt-0.5 text-xs text-muted">
+              ຄ່າເລີ່ມຕົ້ນສຳລັບຜູ້ໃຊ້ໃນບໍລິສັດ. ຜູ້ໃຊ້ສາມາດກຳນົດສ່ວນຕົວໄດ້ໃນໜ້າໂປຣໄຟລ໌.
+            </p>
+          </div>
+          <BaseBadge tone="primary">Tenant default</BaseBadge>
+        </div>
+      </template>
+
+      <CurrencyDisplayFields v-model="currencyForm" />
+
+      <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <p class="text-xs text-muted">ຖ້າຜູ້ໃຊ້ຕັ້ງຄ່າສ່ວນຕົວໄວ້ ລະບົບຈະໃຊ້ຄ່າສ່ວນຕົວນັ້ນກ່ອນ.</p>
+        <div class="flex gap-2">
+          <BaseButton
+            variant="secondary"
+            size="sm"
+            icon="refresh"
+            :loading="resetting"
+            @click="resetCurrency"
+          >
+            ລ້າງຄ່າ
+          </BaseButton>
+          <BaseButton icon="save" size="sm" :loading="savingCurrency" @click="saveCurrency">
+            ບັນທຶກ
+          </BaseButton>
+        </div>
+      </div>
+    </BaseCard>
   </div>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+import { useRuntimeConfig } from '#imports'
+import { useTenantSettings } from '~/composables/api/useTenantSettings'
 import { useToast } from '~/composables/useToast'
+import { useTenantStore } from '~/stores/tenant'
 import { useUiStore } from '~/stores/ui'
+import { DEFAULT_CURRENCY_DISPLAY, normalizeCurrencyDisplay } from '~/utils/currencyDisplay'
 
 definePageMeta({
   layout: 'admin',
@@ -66,8 +109,49 @@ definePageMeta({
   permission: 'settings.manage',
 })
 
+const config = useRuntimeConfig()
 const ui = useUiStore()
 const toast = useToast()
+const tenant = useTenantStore()
+const { updateCurrencyDisplay } = useTenantSettings()
+
+const currencyForm = ref({ ...DEFAULT_CURRENCY_DISPLAY })
+const savingCurrency = ref(false)
+const resetting = ref(false)
+
+const syncCurrencyForm = () => {
+  currencyForm.value = normalizeCurrencyDisplay(tenant.currencyDisplay) || {
+    ...DEFAULT_CURRENCY_DISPLAY,
+  }
+}
+
+watch(() => tenant.currencyDisplay, syncCurrencyForm, { immediate: true })
+
+const saveCurrency = async () => {
+  savingCurrency.value = true
+  try {
+    await updateCurrencyDisplay({ ...currencyForm.value })
+    toast.success('ບັນທຶກການສະແດງເງິນສຳເລັດ')
+  } catch (error) {
+    toast.error(error?.message || 'ບໍ່ສາມາດບັນທຶກການສະແດງເງິນໄດ້')
+  } finally {
+    savingCurrency.value = false
+  }
+}
+
+const resetCurrency = async () => {
+  if (!window.confirm('ລ້າງຄ່າການສະແດງເງິນຂອງບໍລິສັດ ແລະ ກັບໄປໃຊ້ຄ່າເລີ່ມຕົ້ນ?')) return
+  resetting.value = true
+  try {
+    await updateCurrencyDisplay(null)
+    currencyForm.value = { ...DEFAULT_CURRENCY_DISPLAY }
+    toast.success('ລ້າງຄ່າແລ້ວ')
+  } catch (error) {
+    toast.error(error?.message || 'ບໍ່ສາມາດລ້າງຄ່າໄດ້')
+  } finally {
+    resetting.value = false
+  }
+}
 
 const settings = [
   { title: 'ຂໍ້ມູນບໍລິສັດ', description: 'ທີ່ຢູ່, ເບີໂທ, ໂລໂກ້', icon: 'business' },

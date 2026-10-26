@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl font-bold tracking-tight">ລືມລະຫັດຜ່ານ</h1>
     <p class="mt-2 text-sm text-muted">
-      ປ້ອນອີເມວທີ່ໃຊ້ໃນລະບົບ. ພວກເຮົາຈະສົ່ງລິ້ງຕັ້ງລະຫັດຜ່ານໃໝ່ (mock).
+      ປ້ອນອີເມວທີ່ໃຊ້ໃນລະບົບ. ພວກເຮົາຈະສົ່ງລິ້ງຕັ້ງລະຫັດຜ່ານໃໝ່.
     </p>
 
     <form class="mt-8 space-y-4" novalidate @submit.prevent="submit">

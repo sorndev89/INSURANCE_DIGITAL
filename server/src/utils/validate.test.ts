@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ApiError } from './errors.js';
 import {
+  parseCurrencyDisplay,
   requireEmail,
   requireHostname,
   requirePassword,
@@ -44,4 +45,23 @@ test('requireString reports ApiError with a code', () => {
     assert.ok(error instanceof ApiError);
     assert.equal(error.code, 'bad_request');
   }
+});
+
+test('parseCurrencyDisplay accepts supported values and clears with null', () => {
+  assert.deepEqual(parseCurrencyDisplay({ symbol: 'kip', position: 'prefix' }), {
+    symbol: 'kip',
+    position: 'prefix',
+  });
+  assert.deepEqual(parseCurrencyDisplay({ symbol: 'lak', position: 'suffix' }), {
+    symbol: 'lak',
+    position: 'suffix',
+  });
+  assert.equal(parseCurrencyDisplay(null), null);
+  assert.equal(parseCurrencyDisplay(undefined), undefined);
+});
+
+test('parseCurrencyDisplay rejects unsupported values', () => {
+  assert.throws(() => parseCurrencyDisplay({ symbol: 'usd', position: 'prefix' }));
+  assert.throws(() => parseCurrencyDisplay({ symbol: 'kip', position: 'middle' }));
+  assert.throws(() => parseCurrencyDisplay('kip'));
 });

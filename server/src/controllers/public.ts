@@ -44,6 +44,7 @@ export const tenant = async (req: Request, res: Response) => {
       branding: resolved.settings?.brand ?? { name: resolved.name },
       locale: resolved.settings?.locale ?? 'lo',
       currency: resolved.settings?.currency ?? 'LAK',
+      currencyDisplay: resolved.settings?.currencyDisplay ?? null,
       timezone: resolved.settings?.timezone ?? 'Asia/Vientiane',
       features: resolved.features,
     },

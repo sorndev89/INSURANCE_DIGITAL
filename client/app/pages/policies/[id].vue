@@ -325,9 +325,9 @@ const load = async () => {
   }
 }
 
-const renew = () => toast.info('ເລີ່ມຂະບວນການຕໍ່ອາຍຸ (mock)')
-const printPolicy = () => toast.info('ກຳລັງກະກຽມເອກະສານພິມ (mock)')
-const sharePolicy = () => toast.info('ກຳລັງກະກຽມລິ້ງແຊຣ໌ (mock)')
+const renew = () => toast.info('ເລີ່ມຂະບວນການຕໍ່ອາຍຸ')
+const printPolicy = () => toast.info('ກຳລັງກະກຽມເອກະສານພິມ')
+const sharePolicy = () => toast.info('ກຳລັງກະກຽມລິ້ງແຊຣ໌')
 
 const cancelPolicy = async () => {
   const accepted = await confirm({

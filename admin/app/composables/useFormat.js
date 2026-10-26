@@ -1,3 +1,5 @@
+import { formatCurrency } from '~/utils/currencyDisplay'
+
 export const useFormat = () => {
   const date = (value) => {
     if (!value) return '—'
@@ -23,8 +25,9 @@ export const useFormat = () => {
     }).format(parsed)
   }
 
-  const number = (value) =>
-    new Intl.NumberFormat('lo-LA').format(Number(value || 0))
+  const number = (value) => new Intl.NumberFormat('en-US').format(Number(value || 0))
 
-  return { date, dateTime, number }
+  const currency = (value, options) => formatCurrency(value, options)
+
+  return { date, dateTime, number, currency }
 }

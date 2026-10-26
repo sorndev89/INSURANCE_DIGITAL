@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="ຈັດການຕົວແທນ" description="ຕິດຕາມຜົນງານ ແລະ ຈັດການຕົວແທນຂາຍ.">
       <template #actions>
-        <BaseButton variant="secondary" icon="star" @click="toast.info('Top Performers (mock)')"
+        <BaseButton variant="secondary" icon="star" @click="toast.info('ລາຍການຕົວແທນດີເດັ່ນ')"
           >Top Performers</BaseButton
         >
         <BaseButton icon="person_add" @click="openCreate">ເພີ່ມຕົວແທນ</BaseButton>
@@ -112,13 +112,13 @@
         />
         <BaseSelect v-model="form.teamId" label="ສັງກັດທີມ / ສາຂາ" :options="teamOptions" />
         <BaseSelect v-model="form.level" label="ລະດັບຕົວແທນ" :options="LEVEL_OPTIONS" />
-        <BaseInput
+        <BaseNumberInput
           v-model="form.commissionRate"
-          type="number"
           label="ອັດຕາຄອມມິດຊັ່ນພື້ນຖານ (%)"
           min="0"
           max="100"
           suffix="%"
+          allow-decimal
           :error="errors.commissionRate"
         />
         <BaseInput
@@ -126,12 +126,12 @@
           label="ບັນຊີທະນາຄານຮັບເງິນ (BCEL / ອື່ນໆ)"
           placeholder="010-..."
         />
-        <BaseInput
+        <BaseNumberInput
           v-model="form.taxRate"
-          type="number"
           label="ພາສີຫັກ ນະ ທີ່ຈ່າຍ (WHT %)"
           placeholder="5"
           suffix="%"
+          allow-decimal
         />
       </div>
       <template #footer>

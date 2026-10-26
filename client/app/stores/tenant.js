@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 import { normalizeHex, rgbChannels, shadeHex, tintHex } from '~/utils/color'
 import { createSingleFlight } from '~/utils/async'
+import { setTenantCurrencyDisplay } from '~/utils/currencyDisplay'
 
 const SLUG_KEY = 'saiyfon_tenant_slug'
 const REQUEST_TIMEOUT_MS = 2500
@@ -58,6 +59,7 @@ export const useTenantStore = defineStore('tenant', () => {
   )
   const locale = computed(() => tenant.value?.locale || 'lo')
   const currency = computed(() => tenant.value?.currency || 'LAK')
+  const currencyDisplay = computed(() => tenant.value?.currencyDisplay || null)
   const status = computed(() => tenant.value?.status || 'active')
   const suspended = computed(() => status.value === 'suspended')
   const features = computed(() => tenant.value?.features || [])
@@ -78,8 +80,10 @@ export const useTenantStore = defineStore('tenant', () => {
       features: ['*'],
       locale: 'lo',
       currency: 'LAK',
+      currencyDisplay: null,
       timezone: 'Asia/Vientiane',
     }
+    setTenantCurrencyDisplay(null)
   }
 
   const applyBranding = () => {
@@ -109,6 +113,7 @@ export const useTenantStore = defineStore('tenant', () => {
     missing.value = false
     offline.value = false
     needsSelection.value = false
+    setTenantCurrencyDisplay(data.currencyDisplay)
     try {
       await Preferences.set({ key: SLUG_KEY, value: data.slug })
     } catch {
@@ -212,6 +217,12 @@ export const useTenantStore = defineStore('tenant', () => {
   // A single in-flight resolver prevents plugin/middleware races and duplicate requests.
   const resolve = createSingleFlight(resolveTask)
 
+  const setCurrencyDisplay = (value) => {
+    if (!tenant.value) return
+    tenant.value = { ...tenant.value, currencyDisplay: value }
+    setTenantCurrencyDisplay(value)
+  }
+
   const selectSlug = async (value) => {
     const normalized = String(value || '')
       .trim()
@@ -245,6 +256,7 @@ export const useTenantStore = defineStore('tenant', () => {
     primaryColor,
     locale,
     currency,
+    currencyDisplay,
     status,
     suspended,
     features,
@@ -253,6 +265,7 @@ export const useTenantStore = defineStore('tenant', () => {
     hasFeature,
     resolve,
     selectSlug,
+    setCurrencyDisplay,
     applyBranding,
   }
 })

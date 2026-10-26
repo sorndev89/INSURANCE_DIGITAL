@@ -5,13 +5,21 @@ useHead({ title: 'Dashboard ພາບລວມ' })
 
 const { platform } = usePlatformConfig()
 const { request } = useApi()
-const { date } = useFormat()
+const { date, number, currency } = useFormat()
 
 const loading = ref(true)
 const tenants = ref([])
 const plans = ref([])
 const recentAudits = ref([])
 const meta = ref({ total: 0 })
+
+const planPrice = (plan) => {
+  if (!plan.price || Number(plan.price) === 0) return 'Free'
+  if (plan.currency && plan.currency !== 'LAK') {
+    return `${number(plan.price)} ${plan.currency}/ດ`
+  }
+  return `${currency(plan.price)}/ດ`
+}
 
 const stats = computed(() => {
   const total = meta.value.total || tenants.value.length || 0
@@ -328,7 +336,7 @@ onMounted(() => {
               <div class="mt-3 flex items-center justify-between text-xs border-t border-line/60 pt-2 text-muted">
                 <span>ຜູ້ໃຊ້ສູງສຸດ: {{ plan.maxUsers || 'ບໍ່ຈຳກັດ' }}</span>
                 <span class="font-bold text-foreground">
-                  {{ plan.price ? `₭ ${plan.price.toLocaleString()}/ດ` : 'Free' }}
+                  {{ planPrice(plan) }}
                 </span>
               </div>
             </div>

@@ -157,7 +157,7 @@ const columns = [
 ]
 
 const exportList = () => {
-  toast.success('ກຳລັງກະກຽມໄຟລ໌ Export (mock)')
+  toast.success('ກຳລັງກະກຽມໄຟລ໌ Export')
 }
 
 const renew = (policy) => {

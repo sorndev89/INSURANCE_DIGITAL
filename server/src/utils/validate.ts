@@ -1,4 +1,5 @@
 import { ApiError } from './errors.js';
+import type { CurrencyDisplay } from '../db/schema.js';
 
 export const asObject = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' && !Array.isArray(value)
@@ -72,6 +73,26 @@ export const optionalNumber = (value: unknown, field: string) => {
     throw ApiError.badRequest(`${field} must be a number`);
   }
   return parsed;
+};
+
+export const parseCurrencyDisplay = (
+  value: unknown,
+): CurrencyDisplay | null | undefined => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw ApiError.badRequest('currencyDisplay must be an object');
+  }
+
+  const input = value as Record<string, unknown>;
+  if (input.symbol !== 'kip' && input.symbol !== 'lak') {
+    throw ApiError.badRequest('currencyDisplay.symbol must be kip or lak');
+  }
+  if (input.position !== 'prefix' && input.position !== 'suffix') {
+    throw ApiError.badRequest('currencyDisplay.position must be prefix or suffix');
+  }
+
+  return { symbol: input.symbol, position: input.position };
 };
 
 export const parsePagination = (query: Record<string, unknown>) => {

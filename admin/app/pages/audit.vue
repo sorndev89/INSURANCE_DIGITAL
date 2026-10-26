@@ -57,10 +57,10 @@ onMounted(() => load())
         class="sf-input max-w-xs"
         placeholder="Action ເຊັ່ນ tenant.create..."
       />
-      <input
+      <AppNumberInput
+        id="audit-tenant-id"
         v-model="filters.tenantId"
-        class="sf-input max-w-[10rem]"
-        type="number"
+        class="max-w-[10rem]"
         min="1"
         placeholder="Tenant ID..."
       />

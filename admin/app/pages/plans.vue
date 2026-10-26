@@ -4,7 +4,7 @@ import { onMounted, reactive, ref } from 'vue'
 useHead({ title: 'Plans' })
 
 const { request } = useApi()
-const { number } = useFormat()
+const { number, currency } = useFormat()
 
 const plans = ref([])
 const loading = ref(false)
@@ -22,6 +22,13 @@ const form = reactive({
   maxPolicies: '500',
   features: 'policies,customers,reports',
 })
+
+const planPrice = (plan) => {
+  if (plan.currency && plan.currency !== 'LAK') {
+    return `${number(plan.price)} ${plan.currency}`
+  }
+  return currency(plan.price)
+}
 
 const load = async () => {
   loading.value = true
@@ -131,8 +138,9 @@ onMounted(load)
 
         <p class="mt-2 min-h-10 text-xs text-muted">{{ plan.description || '—' }}</p>
 
-        <p class="mt-3 text-2xl font-black text-foreground">
-          {{ number(plan.price) }} <span class="text-xs font-normal text-muted">{{ plan.currency }} / ເດືອນ</span>
+        <p class="mt-3 text-xl font-black text-foreground">
+          {{ planPrice(plan) }}
+          <span class="text-xs font-normal text-muted">/ ເດືອນ</span>
         </p>
 
         <dl class="mt-3 space-y-1.5 text-xs text-muted border-t border-line/60 pt-3">
@@ -181,7 +189,7 @@ onMounted(load)
           </div>
           <div>
             <label class="sf-label" for="plan-price">Price (LAK)</label>
-            <input id="plan-price" v-model="form.price" class="sf-input" type="number" min="0" />
+            <AppNumberInput id="plan-price" v-model="form.price" min="0" allow-decimal />
           </div>
           <div>
             <label class="sf-label" for="plan-features">Features (comma separated)</label>
@@ -189,17 +197,11 @@ onMounted(load)
           </div>
           <div>
             <label class="sf-label" for="plan-users">Max users (0 = unlimited)</label>
-            <input id="plan-users" v-model="form.maxUsers" class="sf-input" type="number" min="0" />
+            <AppNumberInput id="plan-users" v-model="form.maxUsers" min="0" />
           </div>
           <div>
             <label class="sf-label" for="plan-policies">Max policies (0 = unlimited)</label>
-            <input
-              id="plan-policies"
-              v-model="form.maxPolicies"
-              class="sf-input"
-              type="number"
-              min="0"
-            />
+            <AppNumberInput id="plan-policies" v-model="form.maxPolicies" min="0" />
           </div>
         </div>
 

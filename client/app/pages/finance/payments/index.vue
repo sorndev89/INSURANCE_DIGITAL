@@ -77,12 +77,12 @@
           />
         </div>
         <BaseSelect v-model="form.method" label="ວິທີການຊຳລະ" :options="PAYMENT_METHODS" />
-        <BaseInput
+        <BaseNumberInput
           v-model="form.amount"
-          type="number"
-          label="ຈຳນວນເງິນ (₭)"
+          :label="`ຈຳນວນເງິນ (${currencyLabel})`"
           min="0"
           required
+          allow-decimal
           :error="errors.amount"
         />
         <BaseInput
@@ -120,6 +120,7 @@ import { useInvoices } from '~/composables/api/useInvoices'
 import { useFileUpload } from '~/composables/useFileUpload'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { currencyLabel } from '~/utils/currencyDisplay'
 import { todayIso } from '~/utils/date'
 import { PAYMENT_METHODS } from '~/utils/constants'
 import { numeric, required, validate } from '~/utils/validators'

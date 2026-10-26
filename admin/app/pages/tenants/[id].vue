@@ -23,7 +23,14 @@ const usersLoading = ref(false)
 const usersError = ref('')
 
 const saving = ref(false)
-const edit = reactive({ name: '', planId: '', brandName: '', primaryColor: '#10b981' })
+const edit = reactive({
+  name: '',
+  planId: '',
+  brandName: '',
+  primaryColor: '#10b981',
+  currencySymbol: 'kip',
+  currencyPosition: 'prefix',
+})
 const loadedBrandName = ref('')
 
 const domainInput = ref('')
@@ -45,6 +52,8 @@ const load = async () => {
     edit.planId = response.data.planId ?? ''
     edit.brandName = response.data.settings?.brand?.name || ''
     edit.primaryColor = response.data.settings?.brand?.primaryColor || '#10b981'
+    edit.currencySymbol = response.data.settings?.currencyDisplay?.symbol || 'kip'
+    edit.currencyPosition = response.data.settings?.currencyDisplay?.position || 'prefix'
     loadedBrandName.value = edit.brandName
   } catch (requestError) {
     error.value = apiErrorMessage(requestError)
@@ -120,7 +129,13 @@ const save = async () => {
       body: {
         name: edit.name.trim(),
         planId: edit.planId === '' ? null : Number(edit.planId),
-        settings: { brand },
+        settings: {
+          brand,
+          currencyDisplay: {
+            symbol: edit.currencySymbol,
+            position: edit.currencyPosition,
+          },
+        },
       },
     })
     await load()
@@ -311,6 +326,20 @@ onMounted(async () => {
                 />
                 <input v-model="edit.primaryColor" class="sf-input" />
               </div>
+            </div>
+            <div>
+              <label class="sf-label" for="edit-currency-symbol">Currency symbol</label>
+              <select id="edit-currency-symbol" v-model="edit.currencySymbol" class="sf-input">
+                <option value="kip">₭ (Kip)</option>
+                <option value="lak">LAK</option>
+              </select>
+            </div>
+            <div>
+              <label class="sf-label" for="edit-currency-position">Symbol position</label>
+              <select id="edit-currency-position" v-model="edit.currencyPosition" class="sf-input">
+                <option value="prefix">ທາງໜ້າ (₭ 12,850,000)</option>
+                <option value="suffix">ທາງຫຼັງ (12,850,000 ₭)</option>
+              </select>
             </div>
           </div>
 

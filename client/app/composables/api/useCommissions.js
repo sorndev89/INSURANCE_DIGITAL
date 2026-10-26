@@ -24,7 +24,7 @@ export const useCommissions = (options = {}) => {
       found.paidAt = new Date().toISOString().slice(0, 10)
       return clone(found)
     }
-    const response = await apiFetch(`/commissions/${id}/pay`, {
+    const response = await apiFetch(tenantPath(`/commissions/${id}/pay`), {
       method: 'POST',
     })
     return response.data

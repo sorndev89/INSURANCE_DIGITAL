@@ -22,7 +22,7 @@ export const useAgents = (options = {}) => {
       if (!found) throw mockError('ບໍ່ພົບຕົວແທນ', 404)
       return clone(found)
     }
-    const response = await apiFetch(`/agents/${id}`)
+    const response = await apiFetch(tenantPath(`/agents/${id}`))
     return response.data
   }
 

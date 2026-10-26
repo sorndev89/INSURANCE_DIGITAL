@@ -21,10 +21,16 @@ export type TenantBrand = {
   accentColor?: string;
 };
 
+export type CurrencyDisplay = {
+  symbol: 'kip' | 'lak';
+  position: 'prefix' | 'suffix';
+};
+
 export type TenantSettings = {
   brand?: TenantBrand;
   locale?: string;
   currency?: string;
+  currencyDisplay?: CurrencyDisplay | null;
   timezone?: string;
   features?: string[];
   contact?: {

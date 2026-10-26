@@ -54,6 +54,40 @@
 
     <BaseCard>
       <template #header>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold">ການສະແດງຈຳນວນເງິນ</h2>
+            <p class="mt-0.5 text-xs text-muted">
+              ເລືອກໃຊ້ຄ່າຂອງບໍລິສັດ ຫຼື ກຳນົດການສະແດງເງິນສ່ວນຕົວສຳລັບບັນຊີນີ້.
+            </p>
+          </div>
+          <BaseBadge :tone="useTenantDefault ? 'neutral' : 'primary'">
+            {{ useTenantDefault ? 'ໃຊ້ຄ່າບໍລິສັດ' : 'ກຳນົດເອງ' }}
+          </BaseBadge>
+        </div>
+      </template>
+
+      <BaseSwitch
+        v-model="useTenantDefault"
+        label="ໃຊ້ຄ່າການສະແດງເງິນຂອງບໍລິສັດ"
+        description="ປິດເພື່ອກຳນົດ symbol ແລະ ຕຳແໜ່ງເອງ"
+      />
+
+      <div v-if="useTenantDefault" class="mt-4 rounded-xl border border-line bg-surface-muted p-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-muted">ຄ່າຂອງບໍລິສັດ</p>
+        <p class="mt-1 text-xl font-bold tabular-nums text-primary-text">
+          {{ tenantDefaultPreview }}
+        </p>
+      </div>
+      <CurrencyDisplayFields v-else v-model="customForm" class="mt-4" />
+
+      <div class="mt-5 flex justify-end border-t border-line pt-4">
+        <BaseButton icon="save" size="sm" @click="saveCurrency">ບັນທຶກການຕັ້ງຄ່າສ່ວນຕົວ</BaseButton>
+      </div>
+    </BaseCard>
+
+    <BaseCard>
+      <template #header>
         <h2 class="text-sm font-bold">ການຕັ້ງຄ່າ</h2>
       </template>
       <div class="space-y-4">
@@ -76,11 +110,20 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useAuth } from '~/composables/api/useAuth'
 import { useAuthStore } from '~/stores/auth'
+import { useTenantStore } from '~/stores/tenant'
 import { useUiStore } from '~/stores/ui'
 import { useToast } from '~/composables/useToast'
+import {
+  DEFAULT_CURRENCY_DISPLAY,
+  clearUserCurrencyDisplay,
+  formatCurrency,
+  normalizeCurrencyDisplay,
+  setUserCurrencyDisplay,
+  userCurrencyDisplay,
+} from '~/utils/currencyDisplay'
 
 definePageMeta({
   layout: 'admin',
@@ -89,10 +132,45 @@ definePageMeta({
 })
 
 const auth = useAuthStore()
+const tenant = useTenantStore()
 const ui = useUiStore()
 const toast = useToast()
 const { logout: signOut, updateProfile } = useAuth()
 const saving = ref(false)
+
+const tenantDisplay = computed(
+  () => normalizeCurrencyDisplay(tenant.currencyDisplay) || { ...DEFAULT_CURRENCY_DISPLAY },
+)
+const tenantDefaultPreview = computed(() => formatCurrency(12850000, tenantDisplay.value))
+const storedUserDisplay = normalizeCurrencyDisplay(userCurrencyDisplay.value)
+const useTenantDefault = ref(!storedUserDisplay)
+const customForm = ref(storedUserDisplay || { ...tenantDisplay.value })
+
+watch(userCurrencyDisplay, (value) => {
+  const normalized = normalizeCurrencyDisplay(value)
+  if (normalized) {
+    useTenantDefault.value = false
+    customForm.value = normalized
+  } else {
+    useTenantDefault.value = true
+  }
+})
+
+watch(useTenantDefault, (value) => {
+  if (!value && !normalizeCurrencyDisplay(userCurrencyDisplay.value)) {
+    customForm.value = { ...tenantDisplay.value }
+  }
+})
+
+const saveCurrency = () => {
+  if (useTenantDefault.value) {
+    clearUserCurrencyDisplay()
+    toast.success('ໃຊ້ຄ່າການສະແດງເງິນຂອງບໍລິສັດແລ້ວ')
+    return
+  }
+  setUserCurrencyDisplay({ ...customForm.value })
+  toast.success('ບັນທຶກການຕັ້ງຄ່າສ່ວນຕົວແລ້ວ')
+}
 
 const form = reactive({
   name: auth.displayName,

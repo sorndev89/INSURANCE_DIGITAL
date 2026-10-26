@@ -8,7 +8,7 @@
         <BaseButton
           variant="secondary"
           icon="file_download"
-          @click="toast.info('ກຳລັງກະກຽມ Export (mock)')"
+          @click="toast.info('ກຳລັງກະກຽມ Export')"
           >Export</BaseButton
         >
         <BaseButton icon="person_add" @click="openCreate">ເພີ່ມລູກຄ້າ</BaseButton>

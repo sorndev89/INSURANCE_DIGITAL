@@ -11,6 +11,11 @@ describe('useFormat', () => {
     expect(format.currency(null)).toBe('₭ 0')
   })
 
+  it('supports configured symbol, position and grouping', () => {
+    expect(format.currency(12850000, { symbol: 'lak', position: 'suffix' })).toBe('12,850,000 LAK')
+    expect(format.currency(12850000, { symbol: 'kip', position: 'prefix' })).toBe('₭ 12,850,000')
+  })
+
   it('formats numbers and percentages', () => {
     expect(format.number(1234567)).toBe('1,234,567')
     expect(format.percent(12.345)).toBe('12.3%')

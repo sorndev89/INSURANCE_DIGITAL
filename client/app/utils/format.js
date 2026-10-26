@@ -1,3 +1,5 @@
+import { formatCurrency } from '~/utils/currencyDisplay'
+
 export const useFormat = () => {
   const number = (value) => {
     const numeric = Number(value)
@@ -5,12 +7,7 @@ export const useFormat = () => {
     return new Intl.NumberFormat('en-US').format(numeric)
   }
 
-  const currency = (value) => {
-    const numeric = Number(value)
-    if (!Number.isFinite(numeric)) return '₭ 0'
-    const sign = numeric < 0 ? '-' : ''
-    return `${sign}₭ ${new Intl.NumberFormat('en-US').format(Math.abs(numeric))}`
-  }
+  const currency = (value, options) => formatCurrency(value, options)
 
   const date = (value) => {
     if (!value) return '—'

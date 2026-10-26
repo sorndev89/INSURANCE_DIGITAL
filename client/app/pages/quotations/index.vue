@@ -5,7 +5,7 @@
         <BaseButton
           variant="secondary"
           icon="file_download"
-          @click="toast.info('ກຳລັງກະກຽມ Export (mock)')"
+          @click="toast.info('ກຳລັງກະກຽມ Export')"
           >Export</BaseButton
         >
         <BaseButton icon="post_add" @click="navigateTo('/quotations/create')"
@@ -93,7 +93,7 @@
             icon-only
             label="ພິມ"
             icon="print"
-            @click="toast.info('ພິມ (mock)')"
+            @click="toast.info('ພິມເອກະສານ')"
           />
         </div>
       </template>

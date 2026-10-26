@@ -67,7 +67,7 @@
           </div>
           <div class="space-y-1">
             <p class="text-xs text-muted">tabular-nums</p>
-            <p class="text-2xl font-bold tabular-nums">₭ 12,850,000</p>
+            <p class="text-2xl font-bold tabular-nums">{{ format.currency(12850000) }}</p>
           </div>
         </div>
       </section>
@@ -108,6 +108,9 @@
 </template>
 
 <script setup>
+import { useFormat } from '~/utils/format'
+
+const format = useFormat()
 const isDark = ref(false)
 
 const colors = [

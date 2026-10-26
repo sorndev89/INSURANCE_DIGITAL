@@ -2,10 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="ລາຍງານທຸລະກິດ" description="ສະຫຼຸບຜົນການດຳເນີນງານ ແລະ ຕົວຊີ້ວັດສຳຄັນ.">
       <template #actions>
-        <BaseButton
-          variant="secondary"
-          icon="file_download"
-          @click="toast.info('ກຳລັງກະກຽມ PDF (mock)')"
+        <BaseButton variant="secondary" icon="file_download" @click="toast.info('ກຳລັງກະກຽມ PDF')"
           >Export PDF</BaseButton
         >
       </template>

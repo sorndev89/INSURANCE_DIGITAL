@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="ໃບແຈ້ງໜີ້" description="ຕິດຕາມ ແລະ ອອກໃບແຈ້ງໜີ້ (Invoice).">
       <template #actions>
-        <BaseButton variant="secondary" icon="file_download" @click="toast.info('Export (mock)')"
+        <BaseButton variant="secondary" icon="file_download" @click="toast.info('Export ໃບແຈ້ງໜີ້')"
           >Export</BaseButton
         >
         <BaseButton icon="add_circle" @click="openCreate">ສ້າງ Invoice</BaseButton>
@@ -73,7 +73,7 @@
           icon-only
           label="ພິມ"
           icon="print"
-          @click="toast.info(`ພິມ ${row.invoiceNumber} (mock)`)"
+          @click="toast.info(`ພິມ ${row.invoiceNumber}`)"
         />
       </template>
     </DataTable>
@@ -88,12 +88,12 @@
             :error="errors.policyId"
           />
         </div>
-        <BaseInput
+        <BaseNumberInput
           v-model="form.amount"
-          type="number"
-          label="ຈຳນວນເງິນ (₭)"
+          :label="`ຈຳນວນເງິນ (${currencyLabel})`"
           min="0"
           required
+          allow-decimal
           :error="errors.amount"
         />
         <BaseInput
@@ -128,6 +128,7 @@ import { useInvoices } from '~/composables/api/useInvoices'
 import { usePolicies } from '~/composables/api/usePolicies'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { currencyLabel } from '~/utils/currencyDisplay'
 import { todayIso } from '~/utils/date'
 import { numeric, required, validate } from '~/utils/validators'
 
