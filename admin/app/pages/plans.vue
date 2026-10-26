@@ -91,60 +91,68 @@ onMounted(load)
 </script>
 
 <template>
-  <div>
-    <PageHeader title="Plans" description="ແຜນຄຸນນະພາບ ແລະ ຂີດຈຳກັດການໃຊ້ງານຂອງແຕ່ລະ tenant">
+  <div class="space-y-6">
+    <PageHeader
+      title="ແຜນການໃຊ້ງານ (Plans)"
+      description="ແຜນຄຸນນະພາບ, ລາຄາ ແລະ ຂີດຈຳກັດການໃຊ້ງານຂອງແຕ່ລະ Tenant"
+      :breadcrumbs="[{ label: 'Plans' }]"
+    >
       <template #actions>
         <button type="button" class="sf-btn sf-btn-primary" @click="showCreate = true">
-          + ສ້າງ Plan
+          + ສ້າງ Plan ໃໝ່
         </button>
       </template>
     </PageHeader>
 
     <p
       v-if="error"
-      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"
+      class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400"
     >
       {{ error }}
     </p>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <div v-if="loading" class="text-sm text-slate-400">ກຳລັງໂຫຼດ...</div>
-      <article v-for="plan in plans" v-else :key="plan.id" class="sf-card flex flex-col p-5">
+    <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div v-if="loading" class="text-sm text-muted">ກຳລັງໂຫຼດ...</div>
+      <article
+        v-for="plan in plans"
+        v-else
+        :key="plan.id"
+        class="sf-card flex flex-col p-5 transition hover:border-primary/40 hover:shadow-md"
+      >
         <div class="flex items-start justify-between gap-2">
           <div>
-            <p class="text-sm font-bold text-slate-900">{{ plan.name }}</p>
-            <p class="text-[11px] uppercase tracking-wide text-slate-400">{{ plan.code }}</p>
+            <p class="text-base font-extrabold text-foreground">{{ plan.name }}</p>
+            <p class="font-mono text-[11px] font-bold uppercase tracking-wider text-muted">{{ plan.code }}</p>
           </div>
           <StatusBadge
-            :status="plan.active ? 'active' : 'inactive'"
-            :label="plan.active ? 'active' : 'inactive'"
+            :status="plan.active ? 'active' : 'suspended'"
           />
         </div>
 
-        <p class="mt-2 min-h-10 text-xs text-slate-500">{{ plan.description || '—' }}</p>
+        <p class="mt-2 min-h-10 text-xs text-muted">{{ plan.description || '—' }}</p>
 
-        <p class="mt-2 text-lg font-bold text-slate-900">
-          {{ number(plan.price) }} <span class="text-xs font-normal">{{ plan.currency }}</span>
+        <p class="mt-3 text-2xl font-black text-foreground">
+          {{ number(plan.price) }} <span class="text-xs font-normal text-muted">{{ plan.currency }} / ເດືອນ</span>
         </p>
 
-        <dl class="mt-3 space-y-1 text-[11px] text-slate-500">
+        <dl class="mt-3 space-y-1.5 text-xs text-muted border-t border-line/60 pt-3">
           <div class="flex justify-between">
-            <dt>Max users</dt>
-            <dd class="font-bold text-slate-700">{{ plan.limits?.maxUsers || 'ບໍ່ຈຳກັດ' }}</dd>
+            <dt>Max Users</dt>
+            <dd class="font-bold text-foreground">{{ plan.limits?.maxUsers || 'ບໍ່ຈຳກັດ' }}</dd>
           </div>
           <div class="flex justify-between">
-            <dt>Max policies</dt>
-            <dd class="font-bold text-slate-700">{{ plan.limits?.maxPolicies || 'ບໍ່ຈຳກັດ' }}</dd>
+            <dt>Max Policies</dt>
+            <dd class="font-bold text-foreground">{{ plan.limits?.maxPolicies || 'ບໍ່ຈຳກັດ' }}</dd>
           </div>
         </dl>
 
-        <div class="mt-3 flex flex-wrap gap-1">
+        <div class="mt-3 flex flex-wrap gap-1.5">
           <span
             v-for="feature in plan.features || []"
             :key="feature"
-            class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600"
+            class="rounded-md bg-surface-muted border border-line px-2 py-0.5 text-[11px] font-mono text-muted"
           >
-            {{ feature === '*' ? 'ທຸກ feature' : feature }}
+            {{ feature === '*' ? 'ທຸກ Feature' : feature }}
           </span>
         </div>
 

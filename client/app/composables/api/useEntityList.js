@@ -1,6 +1,6 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
-import { useRuntimeConfig } from '#imports'
+import { useRoute, useRouter, useRuntimeConfig } from '#imports'
 import {
   clone,
   delay,
@@ -11,21 +11,45 @@ import {
   shouldFail,
   sortItems,
 } from '~/mocks/_helpers'
+import { buildListQuery, parseListState } from '~/utils/query'
 import { useApiClient } from './useApiClient'
 
 export const useEntityList = (source, options = {}) => {
   const config = useRuntimeConfig()
+  const route = useRoute()
+  const router = useRouter()
   const { apiFetch } = useApiClient()
 
-  const filters = reactive({ ...(options.defaultFilters || {}) })
-  const page = ref(1)
-  const pageSize = ref(options.pageSize || 10)
-  const sort = ref(options.defaultSort || null)
+  const defaults = { ...(options.defaultFilters || {}) }
+  const useUrlState = options.querySync !== false
+  const initial = useUrlState
+    ? parseListState(route?.query, defaults)
+    : { filters: defaults, page: 1, pageSize: null, sort: null }
+
+  const filters = reactive({ ...defaults, ...initial.filters })
+  const page = ref(initial.page)
+  const pageSize = ref(initial.pageSize || options.pageSize || 10)
+  const sort = ref(initial.sort || options.defaultSort || null)
   const items = ref([])
   const total = ref(0)
   const pending = ref(false)
   const error = ref(null)
   let requestId = 0
+
+  const syncQuery = () => {
+    if (!useUrlState || !router) return
+    try {
+      const query = buildListQuery({
+        filters,
+        page: page.value,
+        sort: sort.value,
+        base: { ...(route?.query || {}) },
+      })
+      void router.replace({ query })
+    } catch {
+      // URL sync is best-effort; navigation should never block data loading.
+    }
+  }
 
   const load = async () => {
     const currentRequest = ++requestId
@@ -76,13 +100,25 @@ export const useEntityList = (source, options = {}) => {
   const refresh = () => load()
 
   const handleFiltersChange = useDebounceFn(() => {
-    if (page.value !== 1) page.value = 1
-    else load()
+    if (page.value !== 1) {
+      page.value = 1
+      return
+    }
+    load()
+    syncQuery()
   }, 300)
 
   watch(filters, handleFiltersChange, { deep: true })
 
-  watch([page, pageSize, sort], () => load())
+  watch([page, sort], () => {
+    syncQuery()
+    load()
+  })
+
+  watch(pageSize, () => {
+    syncQuery()
+    load()
+  })
 
   onMounted(() => {
     if (options.immediate !== false) load()

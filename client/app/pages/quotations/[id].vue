@@ -8,8 +8,10 @@
     >
       <template #actions>
         <BaseButton variant="secondary" icon="arrow_back" @click="router.back()">ກັບຄືນ</BaseButton>
-        <BaseButton icon="description" @click="navigateTo('/policies/create')"
-          >ສ້າງປະກັນໄພ</BaseButton
+        <BaseButton
+          icon="arrow_outward"
+          @click="navigateTo({ path: '/policies/create', query: { quotationId: route.params.id } })"
+          >ອອກປະກັນໄພຈາກໃບສະເໜີນີ້ ↗</BaseButton
         >
       </template>
     </PageHeader>

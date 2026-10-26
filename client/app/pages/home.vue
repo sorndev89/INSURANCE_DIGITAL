@@ -56,8 +56,12 @@
             <span
               class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 text-primary-text"
             >
-              <BaseIcon :name="action.icon" size="md" class="sm:hidden" />
-              <BaseIcon :name="action.icon" size="lg" class="hidden sm:inline-block" />
+              <span class="sm:hidden">
+                <BaseIcon :name="action.icon" size="md" />
+              </span>
+              <span class="hidden sm:inline-flex">
+                <BaseIcon :name="action.icon" size="lg" />
+              </span>
             </span>
             <span class="min-w-0">
               <span class="block truncate text-xs sm:text-sm font-bold text-foreground">{{

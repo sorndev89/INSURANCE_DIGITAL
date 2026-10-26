@@ -44,6 +44,7 @@ export const useCustomers = (options = {}) => {
         email: payload.email || '',
         address: payload.address || '',
         idCardNumber: payload.idCardNumber || '',
+        idCardImage: payload.idCardImage || '',
         occupation: payload.occupation || '',
         policiesCount: 0,
         status: 'active',
@@ -59,5 +60,26 @@ export const useCustomers = (options = {}) => {
     return response.data
   }
 
-  return { ...list, getById, create }
+  const update = async (id, payload) => {
+    if (config.public.useMock) {
+      await delay(config.public.mockDelay)
+      const found = customers.find((customer) => String(customer.id) === String(id))
+      if (!found) throw mockError('ບໍ່ພົບລູກຄ້າ', 404)
+      const firstName = payload.firstName ?? found.firstName
+      const lastName = payload.lastName ?? found.lastName
+      Object.assign(found, payload, {
+        firstName,
+        lastName,
+        fullName: `${firstName} ${lastName}`.trim(),
+      })
+      return clone(found)
+    }
+    const response = await apiFetch(`${endpoint}/${id}`, {
+      method: 'PATCH',
+      body: payload,
+    })
+    return response.data
+  }
+
+  return { ...list, getById, create, update }
 }

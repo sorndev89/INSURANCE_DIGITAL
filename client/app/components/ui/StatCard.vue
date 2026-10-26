@@ -16,8 +16,12 @@
         class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg sm:rounded-xl"
         :class="highlight ? 'bg-primary-dark text-white' : 'bg-primary/10 text-primary-text'"
       >
-        <BaseIcon :name="icon" size="sm" class="sm:hidden" />
-        <BaseIcon :name="icon" size="md" class="hidden sm:inline-block" />
+        <span class="sm:hidden">
+          <BaseIcon :name="icon" size="sm" />
+        </span>
+        <span class="hidden sm:inline-flex">
+          <BaseIcon :name="icon" size="md" />
+        </span>
       </span>
     </div>
 

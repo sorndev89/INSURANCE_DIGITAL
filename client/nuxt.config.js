@@ -44,7 +44,7 @@ export default defineNuxtConfig({
       defaultTenantSlug: 'saiyfon',
       defaultTenantName: 'ສາຍຝົນ ປະກັນໄພ',
       defaultBrandColor: '#047857',
-      rootDomain: 'saiyfon.app',
+      platformUrl: 'http://localhost:3001',
     },
   },
 
@@ -62,8 +62,7 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#047857' },
         {
           name: 'description',
-          content:
-            'ລະບົບຄຸ້ມຄອງການປະກັນໄພດິຈິຕອນ ສຳລັບຕົວແທນ ແລະ ລູກຄ້າ.',
+          content: 'ລະບົບຄຸ້ມຄອງການປະກັນໄພດິຈິຕອນ ສຳລັບຕົວແທນ ແລະ ລູກຄ້າ.',
         },
       ],
       link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],

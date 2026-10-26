@@ -78,11 +78,7 @@
       </template>
     </DataTable>
 
-    <BaseModal
-      v-model="showModal"
-      :title="editing ? 'ແກ້ໄຂຜູ້ໃຊ້' : 'ເພີ່ມຜູ້ໃຊ້ໃໝ່'"
-      size="sm"
-    >
+    <BaseModal v-model="showModal" :title="editing ? 'ແກ້ໄຂຜູ້ໃຊ້' : 'ເພີ່ມຜູ້ໃຊ້ໃໝ່'" size="sm">
       <form id="user-form" class="space-y-4" @submit.prevent="submit">
         <div
           v-if="formError"
@@ -115,12 +111,7 @@
         />
         <BaseInput v-model="form.phone" label="ເບີໂທ" autocomplete="tel" />
         <BaseSelect v-model="form.role" label="ບົດບາດ" :options="roleOptions" />
-        <BaseSelect
-          v-if="editing"
-          v-model="form.status"
-          label="ສະຖານະ"
-          :options="statusOptions"
-        />
+        <BaseSelect v-if="editing" v-model="form.status" label="ສະຖານະ" :options="statusOptions" />
       </form>
 
       <template #footer>
@@ -192,7 +183,14 @@ const statusOptions = [
 const openCreate = () => {
   editing.value = null
   formError.value = ''
-  Object.assign(form, { username: '', email: '', password: '', phone: '', role: 'staff', status: 'active' })
+  Object.assign(form, {
+    username: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'staff',
+    status: 'active',
+  })
   showModal.value = true
 }
 

@@ -12,6 +12,7 @@
     <AppSidebar v-if="ui.tabletSidebarOpen" overlay />
 
     <div class="flex min-w-0 flex-1 flex-col">
+      <ImpersonationBanner />
       <AppHeader />
       <main id="main-content" class="flex-1 overflow-y-auto">
         <div class="mx-auto w-full max-w-[1920px] p-4 md:p-6 lg:p-8">

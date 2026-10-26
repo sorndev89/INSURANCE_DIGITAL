@@ -15,6 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const user = ref(initialSession?.user || null)
   const token = ref(initialSession?.token || null)
+  const impersonating = ref(Boolean(initialSession?.impersonating))
 
   const role = computed(() => user.value?.role || null)
   const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value] : ''))
@@ -33,25 +34,54 @@ export const useAuthStore = defineStore('auth', () => {
       .toUpperCase()
   })
 
-  const can = (permission) => {
-    if (!permission) return true
-    return permissions.value.includes('*') || permissions.value.includes(permission)
-  }
-
-  const setSession = (session, remember = true) => {
-    user.value = session.user
-    token.value = session.token
+  const persistSession = (nextSession, remember = true) => {
     const cookie = useCookie(SESSION_COOKIE, {
       sameSite: 'lax',
       maxAge: remember ? REMEMBER_SECONDS : undefined,
       default: () => null,
     })
-    cookie.value = { user: session.user, token: session.token }
+    cookie.value = {
+      user: nextSession.user || null,
+      token: nextSession.token || null,
+      impersonating: Boolean(nextSession.impersonating),
+    }
+  }
+
+  const can = (permission) => {
+    if (!permission) return true
+    return permissions.value.includes('*') || permissions.value.includes(permission)
+  }
+
+  const setSession = (session, remember = true, options = {}) => {
+    const flag = options.impersonating ?? session.impersonating ?? false
+    user.value = session.user || null
+    token.value = session.token || null
+    impersonating.value = Boolean(flag)
+    persistSession(
+      { user: session.user || null, token: session.token || null, impersonating: flag },
+      remember,
+    )
+  }
+
+  const beginImpersonation = (impersonationToken) => {
+    if (!impersonationToken) throw new Error('Impersonation token is required')
+    setSession({ user: null, token: impersonationToken }, true, { impersonating: true })
+  }
+
+  const updateUser = (patch) => {
+    if (!user.value) return null
+    user.value = { ...user.value, ...patch }
+    persistSession(
+      { user: user.value, token: token.value, impersonating: impersonating.value },
+      true,
+    )
+    return user.value
   }
 
   const logout = () => {
     user.value = null
     token.value = null
+    impersonating.value = false
     sessionCookie.value = null
     const cookie = useCookie(SESSION_COOKIE, { sameSite: 'lax', default: () => null })
     cookie.value = null
@@ -60,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     token,
+    impersonating,
     role,
     roleLabel,
     permissions,
@@ -68,6 +99,8 @@ export const useAuthStore = defineStore('auth', () => {
     initials,
     can,
     setSession,
+    beginImpersonation,
+    updateUser,
     logout,
   }
 })

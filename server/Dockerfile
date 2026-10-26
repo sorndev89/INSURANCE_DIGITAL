@@ -8,14 +8,17 @@ RUN npm ci
 FROM deps AS build
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build && npm prune --omit=dev
+COPY drizzle ./drizzle
+RUN npm run db:check:static && npm run build && npm prune --omit=dev
 
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache curl \
   && addgroup -S app \
-  && adduser -S app -G app
+  && adduser -S app -G app \
+  && mkdir -p /app/uploads \
+  && chown -R app:app /app/uploads
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY drizzle ./drizzle

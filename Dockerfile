@@ -8,7 +8,8 @@ RUN npm ci
 FROM server-deps AS server-build
 COPY server/tsconfig.json ./
 COPY server/src ./src
-RUN npm run build && npm prune --omit=dev
+COPY server/drizzle ./drizzle
+RUN npm run db:check:static && npm run build && npm prune --omit=dev
 
 FROM node:24-alpine AS admin-deps
 WORKDIR /admin
@@ -29,7 +30,9 @@ ENV NODE_ENV=production
 ENV ADMIN_DIST_PATH=/app/admin
 RUN apk add --no-cache curl \
   && addgroup -S app \
-  && adduser -S app -G app
+  && adduser -S app -G app \
+  && mkdir -p /app/uploads \
+  && chown -R app:app /app/uploads
 COPY --from=server-build /server/node_modules ./node_modules
 COPY --from=server-build /server/dist ./dist
 COPY server/drizzle ./drizzle

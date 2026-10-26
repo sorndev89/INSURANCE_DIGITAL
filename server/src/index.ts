@@ -2,12 +2,28 @@ import { createServer } from 'node:http';
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { closeDb } from './db/index.js';
-import { runMigrations } from './db/migrate.js';
+import { runDatabaseDoctor } from './db/doctor/index.js';
+import { printDoctorReport } from './db/doctor/report.js';
+import { shouldFailDoctor } from './db/doctor/types.js';
 import { closeCache } from './services/cache.js';
 
 const bootstrap = async () => {
-  if (env.runMigrationsOnStart) {
-    await runMigrations();
+  if (env.dbDoctorMode !== 'off') {
+    const report = await runDatabaseDoctor({
+      mode: env.dbDoctorMode,
+      failOn: env.dbDoctorFailOn,
+      dataChecks: env.dbDoctorDataChecks,
+      audit: env.dbDoctorAudit,
+      triggeredBy: 'deploy',
+      appVersion: env.appVersion,
+    });
+    printDoctorReport(report);
+
+    if (shouldFailDoctor(report, env.dbDoctorFailOn)) {
+      console.error('[db-doctor] critical database issues detected; refusing to start.');
+      await closeDb().catch(() => undefined);
+      process.exit(1);
+    }
   }
 
   const app = createApp();

@@ -138,7 +138,10 @@ curl -X POST http://localhost:5055/api/platform/tenants \
    - `JWT_SECRET`, `PLATFORM_JWT_SECRET` (ຕ່າງກັນ, ສຸ່ມຍາວ)
    - `ROOT_DOMAIN`, `ADMIN_HOST`, `CNAME_TARGET`
    - `TLS_ASK_TOKEN`
-   - `RUN_MIGRATIONS_ON_START=true` (ຫຼື run `npm run db:migrate` ໃນ pre‑deploy)
+   - `DB_DOCTOR_MODE=repair` (ແນະນຳ: apply migration + ກວດ schema ອັດຕະໂນມັດທຸກ deploy)
+   - `DB_DOCTOR_FAIL_ON=critical`
+   - `DB_DOCTOR_DATA_CHECKS=true`
+   - `RUN_MIGRATIONS_ON_START` ເປັນ legacy; ໃຊ້ `DB_DOCTOR_MODE=repair` ແທນ
 6. ເປີດ Domain `admin.saiyfon.app` (ຫຼື `api.saiyfon.app`) ຊີ້ໄປ container ດຽວກັນ.
 7. ຢ່າໃຊ້ persistent volume ສຳລັບ code; ຂໍ້ມູນຢູ່ MySQL, cache ຢູ່ Redis.
 
@@ -182,10 +185,22 @@ docker build -f server/Dockerfile -t saiyfon-api server
 ## 8. Migrations
 
 ```bash
-npm run db:generate   # ສ້າງ SQL ໃນ drizzle/
-npm run db:migrate    # apply
-npm run db:push       # dev ໄວໆ (ບໍ່ແນະນຳ production)
+npm run db:generate     # ສ້າງ SQL ໃນ drizzle/
+npm run db:check:static # ກວດ schema ກັບ snapshot (build ຈະລັນອັດຕະໂນມັດ)
+npm run db:migrate      # apply
+npm run db:doctor       # ກວດ DB ແບບບໍ່ແກ້
+npm run db:doctor:repair # apply migration + repair additive
+npm run db:push         # dev ໄວໆ (ບໍ່ແນະນຳ production)
 ```
+
+DB Doctor ຈະລັນກ່ອນ server ເມື່ອ `DB_DOCTOR_MODE` ບໍ່ແມ່ນ `off`:
+
+- ກວດ migration count/hash/out-of-order
+- apply pending migrations ພາຍໃຕ້ `GET_LOCK`
+- ກວດ schema ຕົວຈິງກັບ Drizzle schema
+- repair additive: add column/index/FK ທີ່ຂາດ
+- ກວດ data integrity ແລະບັນທຶກ `db_doctor_runs`
+- critical issue → exit 1 (deploy fail); warning → server ລັນຕໍ່
 
 ສຳລັບ DB ທີ່ມີຂໍ້ມູນເກົ່າ: ໃຫ້ baseline migration ຫຼື ໃຊ້ `db:push` ໃນ dev ກ່ອນ, ແລ້ວຄ່ອຍປ່ຽນ `tenant_id` ເປັນ `NOT NULL` ຫຼັງ backfill.
 
@@ -201,7 +216,7 @@ npm run db:push       # dev ໄວໆ (ບໍ່ແນະນຳ production)
 ## 10. Tests
 
 ```bash
-npm test        # 11 ເຄສ: JWT realm, validation
+npm test        # 36 ເຄສ: JWT realm, validation, DB Doctor
 npm run typecheck
 npm run build
 ```

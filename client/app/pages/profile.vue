@@ -46,7 +46,7 @@
             <BaseInput v-model="form.role" label="ບົດບາດ" disabled />
           </div>
           <div class="flex justify-end">
-            <BaseButton type="submit" icon="save">ບັນທຶກ</BaseButton>
+            <BaseButton type="submit" icon="save" :loading="saving">ບັນທຶກ</BaseButton>
           </div>
         </form>
       </BaseCard>
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useAuth } from '~/composables/api/useAuth'
 import { useAuthStore } from '~/stores/auth'
 import { useUiStore } from '~/stores/ui'
@@ -91,7 +91,8 @@ definePageMeta({
 const auth = useAuthStore()
 const ui = useUiStore()
 const toast = useToast()
-const { logout: signOut } = useAuth()
+const { logout: signOut, updateProfile } = useAuth()
+const saving = ref(false)
 
 const form = reactive({
   name: auth.displayName,
@@ -100,9 +101,20 @@ const form = reactive({
   role: auth.roleLabel,
 })
 
-const save = () => {
-  auth.user.name = form.name
-  toast.success('ບັນທຶກຂໍ້ມູນສຳເລັດ')
+const save = async () => {
+  if (!form.name.trim()) {
+    toast.error('ກະລຸນາປ້ອນຊື່')
+    return
+  }
+  saving.value = true
+  try {
+    await updateProfile({ name: form.name.trim(), phone: form.phone.trim() })
+    toast.success('ບັນທຶກຂໍ້ມູນສຳເລັດ')
+  } catch (requestError) {
+    toast.error(requestError?.message || 'ບໍ່ສາມາດບັນທຶກໂປຣໄຟລ໌ໄດ້')
+  } finally {
+    saving.value = false
+  }
 }
 
 const logout = () => signOut()

@@ -41,7 +41,13 @@
           label="ລາຍລະອຽດ"
           placeholder="ອະທິບາຍຄວາມເສຍຫາຍ..."
         />
-        <FileUpload v-model="form.attachment" label="ເອກະສານປະກອບ" hint="ຮູບພາບ ຫຼື PDF" />
+        <FileUpload
+          v-model="form.attachment"
+          label="ເອກະສານປະກອບ"
+          hint="ຮູບພາບ ຫຼື PDF, ສູງສຸດ 5 MB"
+          auto-upload
+          @uploaded="uploadedAttachment = $event"
+        />
 
         <div class="flex justify-end gap-2 border-t border-line pt-4">
           <BaseButton variant="secondary" @click="router.back()">ຍົກເລີກ</BaseButton>
@@ -56,6 +62,7 @@
 import { reactive, ref } from 'vue'
 import { navigateTo, useRouter } from '#app'
 import { useClaims } from '~/composables/api/useClaims'
+import { useFileUpload } from '~/composables/useFileUpload'
 import { useToast } from '~/composables/useToast'
 import { PRODUCT_TYPES } from '~/utils/constants'
 import { numeric, required, validate } from '~/utils/validators'
@@ -69,8 +76,10 @@ definePageMeta({
 const router = useRouter()
 const toast = useToast()
 const { create } = useClaims({ immediate: false })
+const { upload } = useFileUpload()
 
 const saving = ref(false)
+const uploadedAttachment = ref(null)
 const form = reactive({
   policyNumber: '',
   type: 'Motor',
@@ -99,6 +108,10 @@ const submit = async () => {
 
   saving.value = true
   try {
+    let attachment = uploadedAttachment.value
+    if (form.attachment && !attachment?.url) {
+      attachment = await upload(form.attachment)
+    }
     await create({
       policyNumber: form.policyNumber,
       type: form.type,
@@ -107,7 +120,7 @@ const submit = async () => {
       amount: Number(form.amount),
       coverageLimit: Number(form.coverageLimit) || 0,
       description: form.description,
-      attachments: form.attachment ? [form.attachment.name] : [],
+      attachments: attachment?.url ? [attachment.url] : [],
     })
     toast.success('ສົ່ງແຈ້ງເຄມສຳເລັດ')
     await navigateTo('/claims')

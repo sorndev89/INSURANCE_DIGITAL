@@ -8,7 +8,9 @@
     >
       <template #actions>
         <BaseButton variant="secondary" icon="arrow_back" @click="router.back()">ກັບຄືນ</BaseButton>
-        <BaseButton icon="add_circle" @click="navigateTo('/policies/create')"
+        <BaseButton
+          icon="add_circle"
+          @click="navigateTo({ path: '/policies/create', query: { customerId: route.params.id } })"
           >ເຮັດປະກັນໄພ</BaseButton
         >
       </template>
@@ -66,6 +68,15 @@
             <div>
               <dt class="text-xs text-muted">ເອກະສານຢືນຢັນ</dt>
               <dd class="mt-1 text-sm font-bold">{{ customer.idCardNumber || '—' }}</dd>
+              <a
+                v-if="customer.idCardImage"
+                :href="customer.idCardImage"
+                target="_blank"
+                rel="noopener"
+                class="mt-1 inline-flex text-xs font-bold text-primary-text hover:text-primary-dark"
+              >
+                ເບິ່ງເອກະສານທີ່ອັບໂຫຼດ
+              </a>
             </div>
             <div>
               <dt class="text-xs text-muted">ອາຊີບ</dt>
@@ -86,11 +97,7 @@
               <h2 class="text-sm font-bold">ການດຳເນີນການ</h2>
             </template>
             <div class="space-y-2">
-              <BaseButton
-                block
-                variant="secondary"
-                icon="edit"
-                @click="toast.info('ຟອມແກ້ໄຂຈະມາໃນໄວໆນີ້')"
+              <BaseButton block variant="secondary" icon="edit" @click="editOpen = true"
                 >ແກ້ໄຂຂໍ້ມູນ</BaseButton
               >
               <BaseButton
@@ -112,6 +119,8 @@
       title="ບໍ່ພົບລູກຄ້າ"
       description="ລູກຄ້ານີ້ອາດຖືກລຶບ ຫຼື ບໍ່ມີໃນລະບົບ."
     />
+
+    <CustomerFormModal v-model="editOpen" :customer="customer" @saved="handleSaved" />
   </div>
 </template>
 
@@ -119,7 +128,6 @@
 import { onMounted, ref } from 'vue'
 import { navigateTo, useRoute, useRouter } from '#app'
 import { useCustomers } from '~/composables/api/useCustomers'
-import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
 
 definePageMeta({
@@ -131,10 +139,10 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const format = useFormat()
-const toast = useToast()
 const { getById } = useCustomers({ immediate: false })
 
 const customer = ref(null)
+const editOpen = ref(false)
 const pending = ref(true)
 const error = ref('')
 
@@ -148,6 +156,11 @@ const load = async () => {
   } finally {
     pending.value = false
   }
+}
+
+const handleSaved = (saved) => {
+  if (saved) customer.value = { ...customer.value, ...saved }
+  load()
 }
 
 onMounted(load)

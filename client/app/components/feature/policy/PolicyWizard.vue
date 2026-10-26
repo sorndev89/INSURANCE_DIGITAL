@@ -46,6 +46,8 @@
           v-model="form.customer.idCard"
           label="ບັດປະຊາຊົນ / ພາສປອດ"
           hint="ຮູບພາບ ຫຼື PDF, ສູງສຸດ 5 MB"
+          auto-upload
+          @uploaded="form.customer.idCardUrl = $event?.url || ''"
         />
       </div>
 
@@ -96,6 +98,7 @@
             placeholder="2000"
             :error="errors.engineCapacity"
           />
+          <BaseInput v-model="form.vehicle.color" label="ສີລົດ" placeholder="ຂາວ" />
           <BaseInput
             v-model="form.vehicle.seats"
             label="ຈຳນວນທີ່ນັ່ງ"
@@ -276,11 +279,14 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { navigateTo } from '#app'
+import { navigateTo, useRoute } from '#app'
 import { onBeforeRouteLeave } from 'vue-router'
 import { GENDERS, PAYMENT_METHODS, USAGE_TYPES } from '~/utils/constants'
 import { calculatePremium } from '~/utils/premium'
 import { usePolicies } from '~/composables/api/usePolicies'
+import { useQuotations } from '~/composables/api/useQuotations'
+import { useCustomers } from '~/composables/api/useCustomers'
+import { buildPolicyPayload, customerNameParts } from '~/utils/policy'
 import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
 import { useAuthStore } from '~/stores/auth'
@@ -298,11 +304,14 @@ import {
 
 const DRAFT_KEY = 'saiyfon-policy-draft'
 
+const route = useRoute()
 const format = useFormat()
 const toast = useToast()
 const auth = useAuthStore()
 const { confirm } = useConfirm()
 const { create } = usePolicies({ immediate: false })
+const { getById: getQuotation } = useQuotations({ immediate: false })
+const { getById: getCustomer } = useCustomers({ immediate: false })
 
 const steps = [
   { label: 'ຜູ້ເອົາປະກັນ', description: 'ຂໍ້ມູນລູກຄ້າ' },
@@ -327,7 +336,9 @@ const form = reactive({
     occupation: '',
     address: '',
     idCard: null,
+    idCardUrl: '',
   },
+  customerId: null,
   vehicle: {
     make: '',
     model: '',
@@ -337,9 +348,12 @@ const form = reactive({
     chassisNumber: '',
     engineCapacity: '',
     seats: '',
+    color: '',
     usageType: 'private',
   },
   productId: null,
+  agentId: null,
+  quotationId: null,
   discountPercent: 0,
   paymentMethod: 'bcel',
 })
@@ -434,37 +448,17 @@ const prevStep = () => {
   if (currentStep.value > 0) currentStep.value -= 1
 }
 
-const addYear = (date, years) => {
-  const next = new Date(date)
-  next.setFullYear(next.getFullYear() + years)
-  return next.toISOString().slice(0, 10)
-}
-
 const submit = async () => {
   if (!validateStep() || submitting.value) return
   submitting.value = true
   try {
-    const today = new Date().toISOString().slice(0, 10)
     const company = companies.find((item) => item.code === selectedProduct.value.companyCode)
-    const payload = {
-      customerId: 0,
-      customerName: customerName.value,
-      customerPhone: form.customer.phone,
-      agentId: auth.role === 'agent' ? 1 : null,
-      agentName: auth.displayName,
-      companyCode: selectedProduct.value.companyCode,
-      companyName: company?.name || selectedProduct.value.companyCode,
-      productType: selectedProduct.value.type,
-      productName: selectedProduct.value.name,
-      vehiclePlate: form.vehicle.plateNumber,
-      startDate: today,
-      endDate: addYear(today, 1),
-      netPremium: premium.value.netPremium,
-      vatAmount: premium.value.vatAmount,
-      registrationFee: premium.value.registrationFee,
-      totalPremium: premium.value.totalPremium,
-      status: 'pending',
-    }
+    const payload = buildPolicyPayload({
+      form: { ...form, premium: premium.value },
+      auth,
+      product: selectedProduct.value,
+      company,
+    })
     createdPolicy.value = await create(payload)
     completed.value = true
     currentStep.value = 5
@@ -482,7 +476,7 @@ const saveDraft = () => {
   try {
     const draft = {
       ...form,
-      customer: { ...form.customer, idCard: null },
+      customer: { ...form.customer, idCard: null, idCardUrl: '' },
     }
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
   } catch {
@@ -498,9 +492,65 @@ const restoreDraft = () => {
     const draft = JSON.parse(raw)
     Object.assign(form, draft)
     form.customer.idCard = null
+    form.customer.idCardUrl = ''
     toast.info('ກູ້ຄືນຮ່າງທີ່ບັນທຶກໄວ້')
   } catch {
     // Ignore malformed drafts.
+  }
+}
+
+const applyQuotation = async (id) => {
+  const quotation = await getQuotation(id)
+  const parts = customerNameParts(quotation?.customerName)
+  if (parts.firstName) form.customer.firstName = parts.firstName
+  if (parts.lastName) form.customer.lastName = parts.lastName
+  if (quotation?.customerPhone) form.customer.phone = quotation.customerPhone
+  form.quotationId = quotation?.id ?? null
+
+  const match =
+    products.find((item) => item.id === Number(quotation?.productId)) ||
+    products.find((item) => item.name === quotation?.productName) ||
+    products.find((item) => item.type === quotation?.productType)
+  if (match) {
+    form.productId = match.id
+    const quoted = Number(quotation?.premium)
+    if (quoted > 0 && match.basePremium > quoted) {
+      form.discountPercent = Math.round(((match.basePremium - quoted) / match.basePremium) * 100)
+    }
+  }
+  toast.success('ດຶງຂໍ້ມູນຈາກໃບສະເໜີລາຄາແລ້ວ')
+}
+
+const applyCustomer = async (id) => {
+  const customer = await getCustomer(id)
+  if (!customer) return
+  form.customerId = customer.id ?? null
+  form.customer.firstName = customer.firstName || ''
+  form.customer.lastName = customer.lastName || ''
+  form.customer.phone = customer.phone || ''
+  form.customer.dob = customer.dob || ''
+  form.customer.gender = customer.gender || 'male'
+  form.customer.occupation = customer.occupation || ''
+  form.customer.address = customer.address || ''
+  toast.success('ດຶງຂໍ້ມູນລູກຄ້າແລ້ວ')
+}
+
+const prefillFromRoute = async () => {
+  const quotationId = Number(route.query.quotationId)
+  if (Number.isInteger(quotationId) && quotationId > 0) {
+    try {
+      await applyQuotation(quotationId)
+    } catch {
+      toast.warning('ບໍ່ສາມາດດຶງຂໍ້ມູນໃບສະເໜີລາຄາໄດ້')
+    }
+  }
+  const customerId = Number(route.query.customerId)
+  if (Number.isInteger(customerId) && customerId > 0) {
+    try {
+      await applyCustomer(customerId)
+    } catch {
+      toast.warning('ບໍ່ສາມາດດຶງຂໍ້ມູນລູກຄ້າໄດ້')
+    }
   }
 }
 
@@ -509,7 +559,10 @@ const clearDraft = () => {
   localStorage.removeItem(DRAFT_KEY)
 }
 
-onMounted(restoreDraft)
+onMounted(async () => {
+  restoreDraft()
+  await prefillFromRoute()
+})
 onBeforeUnmount(saveDraft)
 
 onBeforeRouteLeave(async () => {

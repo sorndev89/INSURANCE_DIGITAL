@@ -9,3 +9,4 @@ coverage
 .git
 .gitignore
 drizzle/meta/_journal.json.bak
+uploads

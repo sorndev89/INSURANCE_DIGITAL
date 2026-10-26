@@ -18,9 +18,18 @@ const splitName = (value: string) => {
 
 export const resolveCustomer = async (
   tenantId: number,
-  input: { customerId?: unknown; customerName?: unknown; customerPhone?: unknown },
+  input: {
+    customerId?: unknown;
+    customerName?: unknown;
+    customerPhone?: unknown;
+    customerIdCardUrl?: unknown;
+  },
 ) => {
   const customerId = Number(input.customerId || 0);
+  const idCardImage =
+    typeof input.customerIdCardUrl === 'string' && input.customerIdCardUrl.trim()
+      ? input.customerIdCardUrl.trim()
+      : null;
   if (customerId) {
     const [existing] = await db
       .select({ id: customers.id })
@@ -28,6 +37,12 @@ export const resolveCustomer = async (
       .where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)))
       .limit(1);
     if (!existing) throw ApiError.badRequest('Unknown customerId');
+    if (idCardImage) {
+      await db
+        .update(customers)
+        .set({ idCardImage })
+        .where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)));
+    }
     return existing.id;
   }
 
@@ -56,6 +71,7 @@ export const resolveCustomer = async (
     firstName,
     lastName,
     phone: phone || null,
+    idCardImage,
     status: 'active',
   });
   return result.insertId;

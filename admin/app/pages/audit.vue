@@ -44,34 +44,38 @@ onMounted(() => load())
 </script>
 
 <template>
-  <div>
-    <PageHeader title="Audit log" description="ບັນທຶກການກະທຳຂອງ platform admin ທຸກຄັ້ງ" />
+  <div class="space-y-6">
+    <PageHeader
+      title="Audit Logs"
+      description="ບັນທຶກປະຫວັດການກະທຳ ແລະ ການປ່ຽນແປງທັງໝົດຂອງ Platform Console"
+      :breadcrumbs="[{ label: 'Audit Logs' }]"
+    />
 
-    <form class="mb-4 flex flex-wrap items-center gap-2" @submit.prevent="load(1)">
+    <form class="flex flex-wrap items-center gap-3" @submit.prevent="load(1)">
       <input
         v-model="filters.action"
         class="sf-input max-w-xs"
-        placeholder="action ເຊັ່ນ tenant.create"
+        placeholder="Action ເຊັ່ນ tenant.create..."
       />
       <input
         v-model="filters.tenantId"
         class="sf-input max-w-[10rem]"
         type="number"
         min="1"
-        placeholder="tenant id"
+        placeholder="Tenant ID..."
       />
-      <button type="submit" class="sf-btn sf-btn-secondary">ກອງ</button>
-      <span class="text-xs text-slate-500">ທັງໝົດ {{ meta.total }} ລາຍການ</span>
+      <button type="submit" class="sf-btn sf-btn-secondary">ຄົ້ນຫາ</button>
+      <span class="text-xs text-muted">ທັງໝົດ {{ meta.total }} ລາຍການ</span>
     </form>
 
     <p
       v-if="error"
-      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"
+      class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400"
     >
       {{ error }}
     </p>
 
-    <div class="sf-card overflow-x-auto">
+    <div class="sf-card overflow-hidden">
       <table class="sf-table">
         <thead>
           <tr>

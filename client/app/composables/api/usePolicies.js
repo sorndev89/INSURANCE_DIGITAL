@@ -5,6 +5,7 @@ import { policies } from '~/mocks/policies'
 import { useEntityList } from './useEntityList'
 import { useApiClient } from './useApiClient'
 import { tenantPath } from '~/config/api'
+import { calculatePolicyStats } from '~/utils/stats'
 
 const endpoint = tenantPath('/policies')
 
@@ -37,22 +38,10 @@ export const usePolicies = (options = {}) => {
   const stats = computed(() => {
     revision.value
     if (!config.public.useMock && remoteStats.value) return remoteStats.value
-    const now = new Date()
-    const inThirtyDays = new Date(now)
-    inThirtyDays.setDate(inThirtyDays.getDate() + 30)
-    const rows = config.public.useMock ? policies : list.items.value
-    const active = rows.filter((policy) => policy.status === 'active')
-    const expiring = active.filter((policy) => {
-      const endDate = new Date(policy.endDate)
-      return endDate >= now && endDate <= inThirtyDays
-    })
-    const premium = rows.reduce((sum, policy) => sum + (Number(policy.totalPremium) || 0), 0)
-    return {
-      total: config.public.useMock ? policies.length : list.total.value,
-      active: active.length,
-      expiring: expiring.length,
-      premium,
+    if (!config.public.useMock) {
+      return { total: list.total.value, active: 0, expiring: 0, premium: 0 }
     }
+    return calculatePolicyStats(policies)
   })
 
   const getById = async (id) => {
@@ -107,5 +96,5 @@ export const usePolicies = (options = {}) => {
     return response.data
   }
 
-  return { ...list, stats, getById, create, updateStatus }
+  return { ...list, stats, getById, create, updateStatus, refreshStats: loadStats }
 }

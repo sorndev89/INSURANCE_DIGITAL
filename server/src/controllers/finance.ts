@@ -112,6 +112,7 @@ const invoiceFields = {
   issuedDate: invoices.issuedDate,
   dueDate: invoices.dueDate,
   status: invoices.status,
+  notes: invoices.notes,
 };
 
 const invoiceQuery = () =>
@@ -190,6 +191,7 @@ export const createInvoice = async (req: Request, res: Response) => {
     issuedDate: optionalString(body.issuedDate, 'issuedDate', { max: 10 }) || today(),
     dueDate: optionalString(body.dueDate, 'dueDate', { max: 10 }),
     status: optionalString(body.status, 'status', { max: 20 }) || 'unpaid',
+    notes: optionalString(body.notes ?? body.note, 'notes', { max: 2000 }),
   });
 
   const [row] = await invoiceQuery()
@@ -208,6 +210,7 @@ const paymentFields = {
   method: payments.method,
   paidAt: payments.paidAt,
   status: payments.status,
+  slipUrl: payments.slipUrl,
 };
 
 const paymentQuery = () =>
@@ -289,6 +292,7 @@ export const createPayment = async (req: Request, res: Response) => {
     method: optionalString(body.method, 'method', { max: 20 }) || 'cash',
     paidAt: optionalString(body.paidAt, 'paidAt', { max: 10 }) || (status === 'completed' ? today() : null),
     status,
+    slipUrl: optionalString(body.slipUrl, 'slipUrl', { max: 2000 }),
   });
 
   if (status === 'completed') {

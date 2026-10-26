@@ -87,63 +87,23 @@
             icon-only
             label="ແກ້ໄຂ"
             icon="edit"
-            @click="toast.info('ຟອມແກ້ໄຂຈະມາໃນໄວໆນີ້')"
+            @click="openEdit(row)"
           />
         </div>
       </template>
     </DataTable>
 
-    <BaseModal v-model="createOpen" title="ເພີ່ມລູກຄ້າໃໝ່" size="lg">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <BaseInput v-model="form.firstName" label="ຊື່" required :error="errors.firstName" />
-        <BaseInput v-model="form.lastName" label="ນາມສະກຸນ" required :error="errors.lastName" />
-        <BaseInput
-          v-model="form.phone"
-          label="ເບີໂທ"
-          prefix-icon="phone"
-          required
-          :error="errors.phone"
-        />
-        <BaseInput
-          v-model="form.email"
-          type="email"
-          label="ອີເມວ"
-          prefix-icon="mail"
-          :error="errors.email"
-        />
-        <BaseSelect v-model="form.gender" label="ເພດ" :options="GENDERS" />
-        <BaseInput v-model="form.occupation" label="ອາຊີບ" />
-      </div>
-      <BaseTextarea
-        v-model="form.address"
-        label="ທີ່ຢູ່"
-        class="mt-4"
-        placeholder="ບ້ານ, ເມືອງ, ແຂວງ"
-      />
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <BaseButton variant="secondary" @click="createOpen = false">ຍົກເລີກ</BaseButton>
-          <BaseButton icon="save" :loading="saving" @click="saveCustomer">ບັນທຶກ</BaseButton>
-        </div>
-      </template>
-    </BaseModal>
+    <CustomerFormModal v-model="formOpen" :customer="editingCustomer" @saved="handleSaved" />
   </div>
 </template>
 
 <script setup>
 import { useRemoteStats } from '~/composables/api/useRemoteStats'
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { navigateTo } from '#app'
 import { useCustomers } from '~/composables/api/useCustomers'
 import { useToast } from '~/composables/useToast'
-import { GENDERS } from '~/utils/constants'
 import { useFormat } from '~/utils/format'
-import {
-  email as emailValidator,
-  phone as phoneValidator,
-  required,
-  validate,
-} from '~/utils/validators'
 
 definePageMeta({
   layout: 'admin',
@@ -153,8 +113,7 @@ definePageMeta({
 
 const format = useFormat()
 const toast = useToast()
-const { items, total, page, pageSize, pending, error, filters, refresh, setPage, create } =
-  useCustomers()
+const { items, total, page, pageSize, pending, error, filters, refresh, setPage } = useCustomers()
 
 const localStats = computed(() => ({
   total: total.value,
@@ -162,7 +121,7 @@ const localStats = computed(() => ({
   policies: items.value.reduce((sum, customer) => sum + (Number(customer.policiesCount) || 0), 0),
 }))
 
-const { remoteStats } = useRemoteStats('/customers')
+const { remoteStats, refreshStats } = useRemoteStats('/customers')
 const stats = computed(() => remoteStats.value || localStats.value)
 
 const statusTabs = computed(() => [
@@ -179,52 +138,21 @@ const columns = [
   { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
 
-const createOpen = ref(false)
-const saving = ref(false)
-const form = reactive({
-  firstName: '',
-  lastName: '',
-  phone: '',
-  email: '',
-  gender: 'male',
-  occupation: '',
-  address: '',
-})
-const errors = reactive({ firstName: '', lastName: '', phone: '', email: '' })
+const formOpen = ref(false)
+const editingCustomer = ref(null)
 
 const openCreate = () => {
-  Object.assign(form, {
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: '',
-    gender: 'male',
-    occupation: '',
-    address: '',
-  })
-  Object.keys(errors).forEach((key) => {
-    errors[key] = ''
-  })
-  createOpen.value = true
+  editingCustomer.value = null
+  formOpen.value = true
 }
 
-const saveCustomer = async () => {
-  errors.firstName = required(form.firstName)
-  errors.lastName = required(form.lastName)
-  errors.phone = validate(form.phone, [required, phoneValidator])
-  errors.email = form.email ? emailValidator(form.email) : ''
-  if (Object.values(errors).some(Boolean)) return
+const openEdit = (customer) => {
+  editingCustomer.value = { ...customer }
+  formOpen.value = true
+}
 
-  saving.value = true
-  try {
-    await create(form)
-    createOpen.value = false
-    refresh()
-    toast.success('ເພີ່ມລູກຄ້າສຳເລັດ')
-  } catch (requestError) {
-    toast.error(requestError?.message || 'ບໍ່ສາມາດເພີ່ມລູກຄ້າໄດ້')
-  } finally {
-    saving.value = false
-  }
+const handleSaved = () => {
+  refresh()
+  void refreshStats()
 }
 </script>

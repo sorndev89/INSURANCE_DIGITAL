@@ -77,7 +77,7 @@ export const createUser = async (tenantId: number, data: NewTenantUser) => {
 export const updateUser = async (
   tenantId: number,
   id: number,
-  data: { role?: string; status?: string; phone?: string | null },
+  data: { username?: string; role?: string; status?: string; phone?: string | null },
 ) => {
   await db
     .update(users)

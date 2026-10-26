@@ -1,11 +1,12 @@
 import type { Request, Response } from 'express';
 import { comparePassword, generateTenantToken, hashPassword } from '../utils/auth.js';
 import { ApiError } from '../utils/errors.js';
-import { asObject, optionalString, requireEmail, requirePassword } from '../utils/validate.js';
+import { asObject, optionalString, requireEmail, requirePassword, requireString } from '../utils/validate.js';
 import {
   createUser,
   findUserByEmail,
   findUserById,
+  updateUser,
 } from '../repositories/users.js';
 
 const assertTenantUsable = (req: Request) => {
@@ -115,6 +116,39 @@ export const me = async (req: Request, res: Response) => {
       phone: user.phone,
       status: user.status,
       createdAt: user.createdAt,
+    },
+  });
+};
+
+
+export const updateProfile = async (req: Request, res: Response) => {
+  if (!req.auth) throw ApiError.unauthorized();
+  if (!req.tenant) throw ApiError.badRequest('Tenant context is required');
+
+  const body = asObject(req.body);
+  const patch: { username?: string; phone?: string | null } = {};
+
+  if (body.name !== undefined || body.username !== undefined) {
+    patch.username = requireString(body.name ?? body.username, 'name', { min: 2, max: 255 });
+  }
+  if (body.phone !== undefined) {
+    patch.phone = optionalString(body.phone, 'phone', { max: 20 });
+  }
+  if (!Object.keys(patch).length) throw ApiError.badRequest('No supported fields to update');
+
+  await updateUser(req.tenant.id, req.auth.userId, patch);
+  const user = await findUserById(req.tenant.id, req.auth.userId);
+  if (!user) throw ApiError.unauthorized('User no longer exists');
+
+  res.json({
+    data: {
+      id: user.id,
+      name: user.username,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      status: user.status,
     },
   });
 };

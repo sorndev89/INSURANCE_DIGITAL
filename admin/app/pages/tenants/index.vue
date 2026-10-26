@@ -127,75 +127,87 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <PageHeader title="Tenants" description="ຈັດການອົງກອນທັງໝົດໃນ SaaS, domain ແລະ ແຜນການໃຊ້ງານ">
+  <div class="space-y-6">
+    <PageHeader
+      title="ອົງກອນ (Tenants)"
+      description="ຈັດການອົງກອນທັງໝົດໃນ SaaS, custom domain, ສະຖານະ ແລະ ແຜນການໃຊ້ງານ"
+      :breadcrumbs="[{ label: 'Tenants' }]"
+    >
       <template #actions>
         <button type="button" class="sf-btn sf-btn-primary" @click="openCreate">
-          + ສ້າງ Tenant
+          + ສ້າງ Tenant ໃໝ່
         </button>
       </template>
     </PageHeader>
 
-    <form class="mb-4 flex flex-wrap items-center gap-2" @submit.prevent="load(1)">
+    <form class="flex flex-wrap items-center gap-3" @submit.prevent="load(1)">
       <input
         v-model="search"
-        class="sf-input max-w-xs"
+        class="sf-input max-w-sm"
         type="search"
-        placeholder="ຄົ້ນຫາຊື່ ຫຼື slug"
+        placeholder="ຄົ້ນຫາຊື່ ຫຼື slug..."
       />
       <button type="submit" class="sf-btn sf-btn-secondary">ຄົ້ນຫາ</button>
-      <span class="text-xs text-slate-500">ທັງໝົດ {{ meta.total }} ລາຍການ</span>
+      <span class="text-xs text-muted">ທັງໝົດ {{ meta.total }} ລາຍການ</span>
     </form>
 
     <p
       v-if="error"
-      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"
+      class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400"
     >
       {{ error }}
     </p>
 
-    <div class="sf-card overflow-x-auto">
-      <table class="sf-table">
-        <thead>
-          <tr>
-            <th>Tenant</th>
-            <th>Domain</th>
-            <th>Plan</th>
-            <th>Status</th>
-            <th>ສ້າງເມື່ອ</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="6" class="py-10 text-center text-slate-400">ກຳລັງໂຫຼດ...</td>
-          </tr>
-          <tr v-else-if="!tenants.length">
-            <td colspan="6" class="py-10 text-center text-slate-400">
-              ຍັງບໍ່ມີ tenant. ກົດ “ສ້າງ Tenant” ເພື່ອເລີ່ມ.
-            </td>
-          </tr>
-          <template v-else>
-            <tr v-for="tenant in tenants" :key="tenant.id">
-              <td>
-                <NuxtLink :to="`/tenants/${tenant.id}`" class="font-bold text-slate-900 hover:text-emerald-700">
-                  {{ tenant.name }}
-                </NuxtLink>
-                <p class="text-[11px] text-slate-500">{{ tenant.slug }}</p>
-              </td>
-              <td class="text-slate-600">
-                {{ tenant.primaryHostname || `${tenant.slug}.${config.public.rootDomain}` }}
-              </td>
-              <td class="text-slate-600">{{ tenant.planName || '—' }}</td>
-              <td><StatusBadge :status="tenant.status" /></td>
-              <td class="text-slate-500">{{ date(tenant.createdAt) }}</td>
-              <td class="text-right">
-                <NuxtLink :to="`/tenants/${tenant.id}`" class="sf-link text-xs">ເບິ່ງ</NuxtLink>
+    <div class="sf-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="sf-table">
+          <thead>
+            <tr>
+              <th>Tenant</th>
+              <th>Primary Domain</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>ສ້າງເມື່ອ</th>
+              <th class="text-right">ການຈັດການ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading">
+              <td colspan="6" class="py-12 text-center text-muted">ກຳລັງໂຫຼດ...</td>
+            </tr>
+            <tr v-else-if="!tenants.length">
+              <td colspan="6" class="py-12 text-center text-muted">
+                ຍັງບໍ່ມີ tenant. ກົດ “ສ້າງ Tenant” ເພື່ອເລີ່ມ.
               </td>
             </tr>
-          </template>
-        </tbody>
-      </table>
+            <template v-else>
+              <tr v-for="tenant in tenants" :key="tenant.id">
+                <td>
+                  <NuxtLink :to="`/tenants/${tenant.id}`" class="font-extrabold text-foreground hover:text-primary transition-colors">
+                    {{ tenant.name }}
+                  </NuxtLink>
+                  <p class="text-[11px] font-mono text-muted">{{ tenant.slug }}</p>
+                </td>
+                <td class="font-mono text-xs text-muted">
+                  {{ tenant.primaryHostname || `${tenant.slug}.${config.public.rootDomain}` }}
+                </td>
+                <td>
+                  <span class="rounded-md bg-surface-muted px-2 py-0.5 text-xs font-bold text-foreground">
+                    {{ tenant.planName || '—' }}
+                  </span>
+                </td>
+                <td><StatusBadge :status="tenant.status" /></td>
+                <td class="text-xs text-muted">{{ date(tenant.createdAt) }}</td>
+                <td class="text-right space-x-2">
+                  <NuxtLink :to="`/tenants/${tenant.id}`" class="sf-btn sf-btn-secondary py-1 px-3 text-xs">
+                    ຈັດການ
+                  </NuxtLink>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="mt-4 flex items-center justify-between">

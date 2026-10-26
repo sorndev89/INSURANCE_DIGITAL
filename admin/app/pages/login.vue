@@ -23,7 +23,7 @@ const submit = async () => {
   pending.value = true
   try {
     await login({ identifier: form.identifier.trim(), password: form.password })
-    await navigateTo('/tenants')
+    await navigateTo('/dashboard')
   } catch (requestError) {
     error.value = apiErrorMessage(requestError)
   } finally {
@@ -33,17 +33,17 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+  <div class="flex min-h-screen items-center justify-center bg-background px-4 py-10 transition-colors">
     <div class="w-full max-w-md">
       <div class="mb-6 flex items-center gap-3">
         <span
-          class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-sm font-bold text-white"
+          class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-base font-black text-white shadow-lg shadow-emerald-700/20"
         >
-          SF
+          IS
         </span>
         <div>
-          <p class="text-lg font-bold text-slate-900">Saiyfon SaaS</p>
-          <p class="text-xs text-slate-500">Platform administration console</p>
+          <p class="text-xl font-extrabold text-foreground tracking-tight">Insurance SaaS</p>
+          <p class="text-xs text-muted">Platform Administration Console</p>
         </div>
       </div>
 

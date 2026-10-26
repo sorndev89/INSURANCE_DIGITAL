@@ -6,6 +6,7 @@ import {
   createCustomer,
   customerStats,
   agentStats,
+  createAgent,
   getCustomer,
   getAgent,
   listAgents,
@@ -47,6 +48,7 @@ import {
   payCommission,
 } from '../controllers/finance.js';
 import { getDashboard } from '../controllers/dashboard.js';
+import { uploadFile } from '../controllers/uploads.js';
 
 export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   const router = Router();
@@ -55,6 +57,7 @@ export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   const fieldRoles = [...auth, requireRole('admin', 'staff', 'agent')];
 
   router.get('/dashboard', ...auth, getDashboard);
+  router.post('/uploads', ...auth, uploadFile);
 
   router.get('/customers', ...auth, listCustomers);
   router.get('/customers/stats', ...auth, customerStats);
@@ -65,6 +68,7 @@ export const createTenantDataRouter = (gate: RequestHandler[] = []) => {
   router.get('/agents', ...auth, listAgents);
   router.get('/agents/stats', ...auth, agentStats);
   router.get('/agents/:id', ...auth, getAgent);
+  router.post('/agents', ...adminStaff, createAgent);
   router.get('/teams', ...auth, listTeams);
   router.post('/teams', ...adminStaff, createTeam);
   router.get('/companies', ...auth, listCompanies);

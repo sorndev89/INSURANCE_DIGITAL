@@ -20,8 +20,27 @@ const readNumber = (key: string, fallback: number) => {
   return parsed;
 };
 
+const readEnum = <T extends string>(key: string, allowed: readonly T[], fallback: T): T => {
+  const raw = (process.env[key] || '').trim().toLowerCase();
+  if (!raw) return fallback;
+  if (!allowed.includes(raw as T)) {
+    throw new Error(`Environment variable ${key} must be one of: ${allowed.join(', ')}`);
+  }
+  return raw as T;
+};
+
+const readBoolean = (key: string, fallback: boolean) => {
+  const raw = (process.env[key] || '').trim().toLowerCase();
+  if (!raw) return fallback;
+  if (['true', '1', 'yes', 'on'].includes(raw)) return true;
+  if (['false', '0', 'no', 'off'].includes(raw)) return false;
+  throw new Error(`Environment variable ${key} must be true or false`);
+};
+
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProduction = nodeEnv === 'production';
+const runMigrationsOnStart = readBoolean('RUN_MIGRATIONS_ON_START', false);
+const dbDoctorModeFallback = runMigrationsOnStart ? 'repair' : isProduction ? 'repair' : 'off';
 
 export const env = {
   nodeEnv,
@@ -45,7 +64,29 @@ export const env = {
     .map((origin) => origin.trim())
     .filter(Boolean),
   tlsAskToken: process.env.TLS_ASK_TOKEN || '',
-  runMigrationsOnStart: process.env.RUN_MIGRATIONS_ON_START === 'true',
+  runMigrationsOnStart,
+  dbDoctorMode: readEnum(
+    'DB_DOCTOR_MODE',
+    ['off', 'report', 'check', 'repair'] as const,
+    dbDoctorModeFallback,
+  ),
+  dbDoctorFailOn: readEnum(
+    'DB_DOCTOR_FAIL_ON',
+    ['critical', 'warning', 'never'] as const,
+    'critical',
+  ),
+  dbDoctorDataChecks: (() => {
+    const raw = (process.env.DB_DOCTOR_DATA_CHECKS || '').trim().toLowerCase();
+    if (raw === 'deep') return 'deep' as const;
+    if (['false', '0', 'no', 'off'].includes(raw)) return false;
+    if (['true', '1', 'yes', 'on'].includes(raw)) return true;
+    return true;
+  })(),
+  dbDoctorLockTimeoutMs: readNumber('DB_DOCTOR_LOCK_TIMEOUT_MS', 45_000),
+  dbDoctorDataBudgetMs: readNumber('DB_DOCTOR_DATA_BUDGET_MS', 15_000),
+  dbDoctorAudit: readBoolean('DB_DOCTOR_AUDIT', true),
+  appVersion:
+    process.env.APP_VERSION || process.env.COOLIFY_COMMIT_SHA || process.env.GIT_COMMIT || null,
   trustProxy: (() => {
     const raw = process.env.TRUST_PROXY || '1';
     if (raw === 'true') return true;

@@ -186,16 +186,26 @@ const impersonate = async () => {
   }
 }
 
+const launchTenantApp = () => {
+  if (!impersonation.value?.token) return
+  const config = useRuntimeConfig()
+  const targetHost = window.location.hostname === 'localhost'
+    ? `http://localhost:3000?impersonate_token=${impersonation.value.token}`
+    : `https://${tenant.value?.primaryHostname || `${tenant.value?.slug}.${config.public.rootDomain}`}?impersonate_token=${impersonation.value.token}`
+  window.open(targetHost, '_blank')
+}
+
 onMounted(async () => {
   await Promise.all([load(), loadUsage(), loadPlans()])
 })
 </script>
 
 <template>
-  <div>
+  <div class="space-y-6">
     <PageHeader
       :title="tenant?.name || 'Tenant'"
-      :description="tenant ? `slug: ${tenant.slug} · id: ${tenant.id}` : 'ກຳລັງໂຫຼດ...'"
+      :description="tenant ? `Slug: ${tenant.slug} · ID: ${tenant.id}` : 'ກຳລັງໂຫຼດ...'"
+      :breadcrumbs="[{ label: 'Tenants', to: '/tenants' }, { label: tenant?.name || 'Detail' }]"
     >
       <template #actions>
         <NuxtLink to="/tenants" class="sf-btn sf-btn-secondary">← ກັບ</NuxtLink>
@@ -205,7 +215,7 @@ onMounted(async () => {
 
     <p
       v-if="error"
-      class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700"
+      class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-600 dark:text-rose-400"
     >
       {{ error }}
     </p>
@@ -420,7 +430,16 @@ onMounted(async () => {
               class="sf-input h-24 font-mono text-[11px]"
               :value="impersonation.token"
             />
-            <CopyButton :value="impersonation.token" label="ສຳເນົາ token" />
+            <div class="flex items-center gap-2">
+              <CopyButton :value="impersonation.token" label="ສຳເນົາ token" />
+              <button
+                type="button"
+                class="sf-btn sf-btn-primary flex-1 text-xs"
+                @click="launchTenantApp"
+              >
+                ເຂົ້າສູ່ລະບົບ Tenant ↗
+              </button>
+            </div>
           </div>
         </section>
 

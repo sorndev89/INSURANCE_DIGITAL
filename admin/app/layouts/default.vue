@@ -1,100 +1,97 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
-const route = useRoute()
-const { user, loadMe, logout } = usePlatformAuth()
+const { user, loadMe } = usePlatformAuth()
+const { isDark, toggleTheme, initTheme } = useTheme()
 
-const nav = [
-  { label: 'Tenants', to: '/tenants' },
-  { label: 'Plans', to: '/plans' },
-  { label: 'Audit log', to: '/audit' },
-]
+const isMobileMenuOpen = ref(false)
 
 onMounted(async () => {
+  initTheme()
   if (!user.value) await loadMe()
 })
 </script>
 
 <template>
-  <div class="min-h-screen lg:flex">
-    <aside class="hidden w-60 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-      <div class="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
-        <span
-          class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-sm font-bold text-white"
-        >
-          SF
-        </span>
-        <div class="leading-tight">
-          <p class="text-sm font-bold text-slate-900">Saiyfon SaaS</p>
-          <p class="text-[11px] text-slate-500">Platform console</p>
-        </div>
-      </div>
+  <div class="flex h-dvh overflow-hidden bg-background text-foreground transition-colors">
+    <!-- Desktop Sidebar (Collapsible with smooth animation) -->
+    <AppSidebar class="hidden lg:flex" />
 
-      <nav class="flex-1 space-y-1 p-3">
-        <NuxtLink
-          v-for="item in nav"
-          :key="item.to"
-          :to="item.to"
-          class="block rounded-lg px-3 py-2 text-sm font-bold transition"
-          :class="
-            route.path.startsWith(item.to)
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-          "
-        >
-          {{ item.label }}
-        </NuxtLink>
-      </nav>
+    <!-- Mobile / Tablet Drawer Sidebar (Overlay) -->
+    <AppSidebar
+      v-if="isMobileMenuOpen"
+      overlay
+      @close="isMobileMenuOpen = false"
+    />
 
-      <div class="border-t border-slate-200 p-3">
-        <p class="truncate px-2 text-xs font-bold text-slate-700">
-          {{ user?.email || '—' }}
-        </p>
-        <p class="px-2 text-[11px] uppercase tracking-wide text-slate-400">
-          {{ user?.role || 'platform' }}
-        </p>
-        <button
-          type="button"
-          class="mt-2 w-full rounded-lg px-2 py-2 text-left text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-          @click="logout"
-        >
-          ອອກຈາກລະບົບ
-        </button>
-      </div>
-    </aside>
-
-    <div class="min-w-0 flex-1">
-      <header class="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
-        <div class="flex items-center justify-between gap-3">
-          <NuxtLink to="/tenants" class="text-sm font-bold text-slate-900">Saiyfon SaaS</NuxtLink>
+    <!-- Main Viewport Area -->
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <!-- Topbar Header -->
+      <header
+        class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur-md sm:px-6 lg:px-8"
+      >
+        <!-- Mobile Hamburger Button & Title -->
+        <div class="flex items-center gap-3">
           <button
             type="button"
-            class="text-xs font-bold text-slate-500 hover:text-slate-900"
-            @click="logout"
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:bg-surface-muted lg:hidden"
+            aria-label="ເປີດເມນູ"
+            @click="isMobileMenuOpen = true"
           >
-            ອອກ
+            <BaseIcon name="menu" :size="20" />
           </button>
+
+          <div class="hidden items-center gap-2 sm:flex">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span class="text-xs font-bold text-muted">Platform Live · Insurance Digital Core</span>
+          </div>
         </div>
-        <nav class="mt-2 flex gap-2 overflow-x-auto">
+
+        <!-- Right Side Header Controls -->
+        <div class="flex items-center gap-2 sm:gap-3">
           <NuxtLink
-            v-for="item in nav"
-            :key="item.to"
-            :to="item.to"
-            class="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold"
-            :class="
-              route.path.startsWith(item.to)
-                ? 'bg-emerald-50 text-emerald-700'
-                : 'text-slate-500 hover:bg-slate-50'
-            "
+            to="/tenants"
+            class="hidden items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-bold text-muted transition hover:border-primary/40 hover:text-foreground sm:inline-flex"
           >
-            {{ item.label }}
+            <BaseIcon name="search" :size="14" />
+            <span>ຄົ້ນຫາອົງກອນ...</span>
           </NuxtLink>
-        </nav>
+
+          <!-- Dark Mode Toggle Button -->
+          <button
+            type="button"
+            class="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:bg-surface-muted hover:text-foreground"
+            :title="isDark ? 'ປ່ຽນເປັນ Light Mode' : 'ປ່ຽນເປັນ Dark Mode'"
+            @click="toggleTheme"
+          >
+            <BaseIcon :name="isDark ? 'sun' : 'moon'" :size="16" />
+          </button>
+
+          <!-- Superadmin Profile Pill -->
+          <div
+            class="flex items-center gap-2 rounded-xl border border-line bg-surface p-1.5 pr-3 text-xs font-bold"
+          >
+            <span
+              class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-xs font-black text-white"
+            >
+              {{ user?.username ? user.username.charAt(0).toUpperCase() : 'S' }}
+            </span>
+            <span class="hidden truncate text-foreground sm:inline">
+              {{ user?.username || 'Superadmin' }}
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main class="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">
+      <!-- Scrollable Main Content -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <slot />
       </main>
+
+      <!-- Footer -->
+      <footer class="shrink-0 border-t border-line py-3 px-6 text-center text-xs text-muted">
+        Insurance SaaS Platform Console &copy; 2026. All rights reserved.
+      </footer>
     </div>
   </div>
 </template>

@@ -8,6 +8,7 @@
         ຂ້າມໄປເນື້ອຫາ
       </a>
 
+      <ImpersonationBanner />
       <MobileTopBar />
       <main id="main-content" class="px-4 py-4 pb-28">
         <slot />

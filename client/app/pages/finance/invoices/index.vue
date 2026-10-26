@@ -5,9 +5,7 @@
         <BaseButton variant="secondary" icon="file_download" @click="toast.info('Export (mock)')"
           >Export</BaseButton
         >
-        <BaseButton icon="add_circle" @click="toast.info('ຟອມສ້າງໃບແຈ້ງໜີ້ຈະມາໃນໄວໆນີ້')"
-          >ສ້າງ Invoice</BaseButton
-        >
+        <BaseButton icon="add_circle" @click="openCreate">ສ້າງ Invoice</BaseButton>
       </template>
     </PageHeader>
 
@@ -79,15 +77,59 @@
         />
       </template>
     </DataTable>
+
+    <BaseModal v-model="createOpen" title="ສ້າງໃບແຈ້ງໜີ້ໃໝ່" size="lg">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <BaseSelect
+            v-model="form.policyId"
+            label="ປະກັນໄພ"
+            :options="policyOptions"
+            :error="errors.policyId"
+          />
+        </div>
+        <BaseInput
+          v-model="form.amount"
+          type="number"
+          label="ຈຳນວນເງິນ (₭)"
+          min="0"
+          required
+          :error="errors.amount"
+        />
+        <BaseInput
+          v-model="form.dueDate"
+          type="date"
+          label="ວັນຄົບກຳນົດຊຳລະ"
+          required
+          :error="errors.dueDate"
+        />
+        <BaseInput v-model="form.issuedDate" type="date" label="ວັນອອກໃບແຈ້ງໜີ້" />
+        <BaseSelect v-model="form.status" label="ສະຖານະ" :options="STATUS_OPTIONS" />
+        <BaseTextarea
+          v-model="form.notes"
+          label="ໝາຍເຫດ"
+          class="sm:col-span-2"
+          placeholder="ໝາຍເຫດເພີ່ມເຕີມ"
+        />
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <BaseButton variant="secondary" @click="createOpen = false">ຍົກເລີກ</BaseButton>
+          <BaseButton icon="save" :loading="saving" @click="saveInvoice">ບັນທຶກ</BaseButton>
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
-import { useRemoteStats } from '~/composables/api/useRemoteStats'
-import { computed } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useInvoices } from '~/composables/api/useInvoices'
+import { usePolicies } from '~/composables/api/usePolicies'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { todayIso } from '~/utils/date'
+import { numeric, required, validate } from '~/utils/validators'
 
 definePageMeta({
   layout: 'admin',
@@ -95,19 +137,24 @@ definePageMeta({
   permission: 'finance.view',
 })
 
+const STATUS_OPTIONS = [
+  { value: 'unpaid', label: 'ຍັງບໍ່ຈ່າຍ' },
+  { value: 'paid', label: 'ຈ່າຍແລ້ວ' },
+  { value: 'overdue', label: 'ເກີນກຳນົດ' },
+]
+
 const format = useFormat()
 const toast = useToast()
-const { items, total, page, pageSize, pending, error, filters, refresh, setPage } = useInvoices()
+const { items, total, page, pageSize, pending, error, filters, refresh, setPage, stats, create } =
+  useInvoices()
+const { items: policies } = usePolicies({ pageSize: 100, querySync: false })
 
-const localStats = computed(() => ({
-  total: total.value,
-  unpaid: items.value.filter((item) => item.status === 'unpaid').length,
-  overdue: items.value.filter((item) => item.status === 'overdue').length,
-  amount: items.value.reduce((sum, item) => sum + Number(item.amount), 0),
-}))
-
-const { remoteStats } = useRemoteStats('/invoices')
-const stats = computed(() => remoteStats.value || localStats.value)
+const policyOptions = computed(() =>
+  policies.value.map((policy) => ({
+    value: String(policy.id),
+    label: `${policy.policyNumber} · ${policy.customerName || ''}`,
+  })),
+)
 
 const statusTabs = computed(() => [
   { key: '', label: 'ທັງໝົດ', count: stats.value.total },
@@ -123,4 +170,66 @@ const columns = [
   { key: 'amount', label: 'ຈຳນວນ', align: 'right', sortable: true },
   { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
+
+const createOpen = ref(false)
+const saving = ref(false)
+const form = reactive({
+  policyId: '',
+  amount: '',
+  issuedDate: todayIso(),
+  dueDate: '',
+  status: 'unpaid',
+  notes: '',
+})
+const errors = reactive({ policyId: '', amount: '', dueDate: '' })
+
+const openCreate = () => {
+  Object.assign(form, {
+    policyId: '',
+    amount: '',
+    issuedDate: todayIso(),
+    dueDate: '',
+    status: 'unpaid',
+    notes: '',
+  })
+  Object.keys(errors).forEach((key) => {
+    errors[key] = ''
+  })
+  createOpen.value = true
+}
+
+watch(
+  () => form.policyId,
+  (value) => {
+    if (!value) return
+    const policy = policies.value.find((item) => String(item.id) === String(value))
+    if (policy && !form.amount) form.amount = Number(policy.totalPremium) || ''
+  },
+)
+
+const saveInvoice = async () => {
+  errors.policyId = required(form.policyId)
+  errors.amount = validate(form.amount, [required, numeric])
+  errors.dueDate = required(form.dueDate)
+  if (Object.values(errors).some(Boolean)) return
+
+  saving.value = true
+  try {
+    await create({
+      policyId: Number(form.policyId),
+      amount: Number(form.amount),
+      issuedDate: form.issuedDate,
+      dueDate: form.dueDate,
+      status: form.status,
+      notes: form.notes.trim(),
+    })
+    createOpen.value = false
+    refresh()
+    toast.success('ສ້າງໃບແຈ້ງໜີ້ສຳເລັດ')
+  } catch (requestError) {
+    toast.error(requestError?.message || 'ບໍ່ສາມາດສ້າງໃບແຈ້ງໜີ້ໄດ້')
+  } finally {
+    saving.value = false
+  }
+}
 </script>

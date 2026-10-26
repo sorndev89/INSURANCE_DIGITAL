@@ -79,19 +79,21 @@
           </template>
           <ul v-if="claim.attachments?.length" class="space-y-2">
             <li
-              v-for="file in claim.attachments"
-              :key="file"
+              v-for="(file, index) in claim.attachments"
+              :key="`${attachmentName(file)}-${index}`"
               class="flex items-center gap-2 rounded-lg border border-line p-2"
             >
               <BaseIcon name="description" size="sm" class="text-muted" />
-              <span class="min-w-0 flex-1 truncate text-xs font-bold">{{ file }}</span>
+              <span class="min-w-0 flex-1 truncate text-xs font-bold">
+                {{ attachmentName(file) }}
+              </span>
               <BaseButton
                 variant="ghost"
                 size="sm"
                 icon-only
                 label="ດາວໂຫຼດ"
                 icon="download"
-                @click="toast.info('ດາວໂຫຼດ (mock)')"
+                @click="downloadAttachment(file)"
               />
             </li>
           </ul>
@@ -112,10 +114,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from '#app'
+import { useRuntimeConfig } from '#imports'
 import { useClaims } from '~/composables/api/useClaims'
 import { useAuthStore } from '~/stores/auth'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { attachmentName, resolveAttachmentUrl } from '~/utils/uploads'
 
 definePageMeta({
   layout: 'admin',
@@ -125,6 +129,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const config = useRuntimeConfig()
 const auth = useAuthStore()
 const format = useFormat()
 const toast = useToast()
@@ -145,6 +150,18 @@ const load = async () => {
   } finally {
     pending.value = false
   }
+}
+
+const downloadAttachment = (file) => {
+  const url = resolveAttachmentUrl(
+    typeof file === 'string' ? file : file?.url,
+    config.public.apiBase,
+  )
+  if (!url || !import.meta.client) {
+    toast.warning('ເອກະສານນີ້ບໍ່ມີໄຟລ໌ສຳລັບດາວໂຫຼດ')
+    return
+  }
+  window.open(url, '_blank', 'noopener')
 }
 
 const setStatus = async (status) => {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rateLimit.js';
-import { login, me, register } from '../controllers/auth.js';
+import { login, me, register, updateProfile } from '../controllers/auth.js';
 
 const router = Router();
 
@@ -12,5 +12,6 @@ router.post(
 );
 router.post('/login', rateLimit({ scope: 'auth-login', windowMs: 15 * 60_000, max: 100 }), login);
 router.get('/me', authMiddleware, me);
+router.patch('/profile', authMiddleware, updateProfile);
 
 export default router;

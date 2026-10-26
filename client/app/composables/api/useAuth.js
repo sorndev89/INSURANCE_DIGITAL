@@ -2,10 +2,11 @@ import { ref } from 'vue'
 import { $fetch } from 'ofetch'
 import { navigateTo, useRuntimeConfig } from '#imports'
 import { delay, mockError } from '~/mocks/_helpers'
-import { findMockUser, toPublicUser } from '~/mocks/users'
+import { findMockUser, mockUsers, toPublicUser } from '~/mocks/users'
 import { useAuthStore } from '~/stores/auth'
 import { useTenantStore } from '~/stores/tenant'
 import { tenantPath } from '~/config/api'
+import { messageFrom } from '~/utils/apiError'
 
 export const useAuth = () => {
   const config = useRuntimeConfig()
@@ -49,9 +50,7 @@ export const useAuth = () => {
       auth.setSession(session, remember)
       return session
     } catch (requestError) {
-      const message =
-        requestError?.data?.error?.message || requestError?.data?.error || requestError?.message
-      error.value = typeof message === 'string' ? message : 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ'
+      error.value = messageFrom(requestError, 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ')
       throw requestError
     } finally {
       pending.value = false
@@ -59,7 +58,14 @@ export const useAuth = () => {
   }
 
   const me = async () => {
-    if (config.public.useMock) return auth.user
+    if (config.public.useMock) {
+      if (auth.impersonating && !auth.user) {
+        const impersonated = toPublicUser(mockUsers[0])
+        auth.setSession({ user: impersonated, token: auth.token }, true, { impersonating: true })
+        return impersonated
+      }
+      return auth.user
+    }
     const response = await $fetch(tenantPath('/auth/me'), {
       baseURL: config.public.apiBase,
       headers: {
@@ -68,8 +74,35 @@ export const useAuth = () => {
       },
     })
     const user = response.data || response.user
-    auth.setSession({ user, token: auth.token })
+    auth.setSession({ user, token: auth.token }, true, { impersonating: auth.impersonating })
     return user
+  }
+
+  const updateProfile = async (payload) => {
+    if (config.public.useMock) {
+      await delay(config.public.mockDelay ?? 300)
+      const updated = auth.updateUser({
+        name: payload.name || auth.displayName,
+        phone: payload.phone ?? auth.user?.phone ?? '',
+      })
+      return updated
+    }
+    const response = await $fetch(tenantPath('/auth/profile'), {
+      baseURL: config.public.apiBase,
+      method: 'PATCH',
+      body: payload,
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+        ...tenantHeaders(),
+      },
+    })
+    const user = response.data || response.user
+    const merged = auth.updateUser({
+      ...user,
+      name: user?.name || user?.username || payload.name,
+      phone: user?.phone ?? payload.phone ?? '',
+    })
+    return merged
   }
 
   const logout = () => {
@@ -77,5 +110,5 @@ export const useAuth = () => {
     return navigateTo('/login')
   }
 
-  return { login, logout, me, pending, error }
+  return { login, logout, me, updateProfile, pending, error }
 }

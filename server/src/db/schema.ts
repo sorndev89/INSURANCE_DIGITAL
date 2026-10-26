@@ -378,6 +378,7 @@ export const invoices = mysqlTable(
     issuedDate: date('issued_date', { mode: 'string' }).notNull(),
     dueDate: date('due_date', { mode: 'string' }),
     status: varchar('status', { length: 20 }).notNull().default('unpaid'),
+    notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => [
@@ -397,6 +398,7 @@ export const payments = mysqlTable(
     method: varchar('method', { length: 20 }).notNull().default('cash'),
     paidAt: date('paid_at', { mode: 'string' }),
     status: varchar('status', { length: 20 }).notNull().default('pending'),
+    slipUrl: text('slip_url'),
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => [
@@ -419,6 +421,26 @@ export const commissions = mysqlTable(
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => [index('commissions_tenant_idx').on(table.tenantId)],
+);
+
+export const dbDoctorRuns = mysqlTable(
+  'db_doctor_runs',
+  {
+    id: serialId(),
+    mode: varchar('mode', { length: 20 }).notNull(),
+    status: varchar('status', { length: 20 }).notNull(),
+    triggeredBy: varchar('triggered_by', { length: 20 }).notNull().default('deploy'),
+    appVersion: varchar('app_version', { length: 100 }),
+    migrationFrom: varchar('migration_from', { length: 100 }),
+    migrationTo: varchar('migration_to', { length: 100 }),
+    issuesCount: int('issues_count').notNull().default(0),
+    repairsCount: int('repairs_count').notNull().default(0),
+    durationMs: int('duration_ms').notNull().default(0),
+    report: json('report').$type<unknown>(),
+    startedAt: timestamp('started_at').defaultNow(),
+    finishedAt: timestamp('finished_at'),
+  },
+  (table) => [index('db_doctor_runs_started_idx').on(table.startedAt)],
 );
 
 function serialId() {

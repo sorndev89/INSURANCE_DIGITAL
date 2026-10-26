@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="ການຊຳລະເງິນ" description="ລາຍການຮັບຊຳລະເງິນ ແລະ ໃບຮັບເງິນ.">
       <template #actions>
-        <BaseButton icon="add" @click="toast.info('ຟອມຮັບຊຳລະຈະມາໃນໄວໆນີ້')">ຮັບຊຳລະໃໝ່</BaseButton>
+        <BaseButton icon="add" @click="openCreate">ຮັບຊຳລະໃໝ່</BaseButton>
       </template>
     </PageHeader>
 
@@ -65,15 +65,64 @@
       >
       <template #cell-status="{ value }"><StatusBadge :status="value" /></template>
     </DataTable>
+
+    <BaseModal v-model="createOpen" title="ບັນທຶກການຮັບຊຳລະເງິນ" size="lg">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <BaseSelect
+            v-model="form.invoiceId"
+            label="ໃບແຈ້ງໜີ້ທີ່ຍັງບໍ່ທັນຈ່າຍ"
+            :options="invoiceOptions"
+            :error="errors.invoiceId"
+          />
+        </div>
+        <BaseSelect v-model="form.method" label="ວິທີການຊຳລະ" :options="PAYMENT_METHODS" />
+        <BaseInput
+          v-model="form.amount"
+          type="number"
+          label="ຈຳນວນເງິນ (₭)"
+          min="0"
+          required
+          :error="errors.amount"
+        />
+        <BaseInput
+          v-model="form.paidAt"
+          type="date"
+          label="ວັນທີຮັບເງິນ"
+          required
+          :error="errors.paidAt"
+        />
+        <BaseSelect v-model="form.status" label="ສະຖານະ" :options="STATUS_OPTIONS" />
+        <div class="sm:col-span-2">
+          <FileUpload
+            v-model="form.slip"
+            label="ສະລິບໂອນເງິນ"
+            hint="ຮູບພາບ ຫຼື PDF, ສູງສຸດ 5 MB"
+            auto-upload
+            @uploaded="uploadedSlip = $event"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <BaseButton variant="secondary" @click="createOpen = false">ຍົກເລີກ</BaseButton>
+          <BaseButton icon="save" :loading="saving" @click="savePayment">ບັນທຶກ</BaseButton>
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
-import { useRemoteStats } from '~/composables/api/useRemoteStats'
-import { computed } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { usePayments } from '~/composables/api/usePayments'
+import { useInvoices } from '~/composables/api/useInvoices'
+import { useFileUpload } from '~/composables/useFileUpload'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
+import { todayIso } from '~/utils/date'
+import { PAYMENT_METHODS } from '~/utils/constants'
+import { numeric, required, validate } from '~/utils/validators'
 
 definePageMeta({
   layout: 'admin',
@@ -81,26 +130,29 @@ definePageMeta({
   permission: 'finance.view',
 })
 
+const STATUS_OPTIONS = [
+  { value: 'completed', label: 'ສຳເລັດ' },
+  { value: 'pending', label: 'ລໍຖ້າ' },
+  { value: 'failed', label: 'ລົ້ມເຫຼວ' },
+]
+
 const format = useFormat()
 const toast = useToast()
-const { items, total, page, pageSize, pending, error, filters, refresh, setPage } = usePayments()
+const { upload } = useFileUpload()
+const { items, total, page, pageSize, pending, error, filters, refresh, setPage, stats, create } =
+  usePayments()
+const { items: unpaidInvoices, refresh: refreshInvoices } = useInvoices({
+  pageSize: 100,
+  defaultFilters: { search: '', status: 'unpaid' },
+  querySync: false,
+})
 
-const today = new Date().toISOString().slice(0, 10)
-const monthPrefix = today.slice(0, 7)
-
-const localStats = computed(() => ({
-  total: total.value,
-  today: items.value
-    .filter((item) => item.paidAt === today)
-    .reduce((sum, item) => sum + Number(item.amount), 0),
-  month: items.value
-    .filter((item) => item.paidAt?.startsWith(monthPrefix))
-    .reduce((sum, item) => sum + Number(item.amount), 0),
-  pending: items.value.filter((item) => item.status === 'pending').length,
-}))
-
-const { remoteStats } = useRemoteStats('/payments')
-const stats = computed(() => remoteStats.value || localStats.value)
+const invoiceOptions = computed(() =>
+  unpaidInvoices.value.map((invoice) => ({
+    value: String(invoice.id),
+    label: `${invoice.invoiceNumber} · ${invoice.customerName || ''} · ${format.currency(invoice.amount)}`,
+  })),
+)
 
 const statusTabs = computed(() => [
   { key: '', label: 'ທັງໝົດ', count: stats.value.total },
@@ -118,9 +170,76 @@ const columns = [
   { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
 
+const createOpen = ref(false)
+const saving = ref(false)
+const uploadedSlip = ref(null)
+const form = reactive({
+  invoiceId: '',
+  method: 'bcel',
+  amount: '',
+  paidAt: todayIso(),
+  status: 'completed',
+  slip: null,
+})
+const errors = reactive({ invoiceId: '', amount: '', paidAt: '' })
+
+const openCreate = () => {
+  Object.assign(form, {
+    invoiceId: '',
+    method: 'bcel',
+    amount: '',
+    paidAt: todayIso(),
+    status: 'completed',
+    slip: null,
+  })
+  uploadedSlip.value = null
+  Object.keys(errors).forEach((key) => {
+    errors[key] = ''
+  })
+  createOpen.value = true
+}
+
+watch(
+  () => form.invoiceId,
+  (value) => {
+    if (!value) return
+    const invoice = unpaidInvoices.value.find((item) => String(item.id) === String(value))
+    if (invoice) form.amount = Number(invoice.amount) || ''
+  },
+)
+
 const methodLabel = (method) => {
   if (method === 'bcel') return 'BCEL One'
   if (method === 'bank') return 'ໂອນທະນາຄານ'
   return 'ເງິນສົດ'
+}
+
+const savePayment = async () => {
+  errors.invoiceId = required(form.invoiceId)
+  errors.amount = validate(form.amount, [required, numeric])
+  errors.paidAt = required(form.paidAt)
+  if (Object.values(errors).some(Boolean)) return
+
+  saving.value = true
+  try {
+    let slip = uploadedSlip.value
+    if (form.slip && !slip?.url) slip = await upload(form.slip)
+    await create({
+      invoiceId: Number(form.invoiceId),
+      method: form.method,
+      amount: Number(form.amount),
+      paidAt: form.paidAt,
+      status: form.status,
+      slipUrl: slip?.url || '',
+    })
+    createOpen.value = false
+    refresh()
+    refreshInvoices()
+    toast.success('ບັນທຶກການຮັບຊຳລະສຳເລັດ')
+  } catch (requestError) {
+    toast.error(requestError?.message || 'ບໍ່ສາມາດບັນທຶກການຊຳລະໄດ້')
+  } finally {
+    saving.value = false
+  }
 }
 </script>

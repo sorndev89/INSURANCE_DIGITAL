@@ -22,6 +22,20 @@
       "when": 1792975367348,
       "tag": "0002_milky_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1792981725146,
+      "tag": "0003_natural_morg",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1792984531412,
+      "tag": "0004_stale_chimera",
+      "breakpoints": true
     }
   ]
 }

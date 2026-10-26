@@ -52,7 +52,9 @@
       </span>
       <div class="min-w-0 flex-1">
         <p class="truncate text-sm font-bold text-foreground">{{ file.name }}</p>
-        <p class="mt-0.5 text-xs text-muted">{{ formatSize(file.size) }}</p>
+        <p class="mt-0.5 text-xs text-muted">
+          {{ uploading ? 'ກຳລັງອັບໂຫຼດ...' : formatSize(file.size) }}
+        </p>
       </div>
       <BaseButton
         variant="ghost"
@@ -75,11 +77,14 @@ const props = defineProps({
   error: { type: String, default: '' },
   accept: { type: String, default: 'image/*,application/pdf' },
   maxSizeMB: { type: Number, default: 5 },
+  autoUpload: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'uploaded'])
+const { upload } = useFileUpload()
 const inputRef = ref(null)
 const dragActive = ref(false)
+const uploading = ref(false)
 const localError = ref('')
 const previewUrl = ref('')
 const file = computed(() => props.modelValue || null)
@@ -116,26 +121,39 @@ const validate = (nextFile) => {
   return matches ? '' : 'ປະເພດໄຟລ໌ບໍ່ຖືກຕ້ອງ'
 }
 
-const applyFile = (nextFile) => {
+const applyFile = async (nextFile) => {
   const message = validate(nextFile)
   localError.value = message
   if (message) return
   emit('update:modelValue', nextFile)
+  emit('uploaded', null)
+  if (!props.autoUpload) return
+
+  uploading.value = true
+  try {
+    const result = await upload(nextFile)
+    emit('uploaded', result)
+  } catch (uploadError) {
+    localError.value = uploadError?.message || 'ອັບໂຫຼດໄຟລ໌ບໍ່ສຳເລັດ'
+  } finally {
+    uploading.value = false
+  }
 }
 
 const handleInput = (event) => {
-  applyFile(event.target.files?.[0])
+  void applyFile(event.target.files?.[0])
   event.target.value = ''
 }
 
 const handleDrop = (event) => {
   dragActive.value = false
-  applyFile(event.dataTransfer?.files?.[0])
+  void applyFile(event.dataTransfer?.files?.[0])
 }
 
 const removeFile = () => {
   localError.value = ''
   emit('update:modelValue', null)
+  emit('uploaded', null)
 }
 
 const formatSize = (bytes) => {

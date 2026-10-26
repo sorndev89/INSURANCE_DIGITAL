@@ -3,8 +3,10 @@ import { and, asc, desc, eq, like, or, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { agents, customers, insuranceCompanies, policies, products, teams, users } from '../db/schema.js';
 import { ApiError } from '../utils/errors.js';
-import { asObject, optionalString, requireString } from '../utils/validate.js';
+import { asObject, optionalString, requireEmail, requirePassword, requireString } from '../utils/validate.js';
 import { likeValue, parseListQuery, sequenceNumber, toNumber } from '../utils/list.js';
+import { hashPassword } from '../utils/auth.js';
+import { createUser, findUserByEmail } from '../repositories/users.js';
 
 const tenantId = (req: Request) => {
   if (!req.tenant) throw ApiError.badRequest('Tenant context is required');
@@ -23,6 +25,7 @@ const customerRow = (row: typeof customers.$inferSelect, policiesCount: number) 
   email: row.email,
   address: row.address,
   idCardNumber: row.idCardNumber,
+  idCardImage: row.idCardImage,
   passportNumber: row.passportNumber,
   occupation: row.occupation,
   status: row.status,
@@ -254,6 +257,87 @@ export const listAgents = async (req: Request, res: Response) => {
       salesYtd: toNumber(row.salesYtd),
     })),
     meta: { total: toNumber(totalRow?.total), page: query.page, pageSize: query.pageSize },
+  });
+};
+
+export const createAgent = async (req: Request, res: Response) => {
+  const tid = tenantId(req);
+  const body = asObject(req.body);
+  const email = requireEmail(body.email);
+  const password = requirePassword(body.password);
+  const username = requireString(body.username ?? body.name, 'username', { max: 255 });
+  const phone = optionalString(body.phone, 'phone', { max: 20 });
+  const level = optionalString(body.level, 'level', { max: 30 }) || 'Senior';
+  const teamId = body.teamId === undefined || body.teamId === null || body.teamId === ''
+    ? null
+    : Number(body.teamId);
+  const commissionRate = Math.min(100, Math.max(0, Number(body.commissionRate) || 0));
+
+  if (teamId !== null && !Number.isInteger(teamId)) {
+    throw ApiError.badRequest('Invalid teamId');
+  }
+
+  const existing = await findUserByEmail(tid, email);
+  if (existing) throw ApiError.conflict('Email is already registered for this tenant');
+
+  const userId = await createUser(tid, {
+    username,
+    email,
+    password: await hashPassword(password),
+    role: 'agent',
+    phone,
+  });
+
+  const [countRow] = await db
+    .select({ total: sql<number>`count(*)` })
+    .from(agents)
+    .where(eq(agents.tenantId, tid));
+  const agentCode = sequenceNumber('AG-', toNumber(countRow?.total), 4);
+
+  const [result] = await db.insert(agents).values({
+    tenantId: tid,
+    userId,
+    teamId,
+    agentCode,
+    level,
+    commissionRate: String(commissionRate),
+    status: 'active',
+  });
+
+  const [row] = await db
+    .select({
+      id: agents.id,
+      userId: agents.userId,
+      code: agents.agentCode,
+      name: users.username,
+      email: users.email,
+      phone: users.phone,
+      teamId: agents.teamId,
+      teamName: teams.name,
+      level: agents.level,
+      commissionRate: agents.commissionRate,
+      salesTarget: agents.salesTarget,
+      creditLimit: agents.creditLimit,
+      salesYtd: salesYtdSql,
+      status: agents.status,
+      createdAt: agents.createdAt,
+    })
+    .from(agents)
+    .leftJoin(users, eq(users.id, agents.userId))
+    .leftJoin(teams, eq(teams.id, agents.teamId))
+    .where(and(eq(agents.tenantId, tid), eq(agents.id, result.insertId)))
+    .limit(1);
+
+  res.status(201).json({
+    data: row
+      ? {
+          ...row,
+          commissionRate: toNumber(row.commissionRate),
+          salesTarget: toNumber(row.salesTarget),
+          creditLimit: toNumber(row.creditLimit),
+          salesYtd: toNumber(row.salesYtd),
+        }
+      : { id: result.insertId, code: agentCode },
   });
 };
 

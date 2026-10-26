@@ -35,7 +35,9 @@
       </button>
     </div>
 
-    <nav class="scrollbar-thin flex-1 space-y-6 overflow-y-auto px-3 py-5">
+    <nav
+      class="scrollbar-thin min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-5"
+    >
       <div v-for="group in menuGroups" :key="group.title">
         <p
           v-if="!collapsed"
@@ -102,7 +104,7 @@ const { menuGroups, isActivePath } = useNavigation()
 const collapsed = computed(() => !props.overlay && ui.sidebarCollapsed)
 
 const asideClass = computed(() => [
-  'flex h-full flex-col border-r border-line bg-surface',
+  'flex h-full min-h-0 flex-col overflow-hidden border-r border-line bg-surface',
   props.overlay
     ? 'fixed inset-y-0 left-0 z-50 w-72 shadow-2xl'
     : 'shrink-0 transition-[width] duration-200',

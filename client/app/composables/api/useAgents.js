@@ -1,5 +1,5 @@
 import { useRuntimeConfig } from '#imports'
-import { clone, delay, mockError } from '~/mocks/_helpers'
+import { clone, delay, mockError, nextId } from '~/mocks/_helpers'
 import { useEntityList } from './useEntityList'
 import { agents } from '~/mocks/agents'
 import { useApiClient } from './useApiClient'
@@ -26,5 +26,35 @@ export const useAgents = (options = {}) => {
     return response.data
   }
 
-  return { ...list, getById }
+  const create = async (payload) => {
+    if (config.public.useMock) {
+      await delay(config.public.mockDelay)
+      const id = nextId(agents)
+      const agent = {
+        id,
+        code: payload.code || `AG-${String(id).padStart(4, '0')}`,
+        name: payload.name || payload.username || '',
+        email: payload.email || '',
+        phone: payload.phone || '',
+        teamId: payload.teamId || null,
+        teamName: payload.teamName || '',
+        level: payload.level || 'Senior',
+        commissionRate: Number(payload.commissionRate) || 0,
+        salesTarget: Number(payload.salesTarget) || 0,
+        creditLimit: Number(payload.creditLimit) || 0,
+        salesYtd: 0,
+        status: payload.status || 'active',
+        createdAt: new Date().toISOString().slice(0, 10),
+      }
+      agents.unshift(agent)
+      return clone(agent)
+    }
+    const response = await apiFetch(tenantPath('/agents'), {
+      method: 'POST',
+      body: payload,
+    })
+    return response.data
+  }
+
+  return { ...list, getById, create }
 }

@@ -5,6 +5,7 @@ import { useRuntimeConfig } from '#app'
 import { Capacitor } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 import { normalizeHex, rgbChannels, shadeHex, tintHex } from '~/utils/color'
+import { createSingleFlight } from '~/utils/async'
 
 const SLUG_KEY = 'saiyfon_tenant_slug'
 const REQUEST_TIMEOUT_MS = 2500
@@ -22,8 +23,7 @@ const timeoutSignal = (ms) => {
   return controller.signal
 }
 
-const errorStatus = (error) =>
-  error?.response?.status || error?.statusCode || error?.status || null
+const errorStatus = (error) => error?.response?.status || error?.statusCode || error?.status || null
 
 const isLocalHostname = (host) =>
   !host || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local')
@@ -44,8 +44,8 @@ export const useTenantStore = defineStore('tenant', () => {
   const brandName = computed(() => brand.value.name || name.value)
   const shortName = computed(() => brand.value.shortName || brandName.value)
   const logoUrl = computed(() => brand.value.logoUrl || '')
-  const primaryColor = computed(
-    () => normalizeHex(brand.value.primaryColor, config.public.defaultBrandColor),
+  const primaryColor = computed(() =>
+    normalizeHex(brand.value.primaryColor, config.public.defaultBrandColor),
   )
   const locale = computed(() => tenant.value?.locale || 'lo')
   const currency = computed(() => tenant.value?.currency || 'LAK')
@@ -55,8 +55,7 @@ export const useTenantStore = defineStore('tenant', () => {
   const resolved = computed(() => Boolean(tenant.value))
   const isFallback = computed(() => offline.value || needsSelection.value)
 
-  const hasFeature = (feature) =>
-    features.value.includes('*') || features.value.includes(feature)
+  const hasFeature = (feature) => features.value.includes('*') || features.value.includes(feature)
 
   const applyFallback = () => {
     tenant.value = {
@@ -149,7 +148,7 @@ export const useTenantStore = defineStore('tenant', () => {
     await applyTenant(response.data)
   }
 
-  const resolve = async () => {
+  const resolveTask = async () => {
     loading.value = true
     try {
       const mode = config.public.tenantMode || 'auto'
@@ -200,6 +199,9 @@ export const useTenantStore = defineStore('tenant', () => {
       loading.value = false
     }
   }
+
+  // A single in-flight resolver prevents plugin/middleware races and duplicate requests.
+  const resolve = createSingleFlight(resolveTask)
 
   const selectSlug = async (value) => {
     const normalized = String(value || '')

@@ -11,7 +11,10 @@
             :alt="tenant.brandName"
             class="h-12 w-12 rounded-xl bg-white/10 object-contain p-1"
           />
-          <span v-else class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-dark">
+          <span
+            v-else
+            class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-dark"
+          >
             <BaseIcon name="shield" size="xl" />
           </span>
           <span>{{ tenant.brandName }}</span>
@@ -36,7 +39,10 @@
               :alt="tenant.brandName"
               class="h-11 w-11 rounded-xl object-contain"
             />
-            <span v-else class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-light">
+            <span
+              v-else
+              class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-light"
+            >
               <BaseIcon name="shield" size="lg" />
             </span>
             <span>{{ tenant.brandName }}</span>

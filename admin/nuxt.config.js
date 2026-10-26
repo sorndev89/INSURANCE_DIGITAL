@@ -20,8 +20,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'lo' },
-      title: 'Saiyfon SaaS Console',
-      titleTemplate: '%s · Saiyfon SaaS',
+      title: 'Insurance SaaS Console',
+      titleTemplate: '%s · Insurance SaaS',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

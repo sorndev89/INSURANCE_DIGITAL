@@ -1,6 +1,6 @@
 <script setup>
 definePageMeta({
-  middleware: [() => navigateTo('/tenants')],
+  middleware: [() => navigateTo('/dashboard')],
 })
 </script>
 

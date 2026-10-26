@@ -1,7 +1,9 @@
 const HEX_PATTERN = /^#?[0-9a-f]{6}$/i
 
 export const normalizeHex = (value, fallback = '#047857') =>
-  HEX_PATTERN.test(String(value || '')) ? `#${String(value).replace('#', '').toLowerCase()}` : fallback
+  HEX_PATTERN.test(String(value || ''))
+    ? `#${String(value).replace('#', '').toLowerCase()}`
+    : fallback
 
 export const hexToRgb = (hex) => {
   const normalized = normalizeHex(hex)

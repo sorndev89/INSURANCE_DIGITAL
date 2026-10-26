@@ -25,8 +25,12 @@
             <span
               class="flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-primary/10 text-primary-text"
             >
-              <BaseIcon name="description" size="lg" class="sm:hidden" />
-              <BaseIcon name="description" size="xl" class="hidden sm:inline-block" />
+              <span class="sm:hidden">
+                <BaseIcon name="description" size="lg" />
+              </span>
+              <span class="hidden sm:inline-flex">
+                <BaseIcon name="description" size="xl" />
+              </span>
             </span>
             <div>
               <div class="flex flex-wrap items-center gap-2">

@@ -96,15 +96,17 @@ tests/{unit,e2e}
 ```bash
 NUXT_PUBLIC_USE_MOCK=false
 NUXT_PUBLIC_API_BASE=http://localhost:5055/api
-NUXT_PUBLIC_MOCK_DELAY=450
-NUXT_PUBLIC_MOCK_FAILURE_RATE=0
+NUXT_PUBLIC_PLATFORM_URL=http://localhost:3001
 
 # Multi-tenant bootstrap
 NUXT_PUBLIC_TENANT_MODE=auto
 NUXT_PUBLIC_DEFAULT_TENANT_SLUG=saiyfon
 NUXT_PUBLIC_DEFAULT_TENANT_NAME=ສາຍຝົນ ປະກັນໄພ
 NUXT_PUBLIC_DEFAULT_BRAND_COLOR=#047857
-NUXT_PUBLIC_ROOT_DOMAIN=saiyfon.app
+
+# Optional: only used while NUXT_PUBLIC_USE_MOCK=true
+# NUXT_PUBLIC_MOCK_DELAY=450
+# NUXT_PUBLIC_MOCK_FAILURE_RATE=0
 ```
 
 > Default ແມ່ນ **real API** (`useMock=false`). ຖ້າຢາກເຮັດ UI ແບບ offline ໃຫ້ຕັ້ງ `NUXT_PUBLIC_USE_MOCK=true`.
