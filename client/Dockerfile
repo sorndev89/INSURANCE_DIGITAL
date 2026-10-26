@@ -2,8 +2,9 @@
 
 FROM node:24-alpine AS build
 WORKDIR /app
+ENV NODE_ENV=development
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=dev
 COPY . .
 
 # NUXT_PUBLIC_* values are baked into the SPA at build time.

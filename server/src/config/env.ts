@@ -63,6 +63,7 @@ export const env = {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
+  corsAllowRootSubdomains: readBoolean('CORS_ALLOW_ROOT_SUBDOMAINS', false),
   tlsAskToken: process.env.TLS_ASK_TOKEN || '',
   runMigrationsOnStart,
   dbDoctorMode: readEnum(

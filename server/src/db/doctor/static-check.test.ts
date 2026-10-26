@@ -107,6 +107,23 @@ test('reports type mismatch and missing index', () => {
   assert.ok(errors.some((error) => error.includes('users_missing_idx')));
 });
 
+test('reports snapshot objects removed from the Drizzle schema', () => {
+  const snapshotWithExtra = {
+    tables: {
+      ...snapshot.tables,
+      users: {
+        ...snapshot.tables.users,
+        columns: {
+          ...snapshot.tables.users.columns,
+          legacy_flag: { name: 'legacy_flag', type: 'boolean', notNull: false },
+        },
+      },
+    },
+  };
+  const errors = compareSchemaToSnapshot(new Map([['users', expectedTable]]), snapshotWithExtra);
+  assert.ok(errors.some((error) => error.includes('legacy_flag')));
+});
+
 test('latest snapshot path points at the final journal entry', () => {
   const path = latestSnapshotPath('./drizzle');
   assert.match(path, /drizzle\/meta\/\d{4}_snapshot\.json$/);

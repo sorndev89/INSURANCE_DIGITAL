@@ -2,8 +2,9 @@
 
 FROM node:24-alpine AS deps
 WORKDIR /app
+ENV NODE_ENV=development
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 FROM deps AS build
 COPY tsconfig.json ./
@@ -25,6 +26,6 @@ COPY drizzle ./drizzle
 COPY package.json ./
 USER app
 EXPOSE 5055
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
   CMD curl -fsS http://127.0.0.1:5055/health || exit 1
 CMD ["node", "dist/index.js"]

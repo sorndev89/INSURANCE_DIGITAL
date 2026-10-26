@@ -206,7 +206,7 @@ DB Doctor ຈະລັນກ່ອນ server ເມື່ອ `DB_DOCTOR_MODE` �
 
 ## 9. ຄວາມປອດໄພ
 
-- CORS ເປັນ allowlist: root domain, admin host, verified tenant domains, `CORS_EXTRA_ORIGINS`; dev ອະນຸຍາດ localhost ທຸກ port.
+- CORS ເປັນ allowlist: admin host, exact root domain, verified tenant domains (from `tenant_domains`), `CORS_EXTRA_ORIGINS`; `CORS_ALLOW_ROOT_SUBDOMAINS=false` ບໍ່ອະນຸຍາດ subdomain ທີ່ຍັງບໍ່ verified; dev ອະນຸຍາດ localhost ທຸກ port.
 - Rate limit (Redis-backed): tenant login 100/15ນາທີ, register 30/15ນາທີ, platform login 30/15ນາທີ.
 - Plan limits ບັງຄັບຕອນສ້າງ user/policy (`maxUsers`, `maxPolicies`; 0 = ບໍ່ຈຳກັດ) → 403 `plan_limit_reached`.
 - JWT 2 realm, ກວດ tenant match; ຂໍ້ມູນທຸກ query scope ດ້ວຍ `tenantId`.
@@ -216,7 +216,7 @@ DB Doctor ຈະລັນກ່ອນ server ເມື່ອ `DB_DOCTOR_MODE` �
 ## 10. Tests
 
 ```bash
-npm test        # 36 ເຄສ: JWT realm, validation, DB Doctor
+npm test        # 47 ເຄສ: JWT realm, validation, CORS, DB Doctor
 npm run typecheck
 npm run build
 ```

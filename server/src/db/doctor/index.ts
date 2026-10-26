@@ -175,7 +175,16 @@ export const runDatabaseDoctor = async (
       let schemaDiff = compareSchema(expectedSchema, actualSchema);
       let schemaRepairs: DoctorReport['repairs'] = [];
 
-      if (options.mode === 'repair' && !schemaDiff.issues.some((issue) => issue.severity === 'critical' && issue.repair === 'manual')) {
+      const hasCriticalMigrationIssue = migrationAnalysis.issues.some(
+        (issue) => issue.severity === 'critical',
+      );
+      if (
+        options.mode === 'repair' &&
+        !hasCriticalMigrationIssue &&
+        !schemaDiff.issues.some(
+          (issue) => issue.severity === 'critical' && issue.repair === 'manual',
+        )
+      ) {
         schemaRepairs = await applyRepairs(connection, schemaDiff);
         repairs.push(...schemaRepairs);
         if (schemaRepairs.some((repair) => repair.applied)) {

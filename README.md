@@ -498,7 +498,8 @@ npm run dev -- --port 3001
 | `ROOT_DOMAIN` | `saiyfon.app` | domain ຫຼັກ |
 | `ADMIN_HOST` | `admin.saiyfon.app` | admin host |
 | `CNAME_TARGET` | `cname.saiyfon.app` | CNAME ສຳລັບ custom domain |
-| `CORS_EXTRA_ORIGINS` | localhost | origin ເພີ່ມເຕີມ |
+| `CORS_EXTRA_ORIGINS` | localhost | origin ເພີ່ມເຕີມ (ນອກ tenant domain) |
+| `CORS_ALLOW_ROOT_SUBDOMAINS` | `false` | ອະນຸຍາດທຸກ `*.ROOT_DOMAIN` ໂດຍບໍ່ກວດ verified (ບໍ່ແນະນຳ production) |
 | `TLS_ASK_TOKEN` | `change-me` | token ສຳລັບ `/api/internal/tls/allow` |
 | `ADMIN_DIST_PATH` | — | path ຂອງ admin build ຖ້າ serve ຈາກ server |
 | `RUN_MIGRATIONS_ON_START` | `false` | legacy alias: ຕັ້ງ `true` ເທົ່າກັບ `DB_DOCTOR_MODE=repair` |
@@ -564,7 +565,7 @@ npm run check:tokens
 npm run build
 ```
 
-- Server tests: 36 ເຄສ (JWT realm, validation, DB Doctor).
+- Server tests: 47 ເຄສ (JWT realm, validation, DB Doctor).
 - Client unit tests: 89 ເຄສ (Vitest + Vue Test Utils).
 - E2E: Playwright desktop + mobile, ກວດ 4 roles ແລະ ໜ້າຫຼັກ.
 - a11y: axe-core (serious/critical = 0).
@@ -633,12 +634,21 @@ Internet
    ໃສ່ password (`requirepass`) ແລ້ວນຳໄປໃສ່ `REDIS_URL`.
 5. ໃຫ້ App 1 ຢູ່ **Project/Network ດຽວກັນ** ກັບ MySQL/Redis ເພື່ອໃຊ້ internal hostname.
 
-ຕົວຢ່າງ connection string (ແທນຄ່າດ້ວຍຄ່າຈິງຈາກ Coolify):
+ຕົວຢ່າງ connection string (ແທນ host/password ດ້ວຍຄ່າຈິງຈາກ Coolify):
 
 ```bash
-DATABASE_URL=mysql://saiyfon_user:STRONG_PASSWORD@mysql-service-name:3306/saiyfon_insurance
-REDIS_URL=redis://default:STRONG_PASSWORD@redis-service-name:6379/0
+# ແບບ Coolify internal network (ແນະນຳ — ບໍ່ອອກ internet)
+DATABASE_URL=mysql://saiyfon_user:StrongPassw0rd@mysql-service-name:3306/saiyfon_insurance
+REDIS_URL=redis://default:StrongPassw0rd@redis-service-name:6379/0
+
+# ແບບ external/managed database (ຕົວຢ່າງ)
+DATABASE_URL=mysql://saiyfon_user:StrongPassw0rd@db.example.com:3306/saiyfon_insurance
+REDIS_URL=rediss://default:StrongPassw0rd@redis.example.com:6379/0
 ```
+
+> Password ທີ່ມີອັກສອນພິເສດ (`@`, `:`, `/`, `#`) ຕ້ອງ encode ໃນ URL
+> ຕົວຢ່າງ `P@ss#1` → `P%40ss%231`. ຢ່າໃຊ້ `localhost` ໃນ Coolify ຖ້າ DB
+> ຢູ່ຄົນລະ container — ໃຫ້ໃຊ້ internal service name ຫຼື external hostname.
 
 ສ້າງ secret ດ້ວຍ:
 
@@ -681,7 +691,7 @@ openssl rand -hex 32   # TLS_ASK_TOKEN
 | ຕົວແປ | ຄ່າຕົວຢ່າງ | ໝາຍເຫດ |
 |---|---|---|
 | `NODE_ENV` | `production` | ເປີດການກວດເຂັ້ມງວດ ແລະ ບັງຄັບ JWT secret |
-| `DATABASE_URL` | MySQL internal URL ຈາກ Coolify | |
+| `DATABASE_URL` | `mysql://saiyfon_user:StrongPassw0rd@mysql-service-name:3306/saiyfon_insurance` | MySQL internal URL ຈາກ Coolify; ແທນ password/host ດ້ວຍຄ່າຈິງ |
 | `JWT_SECRET` | random 32-byte hex | tenant realm |
 | `PLATFORM_JWT_SECRET` | random 32-byte hex | platform realm (ຕ່າງຈາກ `JWT_SECRET`) |
 
@@ -690,11 +700,12 @@ openssl rand -hex 32   # TLS_ASK_TOKEN
 | ຕົວແປ | ຄ່າຕົວຢ່າງ | ໝາຍເຫດ |
 |---|---|---|
 | `PORT` | `5055` | default `5055` |
-| `REDIS_URL` | Redis internal URL ຈາກ Coolify | ຖ້າບໍ່ຕັ້ງ = in-memory (ບໍ່ແນະນຳ production) |
+| `REDIS_URL` | `redis://default:StrongPassw0rd@redis-service-name:6379/0` | Redis internal URL ຈາກ Coolify; ຖ້າບໍ່ຕັ້ງ = in-memory (ບໍ່ແນະນຳ production) |
 | `ROOT_DOMAIN` | `app.example.com` | ຕ້ອງກົງກັບ tenant domain |
 | `ADMIN_HOST` | `admin.example.com` | admin + CORS allowlist |
 | `CNAME_TARGET` | `cname.app.example.com` | CNAME ສຳລັບ custom domain |
 | `CORS_EXTRA_ORIGINS` | `https://saiyfon.app.example.com` | origin ເພີ່ມເຕີມ, comma-separated |
+| `CORS_ALLOW_ROOT_SUBDOMAINS` | `false` | ເປີດສະເພາະກໍລະນີພິເສດ; ປົກກະຕິໃຫ້ອະນຸຍາດສະເພາະ verified tenant domains |
 | `TLS_ASK_TOKEN` | random 32-byte hex | `/api/internal/tls/allow` |
 | `TRUST_PROXY` | `1` | ຫຼັງ reverse proxy |
 | `ADMIN_DIST_PATH` | `/app/admin` | Dockerfile ຕັ້ງໃຫ້ແລ້ວ |
@@ -938,6 +949,7 @@ DB_DOCTOR_AUDIT=true
 - ຖ້າເຈີ critical (schema/migration ຜິດ) → doctor ຈະ `exit 1` ແລະ Coolify ຈະຖືວ່າ deploy ລົ້ມເຫຼວ
 - ຖ້າເຈີ warning ຢ່າງດຽວ → server ຈະເລີ່ມໄດ້ ແລະ log ລາຍລະອຽດ
 - ບໍ່ auto-delete ຫຼື ແກ້ business data; ຂໍ້ມູນຜິດຈະຖືກລາຍງານໃຫ້ແກ້ດ້ວຍມື
+- Deploy ທຳອິດອາດໃຊ້ເວລາ migrate/ກວດດົນກວ່າ; Docker healthcheck ຕັ້ງ start-period 60s ແລ້ວ
 - Docker build ຈະລັນ `db:check:static` ເພື່ອກັນ schema ປ່ຽນແຕ່ລືມ `npm run db:generate`
 
 ### 13.11 Backup ແລະ ຄວາມປອດໄພຕອນ Deploy
@@ -951,8 +963,10 @@ DB_DOCTOR_AUDIT=true
 
 ## 14. ຄວາມປອດໄພ
 
-- **CORS allowlist**: root domain, admin host, verified tenant domains, `CORS_EXTRA_ORIGINS`;
-  dev ອະນຸຍາດ localhost ທຸກ port.
+- **CORS allowlist**: admin host, exact root domain, **verified tenant domains** (from `tenant_domains`), `CORS_EXTRA_ORIGINS`;
+  `CORS_ALLOW_ROOT_SUBDOMAINS=false` ເປັນ default ເພື່ອບໍ່ອະນຸຍາດ subdomain ທີ່ຍັງບໍ່ verified; dev ອະນຸຍາດ localhost ທຸກ port.
+  ຖ້າ upgrade ຈາກລະບົບເກົ່າທີ່ມີ subdomain ແຕ່ຍັງບໍ່ມີໃນ `tenant_domains` ໃຫ້ backfill
+  ກ່ອນ deploy ຫຼື ຕັ້ງ `CORS_ALLOW_ROOT_SUBDOMAINS=true` ຊົ່ວຄາວ.
 - **Rate limit** (Redis-backed):
   - tenant login 100 ຄັ້ງ / 15 ນາທີ
   - tenant register 30 ຄັ້ງ / 15 ນາທີ
