@@ -22,7 +22,7 @@
     "seed:platform": "tsx src/scripts/seed-platform.ts",
     "seed:tenant": "tsx src/scripts/seed-tenant.ts",
     "seed:demo": "tsx src/scripts/seed-demo.ts",
-    "test": "tsx --test src/utils/auth.test.ts src/utils/validate.test.ts src/middleware/cors.test.ts src/db/doctor/migrations.test.ts src/db/doctor/schema-snapshot.test.ts src/db/doctor/static-check.test.ts src/db/doctor/types.test.ts",
+    "test": "tsx --test src/utils/auth.test.ts src/utils/validate.test.ts src/utils/requestHost.test.ts src/middleware/cors.test.ts src/db/doctor/migrations.test.ts src/db/doctor/schema-snapshot.test.ts src/db/doctor/static-check.test.ts src/db/doctor/types.test.ts",
     "ui:build": "cd ../admin && NUXT_PUBLIC_API_BASE=/api npm run generate",
     "predev": "node scripts/check-port.mjs"
   },

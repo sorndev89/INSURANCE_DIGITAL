@@ -105,7 +105,7 @@ export const corsMiddleware = cors({
       .catch(() => callback(null, false));
   },
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant', 'X-Tenant-Host'],
   exposedHeaders: ['X-Request-Id'],
   maxAge: 600,
 });

@@ -1,12 +1,17 @@
 import type { Request, Response } from 'express';
 import { resolveTenantByHost, resolveTenantBySlug } from '../services/tenantCache.js';
-import { extractHost } from '../middleware/tenantResolver.js';
+import { resolveTenantHost } from '../utils/requestHost.js';
 import { ApiError } from '../utils/errors.js';
 import { activePlans } from './plans.js';
 
 export const tenant = async (req: Request, res: Response) => {
   const slug = typeof req.query.slug === 'string' ? req.query.slug.trim() : '';
-  const host = extractHost(req.headers.host);
+  const host = resolveTenantHost({
+    host: req.headers.host,
+    origin: req.header('origin'),
+    xTenantHost: req.header('x-tenant-host'),
+    queryHost: typeof req.query.host === 'string' ? req.query.host : undefined,
+  });
   const resolved = slug ? await resolveTenantBySlug(slug) : await resolveTenantByHost(host);
 
   if (!resolved) {

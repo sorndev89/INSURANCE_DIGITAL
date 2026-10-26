@@ -63,7 +63,7 @@ docker build -t saiyfon-admin \
 
 Coolify:
 
-1. Resource → Dockerfile, Base Directory `admin`, Port `80`.
+1. Resource → Dockerfile, Base Directory `/admin`, Dockerfile Location `/Dockerfile`, Port `80`.
 2. Healthcheck `/health`.
 3. Domain: `admin.saiyfon.app`.
 4. ແນະນຳໃຫ້ reverse proxy `/api` ຂອງ admin host ໄປ server ເພື່ອໃຫ້ `NUXT_PUBLIC_API_BASE=/api` ເຮັດວຽກ (same-origin, ບໍ່ຕ້ອງ CORS).

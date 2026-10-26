@@ -304,7 +304,7 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 - Single/mutation response: `{ data }`
 - Error response: `{ error: { code, message, details? } }`
 - Auth header: `Authorization: Bearer <token>`
-- Tenant header: `X-Tenant: <slug>` (mobile/dev) ຫຼືອາໄສ `Host`
+- Tenant header: `X-Tenant: <slug>` (mobile/dev) ຫຼືອາໄສ page origin (`Origin` ຕອນ cross-origin, ຫຼື `Host` ຕອນ same-origin)
 - Query ມາດຕະຖານ: `?page=1&pageSize=10&search=&sort=createdAt&order=desc`
 
 ### 8.2 Endpoint ຫຼັກ
@@ -312,7 +312,7 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | Method | Path | ໝາຍເຫດ |
 |---|---|---|
 | GET | `/health`, `/api/health` | healthcheck + DB ping |
-| GET | `/api/public/tenant` | resolve tenant ຈາກ Host ຫຼື `?slug=` |
+| GET | `/api/public/tenant` | resolve tenant ຈາກ `?slug=`, `?host=`, `X-Tenant-Host`, `Origin` ຫຼື `Host` |
 | GET | `/api/public/plans` | ແຜນທີ່ເປີດໃຊ້ |
 | POST | `/api/platform/auth/login` | platform login (email ຫຼື username) |
 | GET | `/api/platform/auth/me` | platform profile |
@@ -365,7 +365,7 @@ Response ຈະມີ header `Deprecation`, `Sunset` ແລະ `Link` ຊີ້�
 
 - `client/` ເປັນ build ດຽວສຳລັບທຸກ tenant; ບໍ່ແຍກ codebase ຕໍ່ tenant.
 - ຕອນ boot `plugins/tenant.client.js` ຈະ resolve tenant:
-  - **Web**: ຈາກ `Host` (`acme.saiyfon.app` ຫຼື custom domain)
+  - **Web**: ຈາກ page origin (`Origin` — ສຳຄັນເມື່ອ API ຢູ່ຄົນລະ domain), ຫຼື `Host` ຕອນ same-origin
   - **localhost/dev**: ຈາກ slug ທີ່ບັນທຶກ ຫຼື `NUXT_PUBLIC_DEFAULT_TENANT_SLUG`
   - **Mobile**: ຈາກ Capacitor Preferences; ຖ້າຍັງບໍ່ມີ ຈະໄປ `/select-company`
 - `stores/tenant.js` ເກັບ `{ slug, name, status, branding, features, locale, currency }`
@@ -584,12 +584,17 @@ npm run build
 
 ### 13.1 ສະຖາປັດຕະຍະກຳການ Deploy
 
-| # | ແອັບ | Dockerfile | Base Directory | Port | ໜ້າທີ່ | ຕົວຢ່າງ Domain |
+| # | ແອັບ | Dockerfile Location (relative to Base Directory) | Base Directory | Port | ໜ້າທີ່ | ຕົວຢ່າງ Domain |
 |---|---|---|---|---|---|---|
-| 1 | **API + Admin UI** | `/Dockerfile` (root) | `/` | `5055` | Express API + SaaS Console | `admin.example.com` |
-| 2 | **Tenant App** | `/client/Dockerfile` | `/client` | `80` | Nuxt SPA (Nginx static) | `*.app.example.com` (tenant ເລີ່ມຕົ້ນ `saiyfon.app.example.com`) |
+| 1 | **API + Admin UI** | `/Dockerfile` | `/` | `5055` | Express API + SaaS Console | `admin.example.com` |
+| 2 | **Tenant App** | `/Dockerfile` | `/client` | `80` | Nuxt SPA (Nginx static) | `*.app.example.com` (tenant ເລີ່ມຕົ້ນ `saiyfon.app.example.com`) |
 | — | MySQL 8.4 | Coolify Database | — | `3306` | ຖານຂໍ້ມູນຫຼັກ | internal only |
 | — | Redis 7 | Coolify Database | — | `6379` | cache + rate limit | internal only |
+
+> **Dockerfile Location ເປັນ path ທີ່ອ້າງອີງຈາກ Base Directory ສະເໝີ.**
+> ຕົວຢ່າງ Tenant App: Base `/client` + Location `/Dockerfile` = `/client/Dockerfile`.
+> ຖ້າໃສ່ Location ເປັນ `/client/Dockerfile` ຈະກາຍເປັນ `/client/client/Dockerfile`
+> ແລ້ວ deploy ຈະ fail ດ້ວຍ `lstat .../client/client: no such file or directory`.
 
 > **ແນະນຳໃຫ້ໃຊ້ domain ແຍກຊັ້ນ:** `admin.example.com` ສຳລັບ API/Admin ແລະ
 > `*.app.example.com` ສຳລັບ Tenant App ໂດຍຕັ້ງ `ROOT_DOMAIN=app.example.com`.
@@ -786,7 +791,7 @@ Tenant App ເປັນ SPA static ທີ່ build ດ້ວຍ `npm run generat
 |---|---|
 | Build Pack | **Dockerfile** |
 | Base Directory | `/client` |
-| Dockerfile Location | `Dockerfile` (ຖ້າ Coolify ຖາມຈາກ repo root: `/client/Dockerfile`) |
+| Dockerfile Location | `/Dockerfile` (relative to Base Directory — **ຢ່າ** ໃສ່ `/client/Dockerfile`) |
 | Exposed Port | `80` |
 | Healthcheck Path | `/health` |
 | Domains | `https://*.app.example.com` (ແລະ `https://saiyfon.app.example.com` ຖ້າ UI ຕ້ອງການ non-wildcard) |
@@ -814,7 +819,8 @@ Tenant App ເປັນ SPA static ທີ່ build ດ້ວຍ `npm run generat
 #### ຂັ້ນຕອນ Deploy App 2
 
 1. **+ New Resource → Application** ຈາກ Git repository ດຽວກັນ.
-2. ເລືອກ **Build Pack = Dockerfile**, **Base Directory = `/client`**.
+2. ເລືອກ **Build Pack = Dockerfile**, **Base Directory = `/client`**,
+   **Dockerfile Location = `/Dockerfile`** (ບໍ່ແມ່ນ `/client/Dockerfile`).
 3. ຕັ້ງ **Port = `80`** ແລະ **Healthcheck Path = `/health`**.
 4. ໃສ່ Build Args ຕາມຕາຕະລາງ.
 5. ເພີ່ມ Domains:
@@ -877,10 +883,12 @@ Checklist:
 
 | ອາການ | ສາເຫດທີ່ພົບເລື້ອຍ | ວິທີແກ້ |
 |---|---|---|
+| Build fail: `resolve : lstat .../client/client: no such file or directory` | Dockerfile Location ຖືກໃສ່ຊ້ຳກັບ Base Directory (ເຊັ່ນ Base `/client` + Location `/client/Dockerfile`) | ຕັ້ງ Base Directory `/client`, Dockerfile Location `/Dockerfile` ແລ້ວ Redeploy |
 | API 502 / container restart | `DATABASE_URL` ຜິດ, DB ບໍ່ພ້ອມ, port ຜິດ | ເບິ່ງ logs, ກວດ internal hostname/port, ລອງ `curl` ຈາກ terminal |
 | `ER_ACCESS_DENIED_ERROR` | user/password DB ຜິດ ຫຼື host ບໍ່ allow | ສ້າງ user ໃໝ່ດ້ວຍ host `%` ໃນ MySQL |
 | ໜ້າ Admin ຂຶ້ນແຕ່ API error | Build arg `NUXT_PUBLIC_API_BASE` ຜິດ | ຕ້ອງ `/api` ແລ້ວ **Rebuild** App 1 |
-| CORS error ໃນ Tenant App | origin ບໍ່ຢູ່ໃນ allowlist | ກວດ `ROOT_DOMAIN` / `ADMIN_HOST` / `CORS_EXTRA_ORIGINS` ແລ້ວ restart API |
+| CORS error / `Failed to fetch` ໃນ Tenant App | origin ບໍ່ຢູ່ໃນ allowlist — custom domain ຍັງບໍ່ verified | Domain ໃນ Console → Verify (TXT `_saiyfon-verify.<host>`) ຫຼື ເພີ່ມ `CORS_EXTRA_ORIGINS` ຊົ່ວຄາວ; ຫຼັງ verify ບໍ່ຕ້ອງ restart |
+| `/tenant-not-found` ທັງທີ່ domain ຖືກຕ້ອງ | API ຢູ່ຄົນລະ domain ແລ້ວ resolve ຈາກ `Host` ຂອງ API | ອັບເດດ server ໃຫ້ resolve ຈາກ `Origin`/`X-Tenant-Host`/`?host=` (ແກ້ແລ້ວ) ແລ້ວ Redeploy API |
 | `/tenant-not-found` | Host ບໍ່ກົງກັບ tenant domain | ກວດ DNS, domain ໃນ Console, `ROOT_DOMAIN` ແລະ Host header |
 | ຂຶ້ນ `/select-company` | mobile ບໍ່ມີ slug ທີ່ບັນທຶກ | ເລືອກບໍລິສັດ ຫຼື ກວດ `X-Tenant`/API |
 | ອັບໂຫຼດໄຟລ໌ໄດ້ແຕ່ຫາຍຫຼັງ restart | ບໍ່ໄດ້ mount volume | mount `/app/uploads` ໃຫ້ App 1 |
@@ -894,11 +902,11 @@ Checklist:
 
 ຖ້າບໍ່ຕ້ອງການໃຫ້ API serve Admin UI ສາມາດແຍກໄດ້:
 
-| ແອັບ | Dockerfile | Base Directory | Port | ໝາຍເຫດ |
+| ແອັບ | Dockerfile Location (relative to Base Directory) | Base Directory | Port | ໝາຍເຫດ |
 |---|---|---|---|---|
-| API | `/server/Dockerfile` | `/server` | `5055` | API ຢ່າງດຽວ |
-| Admin | `/admin/Dockerfile` | `/admin` | `80` | ຕັ້ງ `NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
-| Client | `/client/Dockerfile` | `/client` | `80` | ຄືແບບ 13.5 (ບໍ່ຕ້ອງ root domain) |
+| API | `/Dockerfile` | `/server` | `5055` | API ຢ່າງດຽວ |
+| Admin | `/Dockerfile` | `/admin` | `80` | ຕັ້ງ `NUXT_PUBLIC_API_BASE=https://api.example.com/api` |
+| Client | `/Dockerfile` | `/client` | `80` | ຄືແບບ 13.5 (ບໍ່ຕ້ອງ root domain) |
 
 - Admin build args: `NUXT_PUBLIC_API_BASE` ເປັນ absolute URL ໄປຫາ API ແລະ
   `NUXT_PUBLIC_ROOT_DOMAIN` ໃຫ້ກົງກັບ server `ROOT_DOMAIN`.
