@@ -506,7 +506,8 @@ npm run dev -- --port 3001
 | `TRUST_PROXY` | `1` | ສຳລັບ reverse proxy |
 | `PLATFORM_ADMIN_EMAIL` | `platform@saiyfon.com` | platform admin |
 | `PLATFORM_ADMIN_USERNAME` | `platform` | platform username |
-| `PLATFORM_ADMIN_PASSWORD` | — | platform password (seed) |
+| `PLATFORM_ADMIN_PASSWORD` | — | platform password (seed / auto-bootstrap) |
+| `PLATFORM_ADMIN_AUTO_SEED` | `true` | ສ້າງ/sync platform admin ອັດຕະໂນມັດຕອນ boot ຖ້າມີ password |
 | `DEFAULT_TENANT_SLUG` | `saiyfon` | tenant ເລີ່ມຕົ້ນ |
 | `DEFAULT_TENANT_NAME` | `ສາຍຝົນ ປະກັນໄພ` | ຊື່ tenant |
 | `DEFAULT_TENANT_PLAN` | `pro` | ແຜນເລີ່ມຕົ້ນ |
@@ -716,7 +717,8 @@ openssl rand -hex 32   # TLS_ASK_TOKEN
 |---|---|---|
 | `PLATFORM_ADMIN_EMAIL` | `platform@example.com` | |
 | `PLATFORM_ADMIN_USERNAME` | `platform` | |
-| `PLATFORM_ADMIN_PASSWORD` | **strong password** | ໃຊ້ຕອນ seed |
+| `PLATFORM_ADMIN_PASSWORD` | **strong password** | ໃຊ້ຕອນ seed / auto-bootstrap |
+| `PLATFORM_ADMIN_AUTO_SEED` | `true` | ຖ້າ `false` ຕ້ອງ seed ດ້ວຍມື |
 | `DEFAULT_TENANT_SLUG` | `saiyfon` | |
 | `DEFAULT_TENANT_NAME` | `ສາຍຝົນ ປະກັນໄພ` | |
 | `DEFAULT_TENANT_PLAN` | `pro` | |
@@ -744,16 +746,21 @@ openssl rand -hex 32   # TLS_ASK_TOKEN
    - ຂະໜາດຕາມ plan (ເອກະສານເຄມ/ບັດປະຊາຊົນ/ສະລິບ).
 5. ກົດ **Deploy**. ໃນ production, DB Doctor (`DB_DOCTOR_MODE=repair` default) ຈະ apply
    pending migration ແລະ additive repair ກ່ອນ server ເລີ່ມ — ເບິ່ງ logs `[db-doctor]`.
-6. Seed ຄັ້ງດຽວຜ່ານ **Coolify → Terminal** ຂອງ container:
+6. **Platform admin ຖືກ bootstrap ອັດຕະໂນມັດ** ຕອນ server ເລີ່ມ ຖ້າ
+   `PLATFORM_ADMIN_PASSWORD` ຖືກຕັ້ງ (≥ 8 ໂຕ) ແລະ `PLATFORM_ADMIN_AUTO_SEED` ບໍ່ແມ່ນ `false`.
+   ເບິ່ງ log `[bootstrap] created/updated platform admin`.
+   ຖ້າຕ້ອງການ tenant ເລີ່ມຕົ້ນ ຫຼື ປິດ auto-seed ໃຫ້ seed ດ້ວຍມືຜ່ານ
+   **Coolify → Terminal** ຂອງ container:
 
 ```bash
-# production ແນະນຳ: seed ແຕ່ platform + tenant, ບໍ່ seed demo
-node dist/scripts/seed-platform.js
+# production ແນະນຳ: seed ແຕ່ tenant, ບໍ່ seed demo
 node dist/scripts/seed-tenant.js
 
 # staging/dev ຖ້າຕ້ອງການຂໍ້ມູນຕົວຢ່າງ
 node dist/scripts/seed-demo.js
 ```
+
+> `node dist/scripts/seed-platform.js` ຈະສ້າງ `superadmin/sa123456` ນຳ — ຫຼີກລ່ຽງໃນ production.
 
 7. ກວດ health ແລະ admin UI:
 

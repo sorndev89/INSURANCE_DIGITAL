@@ -98,6 +98,7 @@ export const env = {
   platformAdminEmail: process.env.PLATFORM_ADMIN_EMAIL || 'platform@saiyfon.com',
   platformAdminUsername: process.env.PLATFORM_ADMIN_USERNAME || 'platform',
   platformAdminPassword: process.env.PLATFORM_ADMIN_PASSWORD || '',
+  platformAdminAutoSeed: readBoolean('PLATFORM_ADMIN_AUTO_SEED', true),
   defaultTenantSlug: process.env.DEFAULT_TENANT_SLUG || 'saiyfon',
   defaultTenantName: process.env.DEFAULT_TENANT_NAME || 'ສາຍຝົນ ປະກັນໄພ',
   defaultTenantAdminEmail: process.env.DEFAULT_TENANT_ADMIN_EMAIL || 'admin@saiyfon.com',

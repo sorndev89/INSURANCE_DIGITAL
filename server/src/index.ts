@@ -6,6 +6,7 @@ import { runDatabaseDoctor } from './db/doctor/index.js';
 import { printDoctorReport } from './db/doctor/report.js';
 import { shouldFailDoctor } from './db/doctor/types.js';
 import { closeCache } from './services/cache.js';
+import { bootstrapPlatformAdmin } from './services/bootstrap.js';
 
 const bootstrap = async () => {
   if (env.dbDoctorMode !== 'off') {
@@ -24,6 +25,12 @@ const bootstrap = async () => {
       await closeDb().catch(() => undefined);
       process.exit(1);
     }
+  }
+
+  try {
+    await bootstrapPlatformAdmin();
+  } catch (error) {
+    console.error('[bootstrap] platform admin bootstrap failed:', error);
   }
 
   const app = createApp();
