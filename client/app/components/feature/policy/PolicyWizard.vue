@@ -580,10 +580,14 @@ const companyFilterOptions = [
   ...companies.map((c) => ({ value: c.id, label: `${c.code} - ${c.name}` })),
 ]
 
-const agentOptions = agents.map((a) => ({
-  value: a.id,
-  label: `${a.agentCode} - ${a.name || a.agentName || 'ຕົວແທນ'}`,
-}))
+const agentOptions = agents.map((a) => {
+  const code = a.agentCode || a.code || ''
+  const name = a.name || a.agentName || 'ຕົວແທນ'
+  return {
+    value: a.id,
+    label: code ? `${code} - ${name}` : name,
+  }
+})
 
 const form = reactive({
   customerType: 'individual',
@@ -762,8 +766,13 @@ const submit = async () => {
   submitting.value = true
   try {
     const company = companies.find((item) => item.id === selectedProduct.value?.companyId)
+    const chosenAgent = agents.find((item) => item.id === Number(form.agentId))
     const payload = buildPolicyPayload({
-      form: { ...form, premium: premium.value },
+      form: {
+        ...form,
+        premium: premium.value,
+        agentName: chosenAgent?.name || null,
+      },
       auth,
       product: selectedProduct.value,
       company,

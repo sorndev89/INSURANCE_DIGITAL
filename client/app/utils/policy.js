@@ -74,7 +74,7 @@ export const buildPolicyPayload = ({
         }
       : null,
     agentId: resolveAgentId({ auth, selectedAgentId: form?.agentId }),
-    agentName: auth?.displayName || auth?.user?.name || null,
+    agentName: form?.agentName || auth?.displayName || auth?.user?.name || null,
     insuranceCompanyId: company?.id || product?.companyId || null,
     companyCode: company?.code || product?.companyCode || null,
     companyName: company?.name || product?.companyCode || null,

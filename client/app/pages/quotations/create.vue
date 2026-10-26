@@ -280,10 +280,14 @@ const companyOptions = companies.map((c) => ({
   label: `${c.code} - ${c.name}`,
 }))
 
-const agentOptions = agents.map((a) => ({
-  value: a.id,
-  label: `${a.agentCode} - ${a.name || a.agentName || 'ຕົວແທນ'}`,
-}))
+const agentOptions = agents.map((a) => {
+  const code = a.agentCode || a.code || ''
+  const name = a.name || a.agentName || 'ຕົວແທນ'
+  return {
+    value: a.id,
+    label: code ? `${code} - ${name}` : name,
+  }
+})
 
 // ວັນໝົດອາຍຸໃບສະເໜີລາຄາເລີ່ມຕົ້ນ (15 ວັນຈາກມື້ນີ້)
 const defaultValidDate = new Date()
