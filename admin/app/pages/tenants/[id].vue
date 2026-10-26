@@ -8,6 +8,7 @@ const { platform } = usePlatformConfig()
 const { user } = usePlatformAuth()
 const { request } = useApi()
 const { date, dateTime, number } = useFormat()
+const dialog = useDialog()
 
 const tenantId = computed(() => Number(route.params.id))
 const canManage = computed(() => user.value?.role === 'superadmin')
@@ -154,7 +155,12 @@ const save = async () => {
 
 const setStatus = async (action) => {
   const label = action === 'suspend' ? 'ປິດໃຊ້ງານ' : 'ເປີດໃຊ້ງານ'
-  if (!window.confirm(`ຢືນຢັນ${label} tenant ນີ້?`)) return
+  const accepted = await dialog.confirm({
+    title: `${label} Tenant`,
+    message: `ຢືນຢັນ${label} tenant ນີ້?`,
+    confirmLabel: label,
+  })
+  if (!accepted) return
   error.value = ''
   try {
     await request(`/platform/tenants/${tenantId.value}/${action}`, { method: 'POST' })
@@ -166,7 +172,13 @@ const setStatus = async (action) => {
 }
 
 const removeTenant = async () => {
-  if (!window.confirm('ລຶບ tenant ນີ້? ຂໍ້ມູນຈະຖືກເກັບໄວ້ ແຕ່ slug ແລະ domain ຈະຖືກປ່ອຍໃຫ້ໃຊ້ໃໝ່ໄດ້.')) return
+  const accepted = await dialog.confirm({
+    title: 'ລຶບ Tenant',
+    message:
+      'ລຶບ tenant ນີ້? ຂໍ້ມູນຈະຖືກເກັບໄວ້ ແຕ່ slug ແລະ domain ຈະຖືກປ່ອຍໃຫ້ໃຊ້ໃໝ່ໄດ້.',
+    confirmLabel: 'ລຶບ Tenant',
+  })
+  if (!accepted) return
   try {
     await request(`/platform/tenants/${tenantId.value}`, { method: 'DELETE' })
     await navigateTo('/tenants')
@@ -217,15 +229,27 @@ const runVerify = async (domain, { force = false } = {}) => {
 const verifyDomain = (domain) => runVerify(domain, { force: import.meta.dev })
 
 const forceVerifyDomain = async (domain) => {
-  const typed = window.prompt(
-    `Force verify ${domain.hostname}?\n\nລະບົບຈະຂ້າມການກວດ DNS TXT. ໃຊ້ສະເພາະເມື່ອແນ່ໃຈວ່າ domain ນີ້ເປັນຂອງ tenant ແລະ ຊີ້ມາຫາ server ນີ້. ການກະທຳຈະຖືກບັນທຶກ audit.\n\nພິມ ${domain.hostname} ເພື່ອຢືນຢັນ:`,
-  )
-  if ((typed || '').trim().toLowerCase() !== domain.hostname.toLowerCase()) return
+  const accepted = await dialog.prompt({
+    title: `Force verify ${domain.hostname}`,
+    message:
+      'ລະບົບຈະຂ້າມການກວດ DNS TXT. ໃຊ້ສະເພາະເມື່ອແນ່ໃຈວ່າ domain ນີ້ເປັນຂອງ tenant ແລະ ຊີ້ມາຫາ server ນີ້. ການກະທຳຈະຖືກບັນທຶກ audit.',
+    inputLabel: 'ພິມ hostname ເພື່ອຢືນຢັນ',
+    inputPlaceholder: domain.hostname,
+    inputHint: `ຕ້ອງພິມ: ${domain.hostname}`,
+    expectedValue: domain.hostname,
+    confirmLabel: 'Force verify',
+  })
+  if (!accepted) return
   await runVerify(domain, { force: true })
 }
 
 const removeDomain = async (domain) => {
-  if (!window.confirm(`ລຶບ domain ${domain.hostname}?`)) return
+  const accepted = await dialog.confirm({
+    title: 'ລຶບ Domain',
+    message: `ລຶບ domain ${domain.hostname}?`,
+    confirmLabel: 'ລຶບ Domain',
+  })
+  if (!accepted) return
   try {
     await request(`/platform/tenants/${tenantId.value}/domains/${domain.id}`, {
       method: 'DELETE',
@@ -238,6 +262,13 @@ const removeDomain = async (domain) => {
 }
 
 const impersonate = async () => {
+  const accepted = await dialog.confirm({
+    title: 'ສ້າງ tenant token',
+    message:
+      'ສ້າງ token ສຳລັບ tenant ນີ້? token ຊ່ວຍເຂົ້າລະບົບໃນນາມ tenant admin ແລະ ຈະຖືກບັນທຶກ audit.',
+    confirmLabel: 'ສ້າງ token',
+  })
+  if (!accepted) return
   impersonating.value = true
   error.value = ''
   try {
@@ -254,13 +285,13 @@ const impersonate = async () => {
 }
 
 const seedDemo = async () => {
-  if (
-    !window.confirm(
+  const accepted = await dialog.confirm({
+    title: 'ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo',
+    message:
       'ສ້າງຂໍ້ມູນໂຕຢ່າງ Demo ສຳລັບ tenant ນີ້? ລະບົບຈະເພີ່ມລູກຄ້າ, ປະກັນໄພ, ເຄມ ແລະ ຂໍ້ມູນການເງິນຕົວຢ່າງ.',
-    )
-  ) {
-    return
-  }
+    confirmLabel: 'ສ້າງຂໍ້ມູນ Demo',
+  })
+  if (!accepted) return
   demoLoading.value = true
   error.value = ''
   try {
@@ -283,10 +314,16 @@ const seedDemo = async () => {
 
 const resetData = async () => {
   if (!tenant.value) return
-  const typed = window.prompt(
-    `Reset ຂໍ້ມູນ tenant ${tenant.value.name}?\n\nຂໍ້ມູນທຸລະກິດທັງໝົດ ແລະ users ທີ່ບໍ່ແມ່ນ admin ຈະຖືກລຶບ. Tenant, domain, plan, settings ແລະ admin ຈະຖືກເກັບໄວ້.\n\nພິມ ${tenant.value.slug} ເພື່ອຢືນຢັນ:`,
-  )
-  if ((typed || '').trim() !== tenant.value.slug) return
+  const accepted = await dialog.prompt({
+    title: `Reset ຂໍ້ມູນ tenant`,
+    message: `Reset ຂໍ້ມູນ tenant ${tenant.value.name}? ຂໍ້ມູນທຸລະກິດທັງໝົດ ແລະ users ທີ່ບໍ່ແມ່ນ admin ຈະຖືກລຶບ. Tenant, domain, plan, settings ແລະ admin ຈະຖືກເກັບໄວ້.`,
+    inputLabel: 'ພິມ slug ເພື່ອຢືນຢັນ',
+    inputPlaceholder: tenant.value.slug,
+    inputHint: `ຕ້ອງພິມ: ${tenant.value.slug}`,
+    expectedValue: tenant.value.slug,
+    confirmLabel: 'Reset ຂໍ້ມູນ',
+  })
+  if (!accepted) return
   resetLoading.value = true
   error.value = ''
   try {

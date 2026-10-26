@@ -39,7 +39,7 @@
 | Mobile UI | Konsta UI 5, material-icons |
 | Device | `@nuxtjs/device` |
 | Native | Capacitor 8 (`com.saiyfon.insurance`, `webDir: .output/public`) |
-| Font | Noto Sans Lao (Regular 400, Bold 700 ໃນ `@font-face`; ມີໄຟລ໌ Variable ແຕ່ບໍ່ໄດ້ໃຊ້) |
+| Font | Noto Sans Lao Variable (100–900) ຈາກໄຟລ໌ທ້ອງຖິ່ນ `NotoSansLao-Variable.ttf` |
 
 ### 1.2 ຂະໜາດ
 ~2,200 ແຖວ `.vue` ໃນ 14 ໜ້າ + 7 components. ສ່ວນໃຫຍ່ເປັນ prototype UI.
@@ -212,7 +212,7 @@ client/
 | `text-3xl` | 30px | 1.3 | ຕົວເລກ KPI |
 
 - ເອົາ `html{font-size:14px}` ອອກ → ກັບໄປ 16px (ຫຼື ຕັ້ງ scale ໃນ token).
-- ນ້ຳໜັກ: ໃຊ້ສະເພາະ `font-normal` (400) ແລະ `font-bold` (700). **ຫ້າມ `font-black`**. ຖ້າຕ້ອງການ 500/600 ໃຫ້ໃຊ້ `NotoSansLao-Variable.ttf` ທີ່ມີຢູ່ແລ້ວ ແລະ ຕັ້ງ `font-weight: 100 900` ໃນ `@font-face`.
+- ນ້ຳໜັກ: ໃຊ້ `NotoSansLao-Variable.ttf` (100–900) ເປັນຫຼັກ; ແນະນຳ 400/500/600/700. **ຫ້າມ `font-black`**.
 - ຕົວເລກ/ເງິນ: `tabular-nums`.
 - ຕົວອັກສອນລາວມີສະຫຼະ/ວັນນະຍຸດເທິງ-ລຸ່ມ → ຫ້າມ `leading-none`/`leading-tight` ໃນຂໍ້ຄວາມລາວ.
 

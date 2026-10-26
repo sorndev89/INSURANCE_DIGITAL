@@ -6,6 +6,7 @@ useHead({ title: 'Dashboard ພາບລວມ' })
 const { platform } = usePlatformConfig()
 const { request } = useApi()
 const { date, number, currency } = useFormat()
+const dialog = useDialog()
 
 const loading = ref(true)
 const tenants = ref([])
@@ -32,7 +33,12 @@ const stats = computed(() => {
 // Impersonation state
 const impersonating = ref(false)
 const impersonateTenant = async (tenant) => {
-  if (!confirm(`ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເຂົ້າສູ່ລະບົບໃນນາມ ${tenant.name}?`)) return
+  const accepted = await dialog.confirm({
+    title: 'ເຂົ້າສູ່ລະບົບໃນນາມ Tenant',
+    message: `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເຂົ້າສູ່ລະບົບໃນນາມ ${tenant.name}?`,
+    confirmLabel: 'ເຂົ້າສູ່ລະບົບ',
+  })
+  if (!accepted) return
   impersonating.value = true
   try {
     const res = await request(`/platform/tenants/${tenant.id}/impersonate`, {
@@ -48,7 +54,7 @@ const impersonateTenant = async (tenant) => {
       window.open(targetHost, '_blank')
     }
   } catch (err) {
-    alert(apiErrorMessage(err))
+    dialog.error(apiErrorMessage(err), 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ')
   } finally {
     impersonating.value = false
   }

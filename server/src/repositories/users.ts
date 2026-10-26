@@ -1,6 +1,6 @@
 import { and, eq, like, or, sql, desc } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
+import { agents, customers, users } from '../db/schema.js';
 
 export type NewTenantUser = {
   username: string;
@@ -83,6 +83,20 @@ export const updateUser = async (
     .update(users)
     .set(data)
     .where(and(eq(users.tenantId, tenantId), eq(users.id, id)));
+};
+
+export const removeUser = async (tenantId: number, id: number) => {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(customers)
+      .set({ userId: null })
+      .where(and(eq(customers.tenantId, tenantId), eq(customers.userId, id)));
+    await tx
+      .update(agents)
+      .set({ userId: null })
+      .where(and(eq(agents.tenantId, tenantId), eq(agents.userId, id)));
+    await tx.delete(users).where(and(eq(users.tenantId, tenantId), eq(users.id, id)));
+  });
 };
 
 export const userStats = async (tenantId: number) => {

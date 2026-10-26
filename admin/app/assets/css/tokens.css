@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
 
-  --sf-font: 'Noto Sans Lao', 'NotoSansLao', ui-sans-serif, system-ui, sans-serif;
+  --sf-font: 'Noto Sans Lao', 'Phetsarath OT', ui-sans-serif, system-ui, sans-serif;
 
   --sf-primary: #047857;
   --sf-primary-rgb: 4 120 87;
@@ -71,4 +71,8 @@
   --color-info: var(--sf-info);
 
   --font-sans: var(--sf-font);
+  --font-display: var(--sf-font);
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
 }

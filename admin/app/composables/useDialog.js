@@ -8,6 +8,12 @@ const state = reactive({
   confirmLabel: 'ຕົກລົງ',
   cancelLabel: 'ຍົກເລີກ',
   showCancel: false,
+  input: false,
+  inputLabel: '',
+  inputPlaceholder: '',
+  inputHint: '',
+  inputValue: '',
+  expectedValue: '',
 })
 
 let resolver = null
@@ -53,6 +59,12 @@ export const useDialog = () => {
         confirmLabel: options.confirmLabel || defaultConfirmLabels[type] || 'ຕົກລົງ',
         cancelLabel: options.cancelLabel || 'ຍົກເລີກ',
         showCancel: options.showCancel !== undefined ? options.showCancel : isConfirm,
+        input: options.input === true,
+        inputLabel: options.inputLabel || '',
+        inputPlaceholder: options.inputPlaceholder || '',
+        inputHint: options.inputHint || '',
+        inputValue: '',
+        expectedValue: options.expectedValue || '',
       })
     })
 
@@ -91,6 +103,24 @@ export const useDialog = () => {
     })
   }
 
+  const prompt = (options = {}) => {
+    if (typeof options === 'string') options = { message: options }
+    return show({
+      ...options,
+      type: 'confirm',
+      title: options.title || 'ຢືນຢັນການດຳເນີນການ',
+      message: options.message || '',
+      confirmLabel: options.confirmLabel || 'ຢືນຢັນ',
+      cancelLabel: options.cancelLabel || 'ຍົກເລີກ',
+      showCancel: true,
+      input: true,
+      inputLabel: options.inputLabel || '',
+      inputPlaceholder: options.inputPlaceholder || '',
+      inputHint: options.inputHint || '',
+      expectedValue: options.expectedValue || '',
+    })
+  }
+
   const accept = () => settle(true)
   const cancel = () => settle(false)
 
@@ -103,6 +133,7 @@ export const useDialog = () => {
     error,
     info,
     confirm,
+    prompt,
     accept,
     cancel,
   }

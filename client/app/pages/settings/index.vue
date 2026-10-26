@@ -98,6 +98,7 @@
 import { ref, watch } from 'vue'
 import { useRuntimeConfig } from '#imports'
 import { useTenantSettings } from '~/composables/api/useTenantSettings'
+import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
 import { useTenantStore } from '~/stores/tenant'
 import { useUiStore } from '~/stores/ui'
@@ -113,6 +114,7 @@ const config = useRuntimeConfig()
 const ui = useUiStore()
 const toast = useToast()
 const tenant = useTenantStore()
+const { confirm } = useConfirm()
 const { updateCurrencyDisplay } = useTenantSettings()
 
 const currencyForm = ref({ ...DEFAULT_CURRENCY_DISPLAY })
@@ -140,7 +142,13 @@ const saveCurrency = async () => {
 }
 
 const resetCurrency = async () => {
-  if (!window.confirm('ລ້າງຄ່າການສະແດງເງິນຂອງບໍລິສັດ ແລະ ກັບໄປໃຊ້ຄ່າເລີ່ມຕົ້ນ?')) return
+  const accepted = await confirm({
+    title: 'ລ້າງຄ່າການສະແດງເງິນ',
+    message: 'ລ້າງຄ່າການສະແດງເງິນຂອງບໍລິສັດ ແລະ ກັບໄປໃຊ້ຄ່າເລີ່ມຕົ້ນ?',
+    confirmLabel: 'ລ້າງຄ່າ',
+    tone: 'danger',
+  })
+  if (!accepted) return
   resetting.value = true
   try {
     await updateCurrencyDisplay(null)

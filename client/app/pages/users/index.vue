@@ -67,14 +67,26 @@
       </template>
       <template #cell-status="{ value }"><StatusBadge :status="value" /></template>
       <template #actions="{ row }">
-        <BaseButton
-          variant="ghost"
-          size="sm"
-          icon-only
-          label="ແກ້ໄຂ"
-          icon="edit"
-          @click="openEdit(row)"
-        />
+        <div class="flex items-center justify-end gap-1">
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            icon-only
+            label="ແກ້ໄຂ"
+            icon="edit"
+            @click="openEdit(row)"
+          />
+          <BaseButton
+            v-if="row.id !== auth.user?.id"
+            variant="ghost"
+            size="sm"
+            icon-only
+            label="ລຶບ"
+            icon="delete"
+            :loading="removingId === row.id"
+            @click="removeUser(row)"
+          />
+        </div>
       </template>
     </DataTable>
 
@@ -132,7 +144,9 @@ import { useUsers } from '~/composables/api/useUsers'
 import { useApiClient } from '~/composables/api/useApiClient'
 import { useRemoteStats } from '~/composables/api/useRemoteStats'
 import { tenantPath } from '~/config/api'
+import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
+import { useAuthStore } from '~/stores/auth'
 import { useFormat } from '~/utils/format'
 
 definePageMeta({
@@ -143,6 +157,8 @@ definePageMeta({
 
 const format = useFormat()
 const toast = useToast()
+const auth = useAuthStore()
+const { confirm } = useConfirm()
 const { apiFetch } = useApiClient()
 const { items, total, page, pageSize, pending, error, filters, refresh, setPage } = useUsers()
 const { remoteStats, refreshStats } = useRemoteStats('/users')
@@ -158,6 +174,7 @@ const stats = computed(() => remoteStats.value || localStats.value)
 const showModal = ref(false)
 const editing = ref(null)
 const saving = ref(false)
+const removingId = ref(null)
 const formError = ref('')
 const form = reactive({
   username: '',
@@ -238,6 +255,29 @@ const submit = async () => {
       requestError?.data?.error?.message || requestError?.message || 'ບໍ່ສາມາດບັນທຶກໄດ້'
   } finally {
     saving.value = false
+  }
+}
+
+const removeUser = async (row) => {
+  const accepted = await confirm({
+    title: 'ລຶບຜູ້ໃຊ້',
+    message: `ລຶບຜູ້ໃຊ້ ${row.name || row.username}? ການກະທຳນີ້ບໍ່ສາມາດກູ້ຄືນໄດ້.`,
+    confirmLabel: 'ລຶບຜູ້ໃຊ້',
+    tone: 'danger',
+  })
+  if (!accepted) return
+
+  removingId.value = row.id
+  try {
+    await apiFetch(tenantPath(`/users/${row.id}`), { method: 'DELETE' })
+    toast.success('ລຶບຜູ້ໃຊ້ແລ້ວ')
+    await Promise.all([refresh(), refreshStats()])
+  } catch (requestError) {
+    toast.error(
+      requestError?.data?.error?.message || requestError?.message || 'ບໍ່ສາມາດລຶບຜູ້ໃຊ້ໄດ້',
+    )
+  } finally {
+    removingId.value = null
   }
 }
 

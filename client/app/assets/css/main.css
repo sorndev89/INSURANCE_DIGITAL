@@ -5,13 +5,23 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Local Noto Sans Lao variable font. */
+/* Local Noto Sans Lao variable font (weights 100-900). */
 @font-face {
   font-family: 'Noto Sans Lao';
   src: url('../fonts/NotoSansLao-Variable.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+}
+
+@layer base {
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    font-family: inherit;
+  }
 }
 
 html {

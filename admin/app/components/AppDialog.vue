@@ -1,9 +1,20 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useDialog } from '~/composables/useDialog'
 
 const { state, accept, cancel } = useDialog()
 const dialogRef = ref(null)
+const inputRef = ref(null)
+
+const isInputInvalid = computed(() => {
+  if (!state.input || !state.expectedValue) return false
+  return state.inputValue.trim().toLowerCase() !== state.expectedValue.trim().toLowerCase()
+})
+
+const submitInput = () => {
+  if (isInputInvalid.value) return
+  accept()
+}
 
 const themes = {
   success: {
@@ -70,8 +81,12 @@ const handleBackdrop = (event) => {
 watch(
   () => state.open,
   (isOpen) => {
-    if (isOpen) openDialog()
-    else if (dialogRef.value?.open) close()
+    if (isOpen) {
+      openDialog()
+      nextTick(() => inputRef.value?.focus())
+    } else if (dialogRef.value?.open) {
+      close()
+    }
   },
 )
 
@@ -107,6 +122,26 @@ onBeforeUnmount(() => lockBody(false))
           {{ state.message }}
         </p>
 
+        <!-- Confirmation input -->
+        <div v-if="state.input" class="mt-4 text-left">
+          <label v-if="state.inputLabel" class="sf-label" for="dialog-confirm-input">
+            {{ state.inputLabel }}
+          </label>
+          <input
+            id="dialog-confirm-input"
+            ref="inputRef"
+            v-model="state.inputValue"
+            class="sf-input"
+            type="text"
+            autocomplete="off"
+            :placeholder="state.inputPlaceholder"
+            @keyup.enter="submitInput"
+          />
+          <p v-if="state.inputHint" class="mt-1 text-[11px] text-muted">
+            {{ state.inputHint }}
+          </p>
+        </div>
+
         <!-- Actions -->
         <div
           class="mt-6 flex gap-2.5"
@@ -123,8 +158,9 @@ onBeforeUnmount(() => lockBody(false))
 
           <button
             type="button"
-            class="h-10 rounded-xl px-5 text-xs font-bold transition shadow-sm active:scale-[0.98]"
+            class="h-10 rounded-xl px-5 text-xs font-bold transition shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
             :class="[theme.btnClass, state.showCancel ? 'w-full' : 'min-w-28']"
+            :disabled="isInputInvalid"
             @click="accept"
           >
             {{ state.confirmLabel }}

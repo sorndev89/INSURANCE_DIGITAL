@@ -9,7 +9,7 @@ import {
   requirePassword,
   requireString,
 } from '../utils/validate.js';
-import { createUser, findUserByEmail, findUserById, listUsers, updateUser, userStats } from '../repositories/users.js';
+import { createUser, findUserByEmail, findUserById, listUsers, removeUser, updateUser, userStats } from '../repositories/users.js';
 
 const ROLES = new Set(['admin', 'staff', 'agent', 'customer']);
 const STATUSES = new Set(['active', 'inactive', 'suspended']);
@@ -129,4 +129,25 @@ export const update = async (req: Request, res: Response) => {
         }
       : { id },
   });
+};
+
+export const remove = async (req: Request, res: Response) => {
+  const tenant = requireTenant(req);
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) throw ApiError.badRequest('Invalid user id');
+
+  if (req.auth?.userId === id) {
+    throw ApiError.badRequest('You cannot delete your own account');
+  }
+
+  const target = await findUserById(tenant.id, id);
+  if (!target) throw ApiError.notFound('User not found');
+
+  if (target.role === 'admin') {
+    const stats = await userStats(tenant.id);
+    if (stats.admins <= 1) throw ApiError.badRequest('Cannot delete the last admin');
+  }
+
+  await removeUser(tenant.id, id);
+  res.status(204).end();
 };
