@@ -321,7 +321,7 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | GET/PATCH/DELETE | `/api/platform/tenants/:id` | detail/update/soft-delete |
 | POST | `/api/platform/tenants/:id/suspend` · `/activate` | ປິດ/ເປີດ tenant |
 | POST | `/api/platform/tenants/:id/domains` | ເພີ່ມ custom domain |
-| POST | `/api/platform/tenants/:id/domains/:domainId/verify` | ກວດ TXT record |
+| POST | `/api/platform/tenants/:id/domains/:domainId/verify` | ກວດ TXT record (`?force=true` = superadmin ຂ້າມ DNS, ມີ audit log) |
 | POST | `/api/platform/tenants/:id/impersonate` | ອອກ token tenant ອາຍຸສັ້ນ + audit |
 | GET | `/api/platform/tenants/:id/usage` | ການໃຊ້ users/customers/policies |
 | GET/POST/PATCH | `/api/platform/plans` | ຈັດການແຜນ |
@@ -853,6 +853,10 @@ curl -I https://acme.app.example.com
 4. ເພີ່ມ domain ນັ້ນເຂົ້າ **Domains ຂອງ App 2 ໃນ Coolify** ດ້ວຍ
    (ຫຼື ໃຊ້ edge proxy/wildcard ທີ່ຮັບ custom domain ທັງໝົດສົ່ງມາ App 2).
 5. ຫຼັງ verify ແລ້ວ server ຈະອະນຸຍາດ CORS ຂອງ hostname ນັ້ນອັດຕະໂນມັດ.
+
+> **Force verify:** superadmin ສາມາດກົດ **Force verify** ໃນ Tenant detail ເພື່ອຂ້າມ
+> ການກວດ TXT ໄດ້ (ມີ confirm + audit log `forced: true`). ໃຊ້ສະເພາະເມື່ອແນ່ໃຈວ່າ
+> domain ນັ້ນເປັນຂອງລູກຄ້າ ແລະ ຊີ້ມາຫາ server — ການຂ້າມ verification ຫຼຸດຄວາມປອດໄພ.
 
 ### 13.7 ການກວດສອບຫຼັງ Deploy
 

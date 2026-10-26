@@ -373,7 +373,9 @@ export const verifyDomain = async (req: Request, res: Response) => {
     throw ApiError.badRequest('Domain has no verification token');
   }
 
-  const force = !env.isProduction && String(req.query.force ?? '') === 'true';
+  // Force verification is limited to the authenticated platform superadmin route
+  // and is always recorded in the audit log (`forced: true`).
+  const force = String(req.query.force ?? '').toLowerCase() === 'true' && Boolean(req.platformAuth);
   const verified = await verifyDomainOwnership(domain.hostname, domain.verificationToken, {
     force,
   });

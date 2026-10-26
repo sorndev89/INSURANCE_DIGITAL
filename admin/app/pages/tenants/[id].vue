@@ -139,23 +139,33 @@ const addDomain = async () => {
   }
 }
 
-const verifyDomain = async (domain) => {
+const runVerify = async (domain, { force = false } = {}) => {
   verifyingId.value = domain.id
   domainError.value = ''
   domainErrorDetails.value = null
   try {
     await request(`/platform/tenants/${tenantId.value}/domains/${domain.id}/verify`, {
       method: 'POST',
-      query: { force: import.meta.dev ? 'true' : undefined },
+      query: force ? { force: 'true' } : undefined,
     })
     await load()
-    flash('Verify domain ສຳເລັດ')
+    flash(force ? 'Force verify ສຳເລັດ' : 'Verify domain ສຳເລັດ')
   } catch (requestError) {
     domainError.value = apiErrorMessage(requestError)
     domainErrorDetails.value = requestError?.data?.error?.details || domain.dns || null
   } finally {
     verifyingId.value = null
   }
+}
+
+const verifyDomain = (domain) => runVerify(domain, { force: import.meta.dev })
+
+const forceVerifyDomain = async (domain) => {
+  const typed = window.prompt(
+    `Force verify ${domain.hostname}?\n\nລະບົບຈະຂ້າມການກວດ DNS TXT. ໃຊ້ສະເພາະເມື່ອແນ່ໃຈວ່າ domain ນີ້ເປັນຂອງ tenant ແລະ ຊີ້ມາຫາ server ນີ້. ການກະທຳຈະຖືກບັນທຶກ audit.\n\nພິມ ${domain.hostname} ເພື່ອຢືນຢັນ:`,
+  )
+  if ((typed || '').trim().toLowerCase() !== domain.hostname.toLowerCase()) return
+  await runVerify(domain, { force: true })
 }
 
 const removeDomain = async (domain) => {
@@ -306,6 +316,15 @@ onMounted(async () => {
                     @click="verifyDomain(domain)"
                   >
                     {{ verifyingId === domain.id ? 'ກຳລັງກວດ...' : 'Verify' }}
+                  </button>
+                  <button
+                    v-if="domain.type === 'custom' && !domain.verifiedAt"
+                    type="button"
+                    class="sf-btn sf-btn-danger"
+                    :disabled="verifyingId === domain.id"
+                    @click="forceVerifyDomain(domain)"
+                  >
+                    Force verify
                   </button>
                   <button
                     v-if="!domain.isPrimary"
