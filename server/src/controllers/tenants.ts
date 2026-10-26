@@ -215,16 +215,40 @@ export const update = async (req: Request, res: Response) => {
       patch.planId = planId;
     }
   }
+  let incomingSettings: TenantSettings | undefined;
   if (body.settings !== undefined) {
     if (!body.settings || typeof body.settings !== 'object' || Array.isArray(body.settings)) {
       throw ApiError.badRequest('settings must be an object');
     }
-    const current = tenant.settings ?? {};
-    const incoming = body.settings as TenantSettings;
+    incomingSettings = body.settings as TenantSettings;
+  }
+
+  if (patch.name !== undefined || incomingSettings !== undefined) {
+    const currentSettings = tenant.settings ?? {};
+    const currentBrand = currentSettings.brand ?? {};
+    const incomingBrand = incomingSettings?.brand;
+    const mergedBrand = { ...currentBrand, ...(incomingBrand ?? {}) };
+    const explicitBrandName =
+      typeof incomingBrand?.name === 'string' ? incomingBrand.name.trim() : '';
+    const previousBrandName =
+      typeof currentBrand.name === 'string' ? currentBrand.name.trim() : '';
+
+    let nextBrandName = mergedBrand.name;
+    if (
+      patch.name !== undefined &&
+      !explicitBrandName &&
+      (!previousBrandName || previousBrandName === tenant.name.trim())
+    ) {
+      nextBrandName = patch.name;
+    }
+
     patch.settings = {
-      ...current,
-      ...incoming,
-      brand: { ...(current.brand ?? {}), ...(incoming.brand ?? {}) },
+      ...currentSettings,
+      ...(incomingSettings ?? {}),
+      brand: {
+        ...mergedBrand,
+        ...(typeof nextBrandName === 'string' ? { name: nextBrandName } : {}),
+      },
     };
   }
 

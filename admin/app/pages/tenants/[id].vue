@@ -18,6 +18,7 @@ const notice = ref('')
 
 const saving = ref(false)
 const edit = reactive({ name: '', planId: '', brandName: '', primaryColor: '#10b981' })
+const loadedBrandName = ref('')
 
 const domainInput = ref('')
 const addingDomain = ref(false)
@@ -38,6 +39,7 @@ const load = async () => {
     edit.planId = response.data.planId ?? ''
     edit.brandName = response.data.settings?.brand?.name || ''
     edit.primaryColor = response.data.settings?.brand?.primaryColor || '#10b981'
+    loadedBrandName.value = edit.brandName
   } catch (requestError) {
     error.value = apiErrorMessage(requestError)
   } finally {
@@ -74,17 +76,16 @@ const save = async () => {
   saving.value = true
   error.value = ''
   try {
+    const brandName = edit.brandName.trim()
+    const brand = { primaryColor: edit.primaryColor }
+    if (brandName !== loadedBrandName.value.trim()) brand.name = brandName
+
     await request(`/platform/tenants/${tenantId.value}`, {
       method: 'PATCH',
       body: {
         name: edit.name.trim(),
         planId: edit.planId === '' ? null : Number(edit.planId),
-        settings: {
-          brand: {
-            name: edit.brandName.trim() || edit.name.trim(),
-            primaryColor: edit.primaryColor,
-          },
-        },
+        settings: { brand },
       },
     })
     await load()

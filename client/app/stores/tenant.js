@@ -39,10 +39,19 @@ export const useTenantStore = defineStore('tenant', () => {
   const needsSelection = ref(false)
   const slug = ref('')
 
-  const name = computed(() => tenant.value?.name || config.public.defaultTenantName)
+  const name = computed(() => {
+    const value = tenant.value?.name
+    return (typeof value === 'string' && value.trim()) || config.public.defaultTenantName
+  })
   const brand = computed(() => tenant.value?.branding || {})
-  const brandName = computed(() => brand.value.name || name.value)
-  const shortName = computed(() => brand.value.shortName || brandName.value)
+  const brandName = computed(() => {
+    const value = brand.value.name
+    return (typeof value === 'string' && value.trim()) || name.value
+  })
+  const shortName = computed(() => {
+    const value = brand.value.shortName
+    return (typeof value === 'string' && value.trim()) || brandName.value
+  })
   const logoUrl = computed(() => brand.value.logoUrl || '')
   const primaryColor = computed(() =>
     normalizeHex(brand.value.primaryColor, config.public.defaultBrandColor),
