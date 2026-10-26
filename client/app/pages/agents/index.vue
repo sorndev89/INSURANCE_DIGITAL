@@ -80,9 +80,9 @@
       </template>
     </DataTable>
 
-    <BaseModal v-model="createOpen" title="ເພີ່ມຕົວແທນໃໝ່" size="lg">
+    <BaseModal v-model="createOpen" title="ເພີ່ມຕົວແທນໃໝ່ (Agent Registration)" size="lg">
       <div class="grid gap-4 sm:grid-cols-2">
-        <BaseInput v-model="form.name" label="ຊື່ຜູ້ໃຊ້" required :error="errors.name" />
+        <BaseInput v-model="form.name" label="ຊື່ ແລະ ນາມສະກຸນ" required :error="errors.name" />
         <BaseInput
           v-model="form.email"
           type="email"
@@ -91,25 +91,47 @@
           required
           :error="errors.email"
         />
-        <BaseInput v-model="form.phone" label="ເບີໂທ" prefix-icon="phone" :error="errors.phone" />
+        <BaseInput
+          v-model="form.phone"
+          label="ເບີໂທລະສັບ"
+          prefix-icon="phone"
+          :error="errors.phone"
+        />
         <BaseInput
           v-model="form.password"
           type="password"
-          label="ລະຫັດຜ່ານ"
+          label="ລະຫັດຜ່ານເຂົ້າລະບົບ"
           placeholder="ຢ່າງໜ້ອຍ 8 ຕົວອັກສອນ"
           required
           :error="errors.password"
         />
-        <BaseSelect v-model="form.teamId" label="ທີມ" :options="teamOptions" />
-        <BaseSelect v-model="form.level" label="ລະດັບ" :options="LEVEL_OPTIONS" />
+        <BaseInput
+          v-model="form.licenseNumber"
+          label="ເລກໃບອະນຸຍາດຕົວແທນ/ນາຍໜ້າ"
+          placeholder="AG-2026-..."
+        />
+        <BaseSelect v-model="form.teamId" label="ສັງກັດທີມ / ສາຂາ" :options="teamOptions" />
+        <BaseSelect v-model="form.level" label="ລະດັບຕົວແທນ" :options="LEVEL_OPTIONS" />
         <BaseInput
           v-model="form.commissionRate"
           type="number"
-          label="ອັດຕາຄອມມິດຊັ່ນ (%)"
+          label="ອັດຕາຄອມມິດຊັ່ນພື້ນຖານ (%)"
           min="0"
           max="100"
           suffix="%"
           :error="errors.commissionRate"
+        />
+        <BaseInput
+          v-model="form.bankAccount"
+          label="ບັນຊີທະນາຄານຮັບເງິນ (BCEL / ອື່ນໆ)"
+          placeholder="010-..."
+        />
+        <BaseInput
+          v-model="form.taxRate"
+          type="number"
+          label="ພາສີຫັກ ນະ ທີ່ຈ່າຍ (WHT %)"
+          placeholder="5"
+          suffix="%"
         />
       </div>
       <template #footer>
@@ -199,9 +221,12 @@ const form = reactive({
   email: '',
   phone: '',
   password: '',
+  licenseNumber: '',
   teamId: '',
   level: 'Senior',
   commissionRate: 5,
+  bankAccount: '',
+  taxRate: 5,
 })
 const errors = reactive({
   name: '',
@@ -217,9 +242,12 @@ const openCreate = () => {
     email: '',
     phone: '',
     password: '',
+    licenseNumber: '',
     teamId: '',
     level: 'Senior',
     commissionRate: 5,
+    bankAccount: '',
+    taxRate: 5,
   })
   Object.keys(errors).forEach((key) => {
     errors[key] = ''

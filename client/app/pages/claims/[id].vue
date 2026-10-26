@@ -2,15 +2,45 @@
   <div class="space-y-6">
     <PageHeader
       :title="claim?.claimNumber || 'ລາຍລະອຽດເຄມ'"
-      :description="claim ? `${claim.type} · ${claim.policyNumber}` : 'ກຳລັງໂຫຼດຂໍ້ມູນ'"
+      :description="
+        claim
+          ? `${claim.type} · ${claim.policyNumber} · ${claim.companyName || 'ບໍລິສັດຄູ່ຄ້າ'}`
+          : 'ກຳລັງໂຫຼດຂໍ້ມູນ'
+      "
     >
       <template #actions>
         <BaseButton variant="secondary" icon="arrow_back" @click="router.back()">ກັບຄືນ</BaseButton>
         <template v-if="claim && canProcess">
-          <BaseButton variant="danger" icon="cancel" @click="setStatus('rejected')"
-            >ປະຕິເສດ</BaseButton
+          <BaseButton
+            v-if="claim.status === 'pending' || claim.status === 'submitted_to_insurer'"
+            variant="secondary"
+            icon="search"
+            @click="setStatus('surveyor_assigned')"
           >
-          <BaseButton icon="check_circle" @click="setStatus('approved')">ອະນຸມັດ</BaseButton>
+            ກວດກາຄວາມເສຍຫາຍ
+          </BaseButton>
+          <BaseButton
+            v-if="claim.status !== 'approved' && claim.status !== 'settled'"
+            icon="check_circle"
+            @click="setStatus('approved')"
+          >
+            ອະນຸມັດເຄມ
+          </BaseButton>
+          <BaseButton
+            v-if="claim.status === 'approved' || claim.status === 'repairing'"
+            icon="task_alt"
+            @click="setStatus('settled')"
+          >
+            ຊົດເຊີຍສຳເລັດ (Settled)
+          </BaseButton>
+          <BaseButton
+            v-if="claim.status !== 'rejected' && claim.status !== 'closed'"
+            variant="danger"
+            icon="cancel"
+            @click="setStatus('rejected')"
+          >
+            ປະຕິເສດ
+          </BaseButton>
         </template>
       </template>
     </PageHeader>
@@ -28,11 +58,20 @@
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="text-lg font-bold">{{ claim.claimNumber }}</h2>
               <StatusBadge :status="claim.status" />
+              <span
+                v-if="claim.insurerClaimNo"
+                class="rounded-md bg-surface-muted px-2 py-0.5 text-xs font-mono font-bold text-primary-text"
+              >
+                ເລກເຄມບໍລິສັດ: {{ claim.insurerClaimNo }}
+              </span>
             </div>
-            <p class="mt-1 text-sm text-muted">{{ claim.claimant }} · {{ claim.policyNumber }}</p>
+            <p class="mt-1 text-sm text-muted">
+              {{ claim.claimant }} · {{ claim.policyNumber }} · ບໍລິສັດ:
+              {{ claim.companyName || '—' }}
+            </p>
           </div>
           <div class="md:text-right">
-            <p class="text-xs text-muted">ມູນຄ່າປະເມີນ</p>
+            <p class="text-xs text-muted">ມູນຄ່າປະເມີນຄວາມເສຍຫາຍ</p>
             <p class="text-2xl font-bold tabular-nums text-danger">
               {{ format.currency(claim.amount) }}
             </p>
@@ -43,62 +82,113 @@
       <div class="grid gap-6 lg:grid-cols-3">
         <BaseCard class="lg:col-span-2">
           <template #header>
-            <h2 class="text-sm font-bold">ລາຍລະອຽດເຄມ</h2>
+            <h2 class="text-sm font-bold">ລາຍລະອຽດອຸບັດຕິເຫດ ແລະ ການປະສານງານ</h2>
           </template>
           <dl class="grid gap-4 sm:grid-cols-2">
             <div>
-              <dt class="text-xs text-muted">ຜູ້ແຈ້ງ</dt>
+              <dt class="text-xs text-muted">ຜູ້ແຈ້ງເຄມ</dt>
               <dd class="mt-1 text-sm font-bold">{{ claim.claimant }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-muted">ປະກັນໄພ</dt>
+              <dt class="text-xs text-muted">ເບີໂທລະສັບຜູ້ແຈ້ງ</dt>
+              <dd class="mt-1 text-sm font-bold">{{ format.phone(claim.claimantPhone) || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">ເລກກົມມະທັນ</dt>
               <dd class="mt-1 text-sm font-bold">{{ claim.policyNumber }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-muted">ປະເພດ</dt>
-              <dd class="mt-1 text-sm font-bold">{{ claim.type }}</dd>
+              <dt class="text-xs text-muted">ບໍລິສັດປະກັນໄພຜູ້ຮັບປະກັນ</dt>
+              <dd class="mt-1 text-sm font-bold text-primary-text">
+                {{ claim.companyName || '—' }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-muted">ວັນທີເກີດເຫດ</dt>
-              <dd class="mt-1 text-sm font-bold">{{ format.date(claim.incidentDate) }}</dd>
+              <dt class="text-xs text-muted">ວັນທີ ແລະ ເວລາເກີດເຫດ</dt>
+              <dd class="mt-1 text-sm font-bold">
+                {{ format.date(claim.incidentDate) }}
+                {{ claim.incidentTime ? `· ${claim.incidentTime}` : '' }}
+              </dd>
             </div>
             <div>
-              <dt class="text-xs text-muted">ວົງເງິນຄຸ້ມຄອງ</dt>
+              <dt class="text-xs text-muted">ສະຖານທີ່ / ແຂວງ</dt>
+              <dd class="mt-1 text-sm font-bold">{{ claim.incidentProvince || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">ຜູ້ຂັບຂີ່ຂະນະເກີດເຫດ</dt>
+              <dd class="mt-1 text-sm font-bold">
+                {{ claim.driverName || '—' }}
+                {{ claim.driverLicenseNo ? `(ໃບຂັບຂີ່: ${claim.driverLicenseNo})` : '' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">ອູ່ສ້ອມແປງ / ສູນບໍລິການ / ໂຮງໝໍ</dt>
+              <dd class="mt-1 text-sm font-bold">{{ claim.repairGarage || 'ຍັງບໍ່ທັນລະບຸ' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">ວົງເງິນຄຸ້ມຄອງຕາມສັນຍາ</dt>
               <dd class="mt-1 text-sm font-bold">{{ format.currency(claim.coverageLimit) }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-muted">ວັນທີແຈ້ງ</dt>
+              <dt class="text-xs text-muted">ວັນທີບັນທຶກແຈ້ງເຄມ</dt>
               <dd class="mt-1 text-sm font-bold">{{ format.date(claim.createdAt) }}</dd>
+            </div>
+            <div
+              v-if="claim.description"
+              class="sm:col-span-2 rounded-lg border border-line bg-surface-muted p-3"
+            >
+              <span class="text-xs text-muted font-semibold">ລາຍລະອຽດເຫດການ:</span>
+              <p class="mt-1 text-sm">{{ claim.description }}</p>
             </div>
           </dl>
         </BaseCard>
 
-        <BaseCard>
-          <template #header>
-            <h2 class="text-sm font-bold">ເອກະສານ</h2>
-          </template>
-          <ul v-if="claim.attachments?.length" class="space-y-2">
-            <li
-              v-for="(file, index) in claim.attachments"
-              :key="`${attachmentName(file)}-${index}`"
-              class="flex items-center gap-2 rounded-lg border border-line p-2"
-            >
-              <BaseIcon name="description" size="sm" class="text-muted" />
-              <span class="min-w-0 flex-1 truncate text-xs font-bold">
-                {{ attachmentName(file) }}
-              </span>
-              <BaseButton
-                variant="ghost"
-                size="sm"
-                icon-only
-                label="ດາວໂຫຼດ"
-                icon="download"
-                @click="downloadAttachment(file)"
-              />
-            </li>
-          </ul>
-          <p v-else class="text-sm text-muted">ບໍ່ມີເອກະສານ.</p>
-        </BaseCard>
+        <!-- Sidebar ເອກະສານ & ຕິດຕາມ -->
+        <div class="space-y-6">
+          <BaseCard>
+            <template #header>
+              <h2 class="text-sm font-bold">ເອກະສານ ແລະ ຫຼັກຖານປະກອບ</h2>
+            </template>
+            <ul v-if="claim.attachments?.length" class="space-y-2">
+              <li
+                v-for="(file, index) in claim.attachments"
+                :key="`${attachmentName(file)}-${index}`"
+                class="flex items-center gap-2 rounded-lg border border-line p-2"
+              >
+                <BaseIcon name="description" size="sm" class="text-muted" />
+                <span class="min-w-0 flex-1 truncate text-xs font-bold">
+                  {{ attachmentName(file) }}
+                </span>
+                <BaseButton
+                  variant="ghost"
+                  size="sm"
+                  icon-only
+                  label="ດາວໂຫຼດ"
+                  icon="download"
+                  @click="downloadAttachment(file)"
+                />
+              </li>
+            </ul>
+            <p v-else class="text-sm text-muted">ບໍ່ມີເອກະສານ.</p>
+          </BaseCard>
+
+          <BaseCard>
+            <template #header>
+              <h2 class="text-sm font-bold">ສະຖານະການຕິດຕາມ (Workflow)</h2>
+            </template>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-muted">ສະຖານະປັດຈຸບັນ:</span>
+                <StatusBadge :status="claim.status" />
+              </div>
+              <div class="border-t border-line pt-3 space-y-1 text-muted">
+                <p>• ຮັບເລື່ອງແລ້ວ</p>
+                <p>• ປະສານງານກັບບໍລິສັດປະກັນ</p>
+                <p>• ຕິດຕາມການສ້ອມແປງ / ຊົດເຊີຍ</p>
+              </div>
+            </div>
+          </BaseCard>
+        </div>
       </div>
     </template>
 
@@ -123,7 +213,7 @@ import { attachmentName, resolveAttachmentUrl } from '~/utils/uploads'
 
 definePageMeta({
   layout: 'admin',
-  title: 'ລາຍລະອຽດເຄມ',
+  title: 'ລາຍລະອຽດເຄມ (Broker Claim View)',
   permission: 'claim.view',
 })
 
@@ -167,7 +257,7 @@ const downloadAttachment = (file) => {
 const setStatus = async (status) => {
   await updateStatus(claim.value.id, status)
   claim.value.status = status
-  toast.success(status === 'approved' ? 'ອະນຸມັດເຄມສຳເລັດ' : 'ປະຕິເສດເຄມແລ້ວ')
+  toast.success(`ອັບເດດສະຖານະເຄມເປັນ: ${status}`)
   refresh()
 }
 

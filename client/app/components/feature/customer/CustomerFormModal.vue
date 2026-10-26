@@ -1,38 +1,93 @@
 <template>
   <BaseModal
     :model-value="modelValue"
-    :title="isEdit ? 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າ' : 'ເພີ່ມລູກຄ້າໃໝ່'"
+    :title="isEdit ? 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າ' : 'ເພີ່ມລູກຄ້າໃໝ່ (Customer KYC)'"
     size="lg"
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <div class="grid gap-4 sm:grid-cols-2">
-      <BaseInput v-model="form.firstName" label="ຊື່" required :error="errors.firstName" />
-      <BaseInput v-model="form.lastName" label="ນາມສະກຸນ" required :error="errors.lastName" />
-      <BaseInput
-        v-model="form.phone"
-        label="ເບີໂທ"
-        prefix-icon="phone"
-        required
-        :error="errors.phone"
-      />
-      <BaseInput
-        v-model="form.email"
-        type="email"
-        label="ອີເມວ"
-        prefix-icon="mail"
-        :error="errors.email"
-      />
-      <BaseSelect v-model="form.gender" label="ເພດ" :options="GENDERS" />
-      <BaseInput v-model="form.dob" type="date" label="ວັນເດືອນປີເກີດ" />
-      <BaseInput v-model="form.occupation" label="ອາຊີບ" />
-      <BaseSelect v-if="isEdit" v-model="form.status" label="ສະຖານະ" :options="STATUS_OPTIONS" />
+    <div class="space-y-4">
+      <!-- ເລືອກປະເພດລູກຄ້າ -->
+      <div class="flex items-center justify-between border-b border-line pb-3">
+        <label class="text-xs font-bold uppercase tracking-wider text-muted">ປະເພດລູກຄ້າ:</label>
+        <BaseSelect v-model="form.customerType" label="" :options="CUSTOMER_TYPES" class="w-64" />
+      </div>
+
+      <!-- ຟອມບຸກຄົນທົ່ວໄປ -->
+      <div v-if="form.customerType === 'individual'" class="grid gap-4 sm:grid-cols-2">
+        <BaseInput v-model="form.firstName" label="ຊື່ແທ້" required :error="errors.firstName" />
+        <BaseInput v-model="form.lastName" label="ນາມສະກຸນ" required :error="errors.lastName" />
+        <BaseInput
+          v-model="form.phone"
+          label="ເບີໂທລະສັບ"
+          prefix-icon="phone"
+          required
+          :error="errors.phone"
+        />
+        <BaseInput
+          v-model="form.email"
+          type="email"
+          label="ອີເມວ"
+          prefix-icon="mail"
+          :error="errors.email"
+        />
+        <BaseInput
+          v-model="form.idCardNumber"
+          label="ເລກບັດປະຈຳຕົວ / ພາສປອດ"
+          placeholder="01-..."
+        />
+        <BaseSelect v-model="form.gender" label="ເພດ" :options="GENDERS" />
+        <BaseInput v-model="form.dob" type="date" label="ວັນເດືອນປີເກີດ" />
+        <BaseInput v-model="form.occupation" label="ອາຊີບ" placeholder="ພະນັກງານ" />
+      </div>
+
+      <!-- ຟອມນິຕິບຸກຄົນ / ບໍລິສັດ -->
+      <div v-else class="grid gap-4 sm:grid-cols-2">
+        <BaseInput
+          v-model="form.companyName"
+          label="ຊື່ບໍລິສັດ / ອົງກອນ"
+          placeholder="ບໍລິສັດ ພັດທະນາ ຈຳກັດ"
+          required
+          :error="errors.companyName"
+        />
+        <BaseInput
+          v-model="form.taxId"
+          label="ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ (Tax ID)"
+          placeholder="0101234567"
+          required
+          :error="errors.taxId"
+        />
+        <BaseInput
+          v-model="form.contactPerson"
+          label="ຊື່ຜູ້ຕິດຕໍ່ປະສານງານ"
+          placeholder="ທ່ານ ວິໄລ"
+          required
+          :error="errors.contactPerson"
+        />
+        <BaseInput
+          v-model="form.phone"
+          label="ເບີໂທລະສັບຕິດຕໍ່"
+          prefix-icon="phone"
+          required
+          :error="errors.phone"
+        />
+        <BaseInput
+          v-model="form.email"
+          type="email"
+          label="ອີເມວບໍລິສັດ"
+          prefix-icon="mail"
+          :error="errors.email"
+        />
+        <BaseSelect v-if="isEdit" v-model="form.status" label="ສະຖານະ" :options="STATUS_OPTIONS" />
+      </div>
+
+      <!-- ທີ່ຢູ່ -->
+      <BaseTextarea v-model="form.address" label="ທີ່ຢູ່ປະຈຸບັນ" placeholder="ບ້ານ, ເມືອງ, ແຂວງ" />
+
+      <div v-if="isEdit && form.customerType === 'individual'" class="grid gap-4 sm:grid-cols-2">
+        <BaseSelect v-model="form.status" label="ສະຖານະ" :options="STATUS_OPTIONS" />
+      </div>
     </div>
-    <BaseTextarea
-      v-model="form.address"
-      label="ທີ່ຢູ່"
-      class="mt-4"
-      placeholder="ບ້ານ, ເມືອງ, ແຂວງ"
-    />
+
     <template #footer>
       <div class="flex justify-end gap-2">
         <BaseButton variant="secondary" @click="$emit('update:modelValue', false)">
@@ -48,7 +103,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useCustomers } from '~/composables/api/useCustomers'
 import { useToast } from '~/composables/useToast'
-import { GENDERS } from '~/utils/constants'
+import { CUSTOMER_TYPES, GENDERS } from '~/utils/constants'
 import {
   email as emailValidator,
   phone as phoneValidator,
@@ -68,15 +123,20 @@ const saving = ref(false)
 const isEdit = computed(() => Boolean(props.customer?.id))
 
 const STATUS_OPTIONS = [
-  { value: 'active', label: 'ມີຜົນ' },
-  { value: 'inactive', label: 'ປິດໃຊ້ງານ' },
+  { value: 'active', label: 'ມີຜົນ (Active)' },
+  { value: 'inactive', label: 'ປິດໃຊ້ງານ (Inactive)' },
 ]
 
 const blankForm = () => ({
+  customerType: 'individual',
   firstName: '',
   lastName: '',
+  companyName: '',
+  taxId: '',
+  contactPerson: '',
   phone: '',
   email: '',
+  idCardNumber: '',
   gender: 'male',
   dob: '',
   occupation: '',
@@ -85,63 +145,84 @@ const blankForm = () => ({
 })
 
 const form = reactive(blankForm())
-const errors = reactive({ firstName: '', lastName: '', phone: '', email: '' })
+const errors = reactive({
+  firstName: '',
+  lastName: '',
+  companyName: '',
+  taxId: '',
+  contactPerson: '',
+  phone: '',
+  email: '',
+})
 
 const fillForm = () => {
   const source = props.customer || {}
   Object.assign(form, blankForm(), {
+    customerType: source.customerType || (source.companyName ? 'corporate' : 'individual'),
     firstName: source.firstName || '',
     lastName: source.lastName || '',
+    companyName: source.companyName || source.fullName || '',
+    taxId: source.taxId || '',
+    contactPerson: source.contactPerson || '',
     phone: source.phone || '',
     email: source.email || '',
+    idCardNumber: source.idCardNumber || '',
     gender: source.gender || 'male',
     dob: source.dob || '',
     occupation: source.occupation || '',
     address: source.address || '',
     status: source.status || 'active',
   })
-  Object.keys(errors).forEach((key) => {
-    errors[key] = ''
-  })
 }
 
+watch(() => props.customer, fillForm, { immediate: true })
 watch(
-  () => [props.modelValue, props.customer],
-  ([open]) => {
+  () => props.modelValue,
+  (open) => {
     if (open) fillForm()
   },
-  { immediate: true },
 )
 
-const validateForm = () => {
-  errors.firstName = required(form.firstName)
-  errors.lastName = required(form.lastName)
-  errors.phone = validate(form.phone, [required, phoneValidator])
-  errors.email = form.email ? emailValidator(form.email) : ''
-  return !Object.values(errors).some(Boolean)
-}
-
 const save = async () => {
-  if (!validateForm()) return
+  errors.phone = validate(form.phone, [required, phoneValidator])
+  if (form.email) errors.email = emailValidator(form.email)
+
+  if (form.customerType === 'corporate') {
+    errors.companyName = required(form.companyName)
+    errors.taxId = required(form.taxId)
+    errors.contactPerson = required(form.contactPerson)
+    errors.firstName = ''
+    errors.lastName = ''
+  } else {
+    errors.firstName = required(form.firstName)
+    errors.lastName = required(form.lastName)
+    errors.companyName = ''
+    errors.taxId = ''
+    errors.contactPerson = ''
+  }
+
+  if (Object.values(errors).some(Boolean)) return
+
   saving.value = true
   try {
     const payload = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      phone: form.phone.trim(),
-      email: form.email.trim(),
-      gender: form.gender,
-      dob: form.dob,
-      occupation: form.occupation,
-      address: form.address,
-      status: form.status,
+      ...form,
+      fullName:
+        form.customerType === 'corporate'
+          ? form.companyName
+          : `${form.firstName} ${form.lastName}`.trim(),
     }
-    const saved = isEdit.value ? await update(props.customer.id, payload) : await create(payload)
-    emit('saved', saved)
+    if (isEdit.value) {
+      await update(props.customer.id, payload)
+      toast.success('ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ')
+    } else {
+      await create(payload)
+      toast.success('ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ')
+    }
     emit('update:modelValue', false)
-    toast.success(isEdit.value ? 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ' : 'ເພີ່ມລູກຄ້າສຳເລັດ')
-  } catch (requestError) {
-    toast.error(requestError?.message || 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນລູກຄ້າໄດ້')
+    emit('saved')
+  } catch (err) {
+    toast.error(err?.message || 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນລູກຄ້າໄດ້')
   } finally {
     saving.value = false
   }
