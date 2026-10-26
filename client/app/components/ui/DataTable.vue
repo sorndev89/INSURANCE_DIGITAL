@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+  <div class="relative overflow-hidden rounded-xl border border-line bg-surface shadow-card">
     <template v-if="isMobileCard">
       <div v-if="loading" class="space-y-3 p-3">
         <div v-for="index in 3" :key="index" class="rounded-xl border border-line p-4">

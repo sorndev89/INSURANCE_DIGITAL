@@ -5,6 +5,7 @@ WORKDIR /app
 ENV NODE_ENV=development
 COPY package.json package-lock.json ./
 RUN npm ci --include=dev
+ENV NODE_ENV=production
 COPY . .
 
 # NUXT_PUBLIC_* values are baked into the SPA at build time.

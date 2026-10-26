@@ -51,23 +51,6 @@
       </BaseButton>
     </form>
 
-    <div v-if="isDev" class="mt-6 rounded-xl border border-line bg-surface-muted p-3">
-      <p class="text-xs font-bold uppercase tracking-wider text-muted">ບັນຊີທົດສອບ (DEMO)</p>
-      <div class="mt-2 grid gap-1 sm:grid-cols-2">
-        <button
-          v-for="account in demoAccounts"
-          :key="account.email"
-          type="button"
-          class="flex min-h-[44px] items-center justify-between gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-left transition-all duration-150 active:scale-[0.98] select-none hover:border-primary"
-          @click="fillDemo(account)"
-        >
-          <span class="text-xs font-bold">{{ account.label }}</span>
-          <span class="truncate text-xs text-muted">{{ account.email }}</span>
-        </button>
-      </div>
-      <p class="mt-2 text-xs text-muted">ລະຫັດຜ່ານຮ່ວມ: {{ demoPassword }}</p>
-    </div>
-
     <div class="mt-6 text-center text-sm text-muted">
       ຍັງບໍ່ມີບັນຊີ?
       <a href="mailto:info@saiyfon.com" class="font-bold text-primary-text hover:text-primary-dark">
@@ -82,7 +65,6 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { navigateTo, useRoute, useRouter } from '#app'
 import { useAuth } from '~/composables/api/useAuth'
 import { ROLE_LANDING } from '~/config/permissions'
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '~/mocks/users'
 import { useAuthStore } from '~/stores/auth'
 import { email as emailValidator, required, validate } from '~/utils/validators'
 
@@ -105,8 +87,6 @@ const errors = reactive({ email: '', password: '' })
 const attempts = ref(0)
 const lockedUntil = ref(0)
 const now = ref(Date.now())
-const isDev = import.meta.dev
-const demoAccounts = DEMO_ACCOUNTS
 
 let timer = null
 
@@ -143,14 +123,6 @@ const submit = async () => {
       attempts.value = 0
     }
   }
-}
-
-const fillDemo = (account) => {
-  form.email = account.email
-  form.password = DEMO_PASSWORD
-  errors.email = ''
-  errors.password = ''
-  error.value = null
 }
 
 onMounted(() => {
