@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Saiyfon Insurance</string>
+    <string name="title_activity_main">Saiyfon Insurance</string>
+    <string name="package_name">com.saiyfon.insurance</string>
+    <string name="custom_url_scheme">com.saiyfon.insurance</string>
+</resources>

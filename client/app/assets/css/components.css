@@ -1,0 +1,133 @@
+@utility pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+@utility px-safe {
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sf-line) transparent;
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility touch-press {
+  transition:
+    transform 120ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 120ms ease;
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.sf-dialog::backdrop {
+  background-color: rgb(var(--sf-shadow-color) / 0.55);
+  backdrop-filter: blur(4px);
+  animation: sf-backdrop-fade 220ms ease-out forwards;
+}
+
+@keyframes sf-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal slide-from-top (Bootstrap modal-top fade with native iOS/Android spring feel) */
+.modal-top[open] {
+  animation: sf-modal-slide-down 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sf-modal-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Drawer slide animations */
+.sf-drawer-left[open] {
+  animation: sf-drawer-slide-left 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sf-drawer-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sf-drawer-right[open] {
+  animation: sf-drawer-slide-right 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sf-drawer-slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sf-drawer-bottom[open] {
+  animation: sf-drawer-slide-bottom 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sf-drawer-slide-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sf-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  border-radius: 0.5rem;
+  background-color: var(--sf-line);
+  animation: sf-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

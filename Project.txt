@@ -1,0 +1,122 @@
+ນີ້ແມ່ນ Prompts ລະອຽດ (Detailed Prompts) ທີ່ທ່ານສາມາດນຳໄປໃຊ້ກັບ AI (ເຊັ່ນ: ChatGPT, Claude, ຫຼື Gemini) ເພື່ອໃຫ້ຊ່ວຍຂຽນ Code ສຳລັບໂປຣເຈັກ Saiyfon Insurance ໂດຍແບ່ງຕາມສ່ວນວຽກ.
+
+ຂ້າພະເຈົ້າໄດ້ປັບແຕ່ງໃຫ້ເໝາະສົມກັບ Tech Stack: Laravel + Vue.js ທີ່ທ່ານຖະນັດ.
+
+1. Prompt ສຳລັບອອກແບບຖານຂໍ້ມູນ (Database Schema & Migrations)
+ເປົ້າໝາຍ: ສ້າງຕາຕະລາງຖານຂໍ້ມູນໃຫ້ຄົບຖ້ວນຕາມເອກະສານ PDF.
+
+Prompt:
+"Act as a Senior Laravel Architect. I need you to design a database schema for an Insurance Brokerage Platform named 'Saiyfon Insurance'. Please write the Laravel Migrations for the following tables based on these requirements:
+
+Users: Standard Laravel user fields plus role (admin, staff, agent, customer), phone, profile_photo_path, status (active/inactive).
+
+Customers: user_id (FK), first_name, last_name, dob, address, id_card_number, passport_number, gender, occupation. Includes file paths for id_card_image.
+
+Agents: user_id (FK), agent_code (e.g., SB_001), credit_limit (decimal), sales_target (decimal), commission_rate (default 5%), tax_rate.
+
+Insurance_Companies: code (e.g., DHP, APA), name, address, contact_person, contact_phone, logo_path.
+
+Products: insurance_company_id (FK), name (e.g., Motor Insurance), type (Motor, Health, Fire), description.
+
+Vehicles: customer_id (FK), make (Honda, Toyota), model, year, plate_number, engine_number, chassis_number, engine_capacity (cc), color, usage_type (private/commercial).
+
+Policies (The core table): policy_number, customer_id, agent_id (nullable), vehicle_id, insurance_company_id, start_date, end_date, net_premium, vat_amount (7%), registration_fee, total_premium, status (pending, active, expired).
+
+Commission_Rates: A table to override commission rates per agent per product. Fields: agent_id, product_id, rate_percentage.
+
+Please ensure foreign keys are constrained and use appropriate data types (e.g., decimals for currency)."
+
+2. Prompt ສຳລັບ Frontend - ຟອມຊື້ປະກັນໄພ (The Purchase Wizard)
+ເປົ້າໝາຍ: ສ້າງຟອມຊື້ປະກັນໄພ 4-6 ຂັ້ນຕອນ ທີ່ເປັນຫົວໃຈຫຼັກຂອງແອັບ.
+
+Prompt:
+"Act as a Vue.js Expert. Create a 'Multi-Step Insurance Purchase Form' component using Vue 3 (Composition API) and Tailwind CSS. The form should have the following steps based on the provided wireframe:
+
+State Management: Use a reactive object to store the form data.
+
+Step 1: Insured Info: Inputs for Name, Last Name, Phone, Address, DOB, Gender, ID Card/Passport Upload (File input).
+
+Step 2: Vehicle Info: Dropdowns for Vehicle Type, Make, Model. Inputs for Plate Number, Chassis No, Engine No, Engine Capacity (CC), Seat Capacity, and Usage Type (Private/Business).
+
+Step 3: Coverage & Plan: A section to display insurance plans. For now, just create a card selection UI showing 'Plan Name', 'Coverage Limit', and 'Price'.
+
+Step 4: Premium Calculation & Confirmation: Display a summary table with:
+
+Basic Premium
+
+Discount (%)
+
+VAT (7%)
+
+Registration Fee
+
+Total Premium
+
+Step 5: Payment: A placeholder button for 'Pay with BCEL One'.
+
+Please provide the Vue component structure, the reactive data model, and the logic to switch between steps (Next/Back buttons)."
+
+3. Prompt ສຳລັບ Backend Logic - ການຄຳນວນເບ້ຍປະກັນ (Premium Calculation)
+
+ເປົ້າໝາຍ: ສ້າງ Service Class ໃນ Laravel ເພື່ອຄຳນວນເງິນໃຫ້ຖືກຕ້ອງຕາມໃບເກັບເງິນໃນ PDF.
+
+Prompt:
+"Act as a Laravel Backend Developer. I need a Service Class named PremiumCalculationService. This class should calculate the Motor Insurance Premium based on the following logic found in my invoice document:
+
+Input: base_premium, discount_percent (e.g., 10%, 30%).
+Constants:
+
+VAT_RATE = 7% (0.07)
+
+REGISTRATION_FEE = Fixed amount (e.g., 20,000 LAK).
+
+Logic:
+
+net_premium_after_discount = base_premium - (base_premium * discount_percent / 100).
+
+vat_amount = net_premium_after_discount * VAT_RATE.
+
+total_premium = net_premium_after_discount + vat_amount + REGISTRATION_FEE.
+
+Output: Return an array or object containing all these calculated values formatted as currency (LAK). Please write the PHP code for this Service class."
+
+4. Prompt ສຳລັບໜ້າ Admin - Dashboard & Reports
+ເປົ້າໝາຍ: ສ້າງ Dashboard ສຳລັບຜູ້ບໍລິຫານເພື່ອເບິ່ງຍອດຂາຍ ແລະ ສັນຍາໃກ້ໝົດອາຍຸ.
+
+Prompt:
+"Act as a Full Stack Developer. I am building an Admin Dashboard for an insurance broker.
+
+Requirement 1 (Backend - Laravel):
+Create a Controller named DashboardController. It needs two endpoints:
+
+getSalesOverview: Return total sales for Today, This Month, and This Year. Also, group sales by insurance_company_id to show market share.
+
+getExpiringPolicies: Return a list of policies where end_date is within the next 30 days, including Customer Name, Agent Name, and Phone Number for follow-up.
+
+Requirement 2 (Frontend - Vue.js):
+Describe how to create a visual Dashboard using a charting library (like Chart.js or ApexCharts) to display the 'Sales by Insurance Company' as a Bar Chart or Pie Chart based on the API data above."
+
+5. Prompt ສຳລັບ API ປ້ອນຂໍ້ມູນຂາຍ (Sales Data Entry for Admin)
+ເປົ້າໝາຍ: ຟອມສຳລັບພະນັກງານຄີຂໍ້ມູນ (Underwriting) ໃນກໍລະນີລູກຄ້າບໍ່ໄດ້ຊື້ຜ່ານແອັບ.
+
+Prompt:
+"I need to build a 'Sales Data Entry' form for the Admin Panel (Back-office).
+Context: Staff members manually enter insurance policies sold offline.
+
+Task:
+
+Create a Laravel Request Validation class named StorePolicyRequest.
+
+It must validate:
+
+customer_id: required, exists in customers table.
+
+insurance_company_id: required.
+
+effective_date and expiry_date: required, dates.
+
+vehicle_details: required array (plate_no, chassis_no, engine_no).
+
+premium_details: required array (basic_premium, vat, total).
+
+Create the store method in PolicyController to save this data and automatically generate a unique policy_number (Format: P-YYYYMM-XXXX)."

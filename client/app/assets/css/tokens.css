@@ -1,0 +1,104 @@
+:root {
+  color-scheme: light;
+
+  --sf-font: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+
+  --sf-primary: #047857;
+  --sf-primary-rgb: 4 120 87;
+  --sf-primary-dark: #065f46;
+  --sf-primary-light: #d1fae5;
+  --sf-primary-text: #065f46;
+
+  --sf-background: #f6f7f8;
+  --sf-surface: #ffffff;
+  --sf-surface-muted: #f8fafc;
+  --sf-foreground: #0f172a;
+  --sf-muted: #475569;
+  --sf-line: #dbe3ec;
+
+  --sf-success: #047857;
+  --sf-warning: #92400e;
+  --sf-danger: #be123c;
+  --sf-info: #0369a1;
+
+  --sf-focus: #047857;
+  --sf-on-primary: #d1fae5;
+  --sf-shadow-color: 15 23 42;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --sf-primary: #047857;
+  --sf-primary-rgb: 4 120 87;
+  --sf-primary-dark: #065f46;
+  --sf-primary-light: #064e3b;
+  --sf-primary-text: #6ee7b7;
+
+  --sf-background: #101922;
+  --sf-surface: #182430;
+  --sf-surface-muted: #1e293b;
+  --sf-foreground: #f8fafc;
+  --sf-muted: #a7b4c6;
+  --sf-line: #334155;
+
+  --sf-success: #34d399;
+  --sf-warning: #fbbf24;
+  --sf-danger: #fb7185;
+  --sf-info: #38bdf8;
+
+  --sf-focus: #6ee7b7;
+  --sf-shadow-color: 0 0 0;
+}
+
+@theme inline {
+  --color-primary: var(--sf-primary);
+  --color-primary-dark: var(--sf-primary-dark);
+  --color-primary-light: var(--sf-primary-light);
+  --color-primary-text: var(--sf-primary-text);
+
+  --color-background: var(--sf-background);
+  --color-surface: var(--sf-surface);
+  --color-surface-muted: var(--sf-surface-muted);
+  --color-foreground: var(--sf-foreground);
+  --color-muted: var(--sf-muted);
+  --color-line: var(--sf-line);
+
+  --color-success: var(--sf-success);
+  --color-warning: var(--sf-warning);
+  --color-danger: var(--sf-danger);
+  --color-info: var(--sf-info);
+
+  --color-focus: var(--sf-focus);
+  --color-on-primary: var(--sf-on-primary);
+
+  /* Backwards-compatible aliases used by the legacy pages. */
+  --color-background-light: var(--sf-background);
+  --color-background-dark: var(--sf-background);
+  --color-surface-light: var(--sf-surface);
+  --color-surface-dark: var(--sf-surface);
+
+  --font-display: var(--sf-font);
+
+  --radius-default: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.7;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.7;
+  --text-base: 1rem;
+  --text-base--line-height: 1.7;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.6;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.4;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.3;
+
+  --shadow-card: 0 1px 2px 0 rgb(var(--sf-shadow-color) / 0.06);
+  --shadow-cta: 0 10px 30px -12px rgb(var(--sf-primary-rgb) / 0.45);
+}

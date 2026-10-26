@@ -1,0 +1,40 @@
+name: saiyfon-dev
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: saiyfon-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: saiyfon_insurance
+      MYSQL_USER: saiyfon
+      MYSQL_PASSWORD: saiyfon
+    ports:
+      - '3315:3306'
+    volumes:
+      - saiyfon_mysql:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: saiyfon-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '6390:6379'
+    volumes:
+      - saiyfon_redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  saiyfon_mysql:
+  saiyfon_redis:

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="ບໍລິການປະກັນໄພ">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1200" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ecfdf5"/>
+      <stop offset="1" stop-color="#a7f3d0"/>
+    </linearGradient>
+    <linearGradient id="car" x1="360" y1="560" x2="860" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#065f46"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#sky)"/>
+  <circle cx="920" cy="180" r="120" fill="#34d399" opacity=".35"/>
+  <path d="M0 700c180-90 330-90 510 0s330 90 510 0 330-90 510 0v200H0V700Z" fill="#10b981" opacity=".18"/>
+  <g>
+    <rect x="320" y="560" width="560" height="120" rx="44" fill="url(#car)"/>
+    <path d="M400 560c24-60 76-96 150-96h100c74 0 126 36 150 96H400Z" fill="#0f766e"/>
+    <rect x="460" y="486" width="140" height="58" rx="14" fill="#d1fae5" opacity=".9"/>
+    <rect x="620" y="486" width="140" height="58" rx="14" fill="#d1fae5" opacity=".9"/>
+    <circle cx="450" cy="700" r="54" fill="#064e3b"/>
+    <circle cx="450" cy="700" r="24" fill="#d1fae5"/>
+    <circle cx="760" cy="700" r="54" fill="#064e3b"/>
+    <circle cx="760" cy="700" r="24" fill="#d1fae5"/>
+  </g>
+  <g fill="#065f46" opacity=".7">
+    <path d="M180 330 260 360v58c0 48-33 86-80 104-47-18-80-56-80-104v-58l80-30Z"/>
+    <path d="M940 300 1020 330v58c0 48-33 86-80 104-47-18-80-56-80-104v-58l80-30Z"/>
+  </g>
+</svg>

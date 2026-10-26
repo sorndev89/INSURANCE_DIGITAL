@@ -1,0 +1,36 @@
+import type { Request, Response } from 'express';
+import { resolveTenantByHost, resolveTenantBySlug } from '../services/tenantCache.js';
+import { extractHost } from '../middleware/tenantResolver.js';
+import { ApiError } from '../utils/errors.js';
+import { activePlans } from './plans.js';
+
+export const tenant = async (req: Request, res: Response) => {
+  const slug = typeof req.query.slug === 'string' ? req.query.slug.trim() : '';
+  const host = extractHost(req.headers.host);
+  const resolved = slug ? await resolveTenantBySlug(slug) : await resolveTenantByHost(host);
+
+  if (!resolved) {
+    throw new ApiError(
+      404,
+      'tenant_not_found',
+      slug ? `Unknown tenant "${slug}"` : `No tenant is configured for host "${host}"`,
+    );
+  }
+
+  res.setHeader('Cache-Control', 'public, max-age=30');
+  res.json({
+    data: {
+      slug: resolved.slug,
+      name: resolved.name,
+      status: resolved.status,
+      hostname: resolved.hostname,
+      branding: resolved.settings?.brand ?? { name: resolved.name },
+      locale: resolved.settings?.locale ?? 'lo',
+      currency: resolved.settings?.currency ?? 'LAK',
+      timezone: resolved.settings?.timezone ?? 'Asia/Vientiane',
+      features: resolved.features,
+    },
+  });
+};
+
+export const plans = activePlans;
