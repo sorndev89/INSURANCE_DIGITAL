@@ -110,6 +110,16 @@ const impersonateTenant = async (tenant) => {
 const loadData = async () => {
   loading.value = true
   try {
+    const dashboardRes = await request('/platform/dashboard').catch(() => null)
+    if (dashboardRes?.data) {
+      const d = dashboardRes.data
+      if (d.recentTenants) tenants.value = d.recentTenants
+      if (d.plans) plans.value = d.plans
+      if (d.recentAudits) recentAudits.value = d.recentAudits
+      meta.value.total = d.stats?.total || d.recentTenants?.length || 0
+      return
+    }
+
     const [tenantsRes, plansRes, auditsRes] = await Promise.allSettled([
       request('/platform/tenants', { query: { pageSize: 100 } }),
       request('/platform/plans'),
@@ -139,21 +149,84 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     <PageHeader
-      title="Dashboard ພາບລວມລະບົບ"
+      title="Dashboard ພາບລວມລະບົບ SaaS"
       description="ຕິດຕາມຕົວຊີ້ວັດຫຼັກຂອງທຸລະກິດ SaaS, ສະຖານະອົງກອນ ແລະ ຄວາມພ້ອມຂອງລະບົບ"
       :breadcrumbs="[{ label: 'Dashboard' }]"
     >
       <template #actions>
-        <NuxtLink to="/domains" class="sf-btn sf-btn-secondary">
+        <NuxtLink to="/domains" class="sf-btn sf-btn-secondary shadow-xs">
           <BaseIcon name="domains" :size="16" />
           <span>ກວດສອບ Domains</span>
         </NuxtLink>
-        <NuxtLink to="/tenants" class="sf-btn sf-btn-primary">
+        <NuxtLink to="/tenants" class="sf-btn sf-btn-primary shadow-sm shadow-primary/25">
           <BaseIcon name="tenants" :size="16" />
           <span>+ ສ້າງ Tenant ໃໝ່</span>
         </NuxtLink>
       </template>
     </PageHeader>
+
+    <!-- SaaS Triage & Quick Status Strip -->
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <NuxtLink
+        to="/tenants"
+        class="group flex items-center gap-3 rounded-2xl border border-warning/30 bg-warning/5 p-3.5 shadow-xs transition-all hover:bg-warning/10 hover:border-warning/50 active:scale-[0.99]"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/20 text-warning group-hover:scale-105 transition-transform">
+          <BaseIcon name="building" :size="18" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-medium text-muted">ທົດລອງໃຊ້ (Trial)</p>
+          <p class="text-base sm:text-lg font-bold text-foreground tabular-nums">
+            {{ stats.trial }} <span class="text-xs font-normal text-muted">ອົງກອນ</span>
+          </p>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink
+        to="/tenants"
+        class="group flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3.5 shadow-xs transition-all hover:bg-primary/10 hover:border-primary/50 active:scale-[0.99]"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary-text group-hover:scale-105 transition-transform">
+          <BaseIcon name="tenants" :size="18" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-medium text-muted">ເປີດໃຊ້ງານ (Active)</p>
+          <p class="text-base sm:text-lg font-bold text-foreground tabular-nums">
+            {{ stats.active }} <span class="text-xs font-normal text-muted">ອົງກອນ</span>
+          </p>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink
+        to="/domains"
+        class="group flex items-center gap-3 rounded-2xl border border-info/30 bg-info/5 p-3.5 shadow-xs transition-all hover:bg-info/10 hover:border-info/50 active:scale-[0.99]"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-info/20 text-info group-hover:scale-105 transition-transform">
+          <BaseIcon name="domains" :size="18" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-medium text-muted">Domains & SSL</p>
+          <p class="text-base sm:text-lg font-bold text-foreground tabular-nums">
+            ກວດສອບ DNS
+          </p>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink
+        to="/audit"
+        class="group flex items-center gap-3 rounded-2xl border border-line/60 bg-surface-muted/60 p-3.5 shadow-xs transition-all hover:bg-surface-muted hover:border-neutral-400 active:scale-[0.99]"
+      >
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface border border-line/60 text-muted group-hover:scale-105 transition-transform">
+          <BaseIcon name="audit" :size="18" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-medium text-muted">Audit Activity</p>
+          <p class="text-base sm:text-lg font-bold text-foreground tabular-nums">
+            {{ recentAudits.length }} <span class="text-xs font-normal text-muted">ລ່າສຸດ</span>
+          </p>
+        </div>
+      </NuxtLink>
+    </div>
 
     <!-- 4 KPI Stat Cards -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

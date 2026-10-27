@@ -118,7 +118,6 @@ export const ROLE_DESCRIPTIONS = {
   customer: 'ລູກຄ້າ',
 }
 
-
 export const PERMISSION_GROUPS = [
   {
     title: 'ພາບລວມ',

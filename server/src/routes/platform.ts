@@ -5,6 +5,7 @@ import { login, me } from '../controllers/platformAuth.js';
 import * as tenants from '../controllers/tenants.js';
 import * as plans from '../controllers/plans.js';
 import * as audit from '../controllers/audit.js';
+import { getPlatformDashboard } from '../controllers/platformDashboard.js';
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.post(
 
 router.use(platformAuthMiddleware);
 
+router.get('/dashboard', getPlatformDashboard);
 router.get('/auth/me', me);
 router.get('/audit-logs', audit.list);
 router.get('/plans', plans.list);

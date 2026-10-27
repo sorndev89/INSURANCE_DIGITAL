@@ -177,7 +177,12 @@ const resetCurrency = async () => {
 
 const settings = [
   { title: 'ຂໍ້ມູນບໍລິສັດ', description: 'ທີ່ຢູ່, ເບີໂທ, ໂລໂກ້', icon: 'business' },
-  { title: 'ຈັດການສິດທິ', description: 'Role ແລະ ການເຂົ້າເຖິງ', icon: 'verified_user', to: '/roles' },
+  {
+    title: 'ຈັດການສິດທິ',
+    description: 'Role ແລະ ການເຂົ້າເຖິງ',
+    icon: 'verified_user',
+    to: '/roles',
+  },
   { title: 'ການແຈ້ງເຕືອນ', description: 'Email ແລະ SMS Alerts', icon: 'notifications_active' },
   { title: 'Backup ຂໍ້ມູນ', description: 'ສຳຮອງ ແລະ ກູ້ຄືນ', icon: 'cloud_upload' },
 ]

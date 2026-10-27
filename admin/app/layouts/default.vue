@@ -13,7 +13,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-dvh overflow-hidden bg-background text-foreground transition-colors">
+  <div class="relative flex h-dvh overflow-hidden bg-background text-foreground transition-colors selection:bg-primary/20 selection:text-primary-text">
+    <!-- Ambient Background Glows for Unified Depth -->
+    <div
+      class="pointer-events-none fixed -top-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-[110px] dark:bg-primary/15"
+      aria-hidden="true"
+    />
+    <div
+      class="pointer-events-none fixed bottom-1/4 -right-32 h-80 w-80 rounded-full bg-emerald-500/10 blur-[120px] dark:bg-emerald-500/10"
+      aria-hidden="true"
+    />
+
     <!-- Desktop Sidebar (Collapsible with smooth animation) -->
     <AppSidebar class="hidden lg:flex" />
 
@@ -25,10 +35,10 @@ onMounted(async () => {
     />
 
     <!-- Main Viewport Area -->
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden relative">
       <!-- Topbar Header -->
       <header
-        class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur-md sm:px-6 lg:px-8"
+        class="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-line/50 bg-surface/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8 transition-colors"
       >
         <!-- Mobile Hamburger Button & Title -->
         <div class="flex items-center gap-3">
@@ -51,7 +61,7 @@ onMounted(async () => {
         <div class="flex items-center gap-2 sm:gap-3">
           <NuxtLink
             to="/tenants"
-            class="hidden items-center gap-2 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs font-bold text-muted transition hover:border-primary/40 hover:text-foreground sm:inline-flex"
+            class="hidden items-center gap-2 rounded-full border border-line/60 bg-surface/80 px-3.5 py-1.5 text-xs font-bold text-muted transition hover:border-primary/40 hover:text-foreground sm:inline-flex shadow-2xs"
           >
             <BaseIcon name="search" :size="14" />
             <span>ຄົ້ນຫາອົງກອນ...</span>
@@ -60,7 +70,7 @@ onMounted(async () => {
           <!-- Dark Mode Toggle Button -->
           <button
             type="button"
-            class="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:bg-surface-muted hover:text-foreground"
+            class="flex h-9 w-9 items-center justify-center rounded-full border border-line/60 bg-surface/80 text-muted transition hover:bg-surface-muted hover:text-foreground shadow-2xs cursor-pointer"
             :title="isDark ? 'ປ່ຽນເປັນ Light Mode' : 'ປ່ຽນເປັນ Dark Mode'"
             @click="toggleTheme"
           >
@@ -69,10 +79,10 @@ onMounted(async () => {
 
           <!-- Superadmin Profile Pill -->
           <div
-            class="flex items-center gap-2 rounded-xl border border-line bg-surface p-1.5 pr-3 text-xs font-bold"
+            class="flex items-center gap-2 rounded-full border border-line/60 bg-surface/80 p-1 pr-3 text-xs font-bold shadow-2xs"
           >
             <span
-              class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-xs font-black text-white"
+              class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-xs font-black text-white"
             >
               {{ user?.username ? user.username.charAt(0).toUpperCase() : 'S' }}
             </span>

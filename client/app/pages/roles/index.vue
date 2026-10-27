@@ -169,11 +169,7 @@
       </section>
     </template>
 
-    <BaseModal
-      v-model="formOpen"
-      :title="isEditing ? 'ແກ້ໄຂບົດບາດ' : 'ສ້າງບົດບາດໃໝ່'"
-      size="lg"
-    >
+    <BaseModal v-model="formOpen" :title="isEditing ? 'ແກ້ໄຂບົດບາດ' : 'ສ້າງບົດບາດໃໝ່'" size="lg">
       <div v-if="isAdminRole" class="rounded-xl border border-line bg-surface-muted/40 p-4">
         <p class="text-sm font-bold">{{ editingRole?.name }} (admin)</p>
         <p class="mt-1 text-xs text-muted">
@@ -227,7 +223,11 @@
               </button>
             </div>
             <div class="divide-y divide-line rounded-xl border border-line">
-              <div v-for="permission in group.permissions" :key="permission.key" class="px-3.5 py-3">
+              <div
+                v-for="permission in group.permissions"
+                :key="permission.key"
+                class="px-3.5 py-3"
+              >
                 <BaseSwitch
                   :model-value="form.permissions.includes(permission.key)"
                   :label="permission.label"
@@ -244,7 +244,11 @@
               ບໍ່ສາມາດມອບໃຫ້ບົດບາດອື່ນໄດ້ ເພື່ອປ້ອງກັນການຍົກສິດ.
             </p>
             <div class="mt-3 flex flex-wrap gap-2">
-              <BaseBadge v-for="permission in systemPermissions" :key="permission.key" tone="neutral">
+              <BaseBadge
+                v-for="permission in systemPermissions"
+                :key="permission.key"
+                tone="neutral"
+              >
                 {{ permission.label }}
               </BaseBadge>
             </div>
@@ -327,8 +331,7 @@ const filteredRoles = computed(() => {
   const query = roleQuery.value.trim().toLowerCase()
   if (!query) return roles.value
   return roles.value.filter(
-    (role) =>
-      role.name.toLowerCase().includes(query) || role.key.toLowerCase().includes(query),
+    (role) => role.name.toLowerCase().includes(query) || role.key.toLowerCase().includes(query),
   )
 })
 
@@ -360,9 +363,7 @@ const landingLabel = (value) =>
   landingOptions.value.find((option) => option.value === value)?.label || value
 
 const rolePermissionCount = (permissionKey) =>
-  roles.value.filter(
-    (role) => role.isAdmin || role.permissions.includes(permissionKey),
-  ).length
+  roles.value.filter((role) => role.isAdmin || role.permissions.includes(permissionKey)).length
 
 const isSavingRole = (id) => savingRoleIds.value.includes(id)
 
@@ -379,9 +380,7 @@ const load = async () => {
     const [roleList, catalogResponse] = await Promise.all([list(), catalog()])
     roles.value = roleList
     catalogData.value = catalogResponse
-    if (
-      !allPermissions.value.some((permission) => permission.key === activePermissionKey.value)
-    ) {
+    if (!allPermissions.value.some((permission) => permission.key === activePermissionKey.value)) {
       activePermissionKey.value = allPermissions.value[0]?.key || ''
     }
   } catch (error) {
@@ -445,9 +444,7 @@ const validateForm = () => {
   formErrors.name = form.name.trim().length < 2 ? 'ກະລຸນາປ້ອນຊື່ຢ່າງໜ້ອຍ 2 ຕົວອັກສອນ' : ''
   const key = form.key.trim()
   formErrors.key =
-    key && !/^[a-z][a-z0-9_-]{1,49}$/.test(key)
-      ? 'Key ຕ້ອງເລີ່ມດ້ວຍຕົວພິມນ້ອຍ ແລະ ມີ 2-50 ຕົວ'
-      : ''
+    key && !/^[a-z][a-z0-9_-]{1,49}$/.test(key) ? 'Key ຕ້ອງເລີ່ມດ້ວຍຕົວພິມນ້ອຍ ແລະ ມີ 2-50 ຕົວ' : ''
   return !formErrors.name && !formErrors.key
 }
 

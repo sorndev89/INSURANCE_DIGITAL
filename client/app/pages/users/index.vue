@@ -190,6 +190,5 @@ const removeUser = async (row) => {
   }
 }
 
-const roleLabel = (role, roleName) =>
-  roleName || ROLE_LABELS[role] || role || '—'
+const roleLabel = (role, roleName) => roleName || ROLE_LABELS[role] || role || '—'
 </script>
