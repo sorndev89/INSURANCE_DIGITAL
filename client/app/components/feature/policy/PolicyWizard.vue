@@ -533,7 +533,7 @@ import { useAuthStore } from '~/stores/auth'
 import { useFormat } from '~/utils/format'
 import { useCompanies } from '~/composables/api/useCompanies'
 import { useProducts } from '~/composables/api/useProducts'
-import { useAgents } from '~/composables/api/useAgents'
+import { useAgentOptions } from '~/composables/api/useAgentOptions'
 import {
   maxValue,
   minValue,
@@ -555,7 +555,7 @@ const { getById: getQuotation } = useQuotations({ immediate: false })
 const { getById: getCustomer } = useCustomers({ immediate: false })
 const { list: fetchCompanies } = useCompanies()
 const { list: fetchProducts } = useProducts()
-const { items: agentsList, refresh: fetchAgents } = useAgents({ querySync: false, pageSize: 100 })
+const { items: agentsList, refresh: fetchAgents } = useAgentOptions({ immediate: false })
 
 const steps = [
   { label: 'ຜູ້ເອົາປະກັນ', description: 'ຂໍ້ມູນລູກຄ້າ & KYC' },

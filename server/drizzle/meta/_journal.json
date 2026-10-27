@@ -36,6 +36,20 @@
       "when": 1792984531412,
       "tag": "0004_stale_chimera",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1793057455966,
+      "tag": "0005_optimal_riptide",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1793060003961,
+      "tag": "0006_cool_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

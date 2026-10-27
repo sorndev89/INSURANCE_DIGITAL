@@ -64,7 +64,6 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { navigateTo, useRoute, useRouter } from '#app'
 import { useAuth } from '~/composables/api/useAuth'
-import { ROLE_LANDING } from '~/config/permissions'
 import { useAuthStore } from '~/stores/auth'
 import { email as emailValidator, required, validate } from '~/utils/validators'
 
@@ -109,12 +108,11 @@ const submit = async () => {
     })
     attempts.value = 0
     const requested = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-    const landing = ROLE_LANDING[auth.role] || '/dashboard'
+    const landing = auth.landingPath || '/dashboard'
     const target =
       requested.startsWith('/') && !requested.startsWith('//') ? router.resolve(requested) : null
     const allowed = target ? !target.meta.permission || auth.can(target.meta.permission) : false
-    const isAdminArea = requested === '/dashboard' && !['admin', 'staff'].includes(auth.role)
-    const redirect = target && allowed && !isAdminArea ? requested : landing
+    const redirect = target && allowed ? requested : landing
     await navigateTo(redirect)
   } catch {
     attempts.value += 1

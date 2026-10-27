@@ -74,8 +74,13 @@ export const useAuth = () => {
       },
     })
     const user = response.data || response.user
-    auth.setSession({ user, token: auth.token }, true, { impersonating: auth.impersonating })
-    return user
+    const { permissions, roleName, landingPath, ...profile } = user || {}
+    auth.setSession(
+      { user: profile, token: auth.token, permissions, roleName, landingPath },
+      true,
+      { impersonating: auth.impersonating },
+    )
+    return profile
   }
 
   const updateProfile = async (payload) => {

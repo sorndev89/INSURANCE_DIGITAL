@@ -260,6 +260,29 @@ export const listAgents = async (req: Request, res: Response) => {
   });
 };
 
+export const agentOptions = async (req: Request, res: Response) => {
+  const tid = tenantId(req);
+  const rows = await db
+    .select({
+      id: agents.id,
+      code: agents.agentCode,
+      name: users.username,
+      phone: users.phone,
+    })
+    .from(agents)
+    .leftJoin(users, eq(users.id, agents.userId))
+    .where(and(eq(agents.tenantId, tid), eq(agents.status, 'active')))
+    .orderBy(asc(users.username))
+    .limit(500);
+
+  res.json({
+    data: rows.map((row) => ({
+      ...row,
+      name: row.name || row.code,
+    })),
+  });
+};
+
 export const createAgent = async (req: Request, res: Response) => {
   const tid = tenantId(req);
   const body = asObject(req.body);

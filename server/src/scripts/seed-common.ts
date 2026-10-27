@@ -19,6 +19,7 @@ import {
 } from '../db/schema.js';
 import { env } from '../config/env.js';
 import { invalidateTenantCache } from '../services/tenantCache.js';
+import { ensureSystemRoles } from '../services/roles.js';
 import { comparePassword, hashPassword } from '../utils/auth.js';
 
 type PlanSeed = {
@@ -298,6 +299,7 @@ const ensureDefaultTenant = async () => {
   await ensureSubscription(tenantId, planId);
 
   const [tenant] = await db.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  await ensureSystemRoles(tenantId, db, tenant?.settings?.rolePermissions ?? null);
   return tenant;
 };
 
@@ -328,6 +330,7 @@ const seedTenantAdmin = async (tenantId: number) => {
 
   await db.insert(users).values({
     tenantId,
+    name: 'ຜູ້ດູແລລະບົບ',
     username: 'admin',
     email,
     password: await hashPassword(password),
@@ -345,9 +348,22 @@ const seedDemoUsers = async (tenantId: number) => {
 
   const password = env.defaultTenantAdminPassword || 'Demo@1234';
   const demo = [
-    { username: 'staff', email: 'staff@saiyfon.com', role: 'staff', phone: '020 7777 8888' },
-    { username: 'agent', email: 'agent@saiyfon.com', role: 'agent', phone: '020 2222 3333' },
     {
+      name: 'ນິດຊາ ວົງສາ',
+      username: 'staff',
+      email: 'staff@saiyfon.com',
+      role: 'staff',
+      phone: '020 7777 8888',
+    },
+    {
+      name: 'ຄຳພູ ວົງວິຫານ',
+      username: 'agent',
+      email: 'agent@saiyfon.com',
+      role: 'agent',
+      phone: '020 2222 3333',
+    },
+    {
+      name: 'ຈິນດາ ທຳມະວົງ',
       username: 'customer',
       email: 'customer@saiyfon.com',
       role: 'customer',
@@ -365,6 +381,7 @@ const seedDemoUsers = async (tenantId: number) => {
 
     await db.insert(users).values({
       tenantId,
+      name: user.name,
       username: user.username,
       email: user.email,
       password: await hashPassword(password),

@@ -1,9 +1,9 @@
-import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { plans, tenantDomains, tenants } from '../db/schema.js';
+import { plans, roles, tenantDomains, tenants } from '../db/schema.js';
 import { env } from '../config/env.js';
 import { cacheDeleteByPrefix, cacheGet, cacheSet } from './cache.js';
-import type { TenantContext, TenantStatus } from '../types/context.js';
+import type { TenantContext, TenantRoleContext, TenantStatus } from '../types/context.js';
 
 const TENANT_PREFIX = 'tenant:';
 const DOMAINS_KEY = 'tenant:domains:all';
@@ -25,7 +25,7 @@ const toTenantContext = (row: {
   features: string[] | null;
   limits: TenantContext['limits'];
   hostname: string;
-}): TenantContext => ({
+}, tenantRoles: TenantRoleContext[]): TenantContext => ({
   id: row.id,
   slug: row.slug,
   name: row.name,
@@ -35,7 +35,30 @@ const toTenantContext = (row: {
   features: row.features ?? [],
   limits: row.limits,
   hostname: row.hostname,
+  roles: tenantRoles,
 });
+
+const findTenantRoles = async (tenantId: number): Promise<TenantRoleContext[]> => {
+  const rows = await db
+    .select({
+      id: roles.id,
+      key: roles.roleKey,
+      name: roles.name,
+      description: roles.description,
+      permissions: roles.permissions,
+      isSystem: roles.isSystem,
+      isAdmin: roles.isAdmin,
+      landingPath: roles.landingPath,
+    })
+    .from(roles)
+    .where(eq(roles.tenantId, tenantId))
+    .orderBy(asc(roles.isSystem), asc(roles.name));
+
+  return rows.map((role) => ({
+    ...role,
+    permissions: Array.isArray(role.permissions) ? role.permissions : [],
+  }));
+};
 
 const findTenant = async (column: 'hostname' | 'slug', value: string) => {
   const match =
@@ -67,14 +90,16 @@ const findTenant = async (column: 'hostname' | 'slug', value: string) => {
     )
     .limit(1);
 
-  return rows[0] ? toTenantContext(rows[0]) : null;
+  return rows[0] ? toTenantContext(rows[0], await findTenantRoles(rows[0].id)) : null;
 };
 
 const getCached = async (key: string) => {
   const raw = await cacheGet(key);
   if (raw === null) return undefined;
   try {
-    return JSON.parse(raw) as TenantContext | null;
+    const value = JSON.parse(raw) as TenantContext | null;
+    if (value && !Array.isArray(value.roles)) return undefined;
+    return value;
   } catch {
     return undefined;
   }

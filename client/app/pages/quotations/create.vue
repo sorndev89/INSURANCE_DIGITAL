@@ -250,7 +250,7 @@ import { navigateTo, useRouter } from '#app'
 import { useQuotations } from '~/composables/api/useQuotations'
 import { useCompanies } from '~/composables/api/useCompanies'
 import { useProducts } from '~/composables/api/useProducts'
-import { useAgents } from '~/composables/api/useAgents'
+import { useAgentOptions } from '~/composables/api/useAgentOptions'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
 import { currencyLabel } from '~/utils/currencyDisplay'
@@ -270,7 +270,7 @@ const format = useFormat()
 const { create } = useQuotations({ immediate: false })
 const { list: fetchCompanies } = useCompanies()
 const { list: fetchProducts } = useProducts()
-const { items: agentsList, refresh: fetchAgents } = useAgents({ querySync: false, pageSize: 100 })
+const { items: agentsList, refresh: fetchAgents } = useAgentOptions({ immediate: false })
 
 const saving = ref(false)
 const companiesList = ref([])

@@ -2,24 +2,15 @@
   <div class="space-y-6">
     <PageHeader title="ຈັດການຜູ້ໃຊ້ງານ" description="ກຳນົດສິດ ແລະ ຜູ້ເຂົ້າໃຊ້ລະບົບ.">
       <template #actions>
-        <BaseButton icon="person_add" @click="openCreate">ເພີ່ມຜູ້ໃຊ້</BaseButton>
+        <BaseButton v-if="canManage" icon="person_add" @click="openCreate">ເພີ່ມຜູ້ໃຊ້</BaseButton>
       </template>
     </PageHeader>
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard label="ຜູ້ໃຊ້ທັງໝົດ" :value="format.number(stats.total)" icon="manage_accounts" />
-      <StatCard
-        label="ຜູ້ດູແລລະບົບ"
-        :value="format.number(stats.admins)"
-        icon="admin_panel_settings"
-      />
-      <StatCard label="ຕົວແທນ" :value="format.number(stats.agents)" icon="badge" />
-      <StatCard
-        label="ລູກຄ້າ"
-        :value="format.number(stats.customers)"
-        icon="people_alt"
-        highlight
-      />
+      <StatCard label="ຜູ້ໃຊ້ທັງໝົດ" :value="totalUsersLabel" icon="manage_accounts" />
+      <StatCard label="ຜູ້ດູແລລະບົບ" :value="statLabel('admins')" icon="admin_panel_settings" />
+      <StatCard label="ຕົວແທນ" :value="statLabel('agents')" icon="badge" />
+      <StatCard label="ລູກຄ້າ" :value="statLabel('customers')" icon="people_alt" highlight />
     </div>
 
     <FilterBar>
@@ -60,14 +51,17 @@
         </div>
       </template>
       <template #cell-username="{ value }">
-        <span class="font-mono text-xs font-bold text-muted">{{ value }}</span>
+        <span class="font-mono text-xs font-bold text-muted">@{{ value }}</span>
       </template>
-      <template #cell-role="{ value }">
-        <BaseBadge tone="info">{{ roleLabel(value) }}</BaseBadge>
+      <template #cell-role="{ row }">
+        <BaseBadge tone="info">{{ roleLabel(row.role, row.roleName) }}</BaseBadge>
       </template>
       <template #cell-status="{ value }"><StatusBadge :status="value" /></template>
+      <template #cell-createdAt="{ value }">
+        <span class="text-xs text-muted">{{ format.date(value) }}</span>
+      </template>
       <template #actions="{ row }">
-        <div class="flex items-center justify-end gap-1">
+        <div v-if="canManage" class="flex items-center justify-end gap-1">
           <BaseButton
             variant="ghost"
             size="sm"
@@ -90,64 +84,26 @@
       </template>
     </DataTable>
 
-    <BaseModal v-model="showModal" :title="editing ? 'ແກ້ໄຂຜູ້ໃຊ້' : 'ເພີ່ມຜູ້ໃຊ້ໃໝ່'" size="sm">
-      <form id="user-form" class="space-y-4" @submit.prevent="submit">
-        <div
-          v-if="formError"
-          class="rounded-lg border border-danger/20 bg-danger/10 p-3 text-sm font-bold text-danger"
-        >
-          {{ formError }}
-        </div>
-        <BaseInput
-          v-if="!editing"
-          v-model="form.username"
-          label="ຊື່ເຂົ້າໃຊ້"
-          required
-          autocomplete="username"
-        />
-        <BaseInput
-          v-if="!editing"
-          v-model="form.email"
-          type="email"
-          label="ອີເມວ"
-          required
-          autocomplete="email"
-        />
-        <BaseInput
-          v-if="!editing"
-          v-model="form.password"
-          type="password"
-          label="ລະຫັດຜ່ານ"
-          required
-          autocomplete="new-password"
-        />
-        <BaseInput v-model="form.phone" label="ເບີໂທ" autocomplete="tel" />
-        <BaseSelect v-model="form.role" label="ບົດບາດ" :options="roleOptions" />
-        <BaseSelect v-if="editing" v-model="form.status" label="ສະຖານະ" :options="statusOptions" />
-      </form>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <BaseButton variant="secondary" @click="showModal = false">ຍົກເລີກ</BaseButton>
-          <BaseButton type="submit" form="user-form" :loading="saving">
-            {{ editing ? 'ບັນທຶກ' : 'ສ້າງຜູ້ໃຊ້' }}
-          </BaseButton>
-        </div>
-      </template>
-    </BaseModal>
+    <UserFormModal
+      v-model="showModal"
+      :user="editingUser"
+      :current-user-id="auth.user?.id"
+      @saved="handleSaved"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useUsers } from '~/composables/api/useUsers'
-import { useApiClient } from '~/composables/api/useApiClient'
+import { useRoleOptions } from '~/composables/api/useRoles'
 import { useRemoteStats } from '~/composables/api/useRemoteStats'
-import { tenantPath } from '~/config/api'
 import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
 import { useAuthStore } from '~/stores/auth'
+import { PERM, ROLE_LABELS } from '~/config/permissions'
 import { useFormat } from '~/utils/format'
+import { messageFrom } from '~/utils/apiError'
 
 definePageMeta({
   layout: 'admin',
@@ -159,103 +115,58 @@ const format = useFormat()
 const toast = useToast()
 const auth = useAuthStore()
 const { confirm } = useConfirm()
-const { apiFetch } = useApiClient()
-const { items, total, page, pageSize, pending, error, filters, refresh, setPage } = useUsers()
+const { items, total, page, pageSize, pending, error, filters, refresh, setPage, remove } =
+  useUsers()
 const { remoteStats, refreshStats } = useRemoteStats('/users')
-
-const localStats = computed(() => ({
-  total: total.value,
-  admins: items.value.filter((user) => user.role === 'admin').length,
-  agents: items.value.filter((user) => user.role === 'agent').length,
-  customers: items.value.filter((user) => user.role === 'customer').length,
-}))
-const stats = computed(() => remoteStats.value || localStats.value)
+const { items: roleOptions } = useRoleOptions()
 
 const showModal = ref(false)
-const editing = ref(null)
-const saving = ref(false)
+const editingUser = ref(null)
 const removingId = ref(null)
-const formError = ref('')
-const form = reactive({
-  username: '',
-  email: '',
-  password: '',
-  phone: '',
-  role: 'staff',
-  status: 'active',
-})
 
-const roleOptions = [
-  { value: 'admin', label: 'ຜູ້ດູແລລະບົບ' },
-  { value: 'staff', label: 'ພະນັກງານ' },
-  { value: 'agent', label: 'ຕົວແທນ' },
-  { value: 'customer', label: 'ລູກຄ້າ' },
-]
-const statusOptions = [
-  { value: 'active', label: 'ໃຊ້ງານ' },
-  { value: 'inactive', label: 'ປິດໃຊ້' },
-  { value: 'suspended', label: 'ລະງັບ' },
+const canManage = computed(() => auth.can(PERM.USER_MANAGE))
+
+const totalUsersLabel = computed(() => format.number(remoteStats.value?.total ?? total.value))
+const statLabel = (key) => (remoteStats.value ? format.number(remoteStats.value[key]) : '—')
+
+const statCount = (key) => {
+  if (!remoteStats.value) return undefined
+  if (key === 'admin') return remoteStats.value.admins
+  if (key === 'agent') return remoteStats.value.agents
+  if (key === 'customer') return remoteStats.value.customers
+  return undefined
+}
+
+const roleTabs = computed(() => [
+  { key: '', label: 'ທັງໝົດ', count: remoteStats.value?.total ?? total.value },
+  ...roleOptions.value.map((role) => ({
+    key: role.key,
+    label: role.name,
+    count: statCount(role.key),
+  })),
+])
+
+const columns = [
+  { key: 'name', label: 'ຜູ້ໃຊ້', sortable: true },
+  { key: 'username', label: 'ຊື່ເຂົ້າໃຊ້', hideOn: ['mobile'] },
+  { key: 'role', label: 'ບົດບາດ' },
+  { key: 'phone', label: 'ເບີໂທ', hideOn: ['mobile'] },
+  { key: 'createdAt', label: 'ສ້າງເມື່ອ', hideOn: ['mobile'] },
+  { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
 
 const openCreate = () => {
-  editing.value = null
-  formError.value = ''
-  Object.assign(form, {
-    username: '',
-    email: '',
-    password: '',
-    phone: '',
-    role: 'staff',
-    status: 'active',
-  })
+  editingUser.value = null
   showModal.value = true
 }
 
 const openEdit = (row) => {
-  editing.value = row
-  formError.value = ''
-  Object.assign(form, {
-    username: row.username || '',
-    email: row.email || '',
-    password: '',
-    phone: row.phone || '',
-    role: row.role || 'staff',
-    status: row.status || 'active',
-  })
+  editingUser.value = row
   showModal.value = true
 }
 
-const submit = async () => {
-  saving.value = true
-  formError.value = ''
-  try {
-    if (editing.value) {
-      await apiFetch(tenantPath(`/users/${editing.value.id}`), {
-        method: 'PATCH',
-        body: { role: form.role, status: form.status, phone: form.phone || null },
-      })
-      toast.success('ອັບເດດຜູ້ໃຊ້ແລ້ວ')
-    } else {
-      await apiFetch(tenantPath('/users'), {
-        method: 'POST',
-        body: {
-          username: form.username,
-          email: form.email,
-          password: form.password,
-          phone: form.phone || undefined,
-          role: form.role,
-        },
-      })
-      toast.success('ສ້າງຜູ້ໃຊ້ແລ້ວ')
-    }
-    showModal.value = false
-    await Promise.all([refresh(), refreshStats()])
-  } catch (requestError) {
-    formError.value =
-      requestError?.data?.error?.message || requestError?.message || 'ບໍ່ສາມາດບັນທຶກໄດ້'
-  } finally {
-    saving.value = false
-  }
+const handleSaved = async () => {
+  await Promise.all([refresh(), refreshStats()])
 }
 
 const removeUser = async (row) => {
@@ -269,38 +180,16 @@ const removeUser = async (row) => {
 
   removingId.value = row.id
   try {
-    await apiFetch(tenantPath(`/users/${row.id}`), { method: 'DELETE' })
+    await remove(row.id)
     toast.success('ລຶບຜູ້ໃຊ້ແລ້ວ')
     await Promise.all([refresh(), refreshStats()])
   } catch (requestError) {
-    toast.error(
-      requestError?.data?.error?.message || requestError?.message || 'ບໍ່ສາມາດລຶບຜູ້ໃຊ້ໄດ້',
-    )
+    toast.error(messageFrom(requestError, 'ບໍ່ສາມາດລຶບຜູ້ໃຊ້ໄດ້'))
   } finally {
     removingId.value = null
   }
 }
 
-const roleTabs = computed(() => [
-  { key: '', label: 'ທັງໝົດ', count: stats.value.total },
-  { key: 'admin', label: 'ຜູ້ດູແລ' },
-  { key: 'staff', label: 'ພະນັກງານ' },
-  { key: 'agent', label: 'ຕົວແທນ' },
-  { key: 'customer', label: 'ລູກຄ້າ' },
-])
-
-const columns = [
-  { key: 'name', label: 'ຜູ້ໃຊ້', sortable: true },
-  { key: 'username', label: 'ຊື່ເຂົ້າໃຊ້', hideOn: ['mobile'] },
-  { key: 'role', label: 'ບົດບາດ' },
-  { key: 'phone', label: 'ເບີໂທ', hideOn: ['mobile'] },
-  { key: 'status', label: 'ສະຖານະ', align: 'center' },
-]
-
-const roleLabel = (role) => {
-  if (role === 'admin') return 'ຜູ້ດູແລລະບົບ'
-  if (role === 'staff') return 'ພະນັກງານ'
-  if (role === 'agent') return 'ຕົວແທນ'
-  return 'ລູກຄ້າ'
-}
+const roleLabel = (role, roleName) =>
+  roleName || ROLE_LABELS[role] || role || '—'
 </script>

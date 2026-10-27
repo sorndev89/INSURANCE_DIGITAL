@@ -95,6 +95,18 @@ export const parseCurrencyDisplay = (
   return { symbol: input.symbol, position: input.position };
 };
 
+export const optionalAvatar = (value: unknown, field = 'avatar') => {
+  const avatar = optionalString(value, field, { max: 65000 });
+  if (!avatar) return null;
+  if (
+    !/^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(avatar) &&
+    !/^(?:https?:\/\/|\/uploads\/)/i.test(avatar)
+  ) {
+    throw ApiError.badRequest(`${field} must be an image URL or data URL`);
+  }
+  return avatar;
+};
+
 export const parsePagination = (query: Record<string, unknown>) => {
   const page = Math.max(1, Math.trunc(Number(query.page) || 1));
   const pageSize = Math.min(100, Math.max(1, Math.trunc(Number(query.pageSize) || 20)));

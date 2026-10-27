@@ -13,6 +13,7 @@ import { env } from '../config/env.js';
 import { hashPassword } from '../utils/auth.js';
 import { ApiError } from '../utils/errors.js';
 import { invalidateTenantCache } from './tenantCache.js';
+import { ensureSystemRoles } from './roles.js';
 import {
   createVerificationToken,
   domainDnsInstructions,
@@ -139,6 +140,8 @@ export const provisionTenant = async (input: ProvisionTenantInput) => {
         settings: buildSettings(input),
       });
       const tenantId = tenantResult.insertId;
+
+      await ensureSystemRoles(tenantId, tx, input.settings?.rolePermissions ?? null);
 
       await tx.insert(tenantDomains).values({
         tenantId,

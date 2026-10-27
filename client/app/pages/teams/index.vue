@@ -74,7 +74,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useTeams } from '~/composables/api/useTeams'
-import { useAgents } from '~/composables/api/useAgents'
+import { useAgentOptions } from '~/composables/api/useAgentOptions'
 import { useToast } from '~/composables/useToast'
 import { useFormat } from '~/utils/format'
 import { numeric, required, validate } from '~/utils/validators'
@@ -88,7 +88,7 @@ definePageMeta({
 const format = useFormat()
 const toast = useToast()
 const { items, total, pending, error, refresh, create } = useTeams()
-const { items: agents } = useAgents({ pageSize: 100, querySync: false })
+const { items: agents } = useAgentOptions()
 
 const stats = computed(() => ({
   total: total.value,

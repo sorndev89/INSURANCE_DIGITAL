@@ -168,6 +168,12 @@ export const navigationGroups = [
         permission: PERM.USER_VIEW,
       },
       {
+        label: 'ສິດ ແລະ ບົດບາດ',
+        icon: 'verified_user',
+        to: '/roles',
+        permission: PERM.ROLE_MANAGE,
+      },
+      {
         label: 'ຕັ້ງຄ່າລະບົບ',
         icon: 'settings',
         to: '/settings',

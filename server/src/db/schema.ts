@@ -33,6 +33,7 @@ export type TenantSettings = {
   currencyDisplay?: CurrencyDisplay | null;
   timezone?: string;
   features?: string[];
+  rolePermissions?: Record<string, string[]> | null;
   contact?: {
     phone?: string;
     email?: string;
@@ -172,6 +173,7 @@ export const users = mysqlTable(  'users',
   {
     id: serialId(),
     tenantId: tenantIdColumn(),
+    name: varchar('name', { length: 255 }),
     username: varchar('username', { length: 255 }).notNull(),
     password: varchar('password', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull(),
@@ -186,6 +188,27 @@ export const users = mysqlTable(  'users',
     uniqueIndex('users_tenant_email_unique').on(table.tenantId, table.email),
     uniqueIndex('users_tenant_username_unique').on(table.tenantId, table.username),
     index('users_tenant_idx').on(table.tenantId),
+  ],
+);
+
+export const roles = mysqlTable(
+  'roles',
+  {
+    id: serialId(),
+    tenantId: tenantIdColumn(),
+    roleKey: varchar('role_key', { length: 50 }).notNull(),
+    name: varchar('name', { length: 100 }).notNull(),
+    description: varchar('description', { length: 255 }),
+    permissions: json('permissions').$type<string[]>().notNull(),
+    isSystem: boolean('is_system').notNull().default(false),
+    isAdmin: boolean('is_admin').notNull().default(false),
+    landingPath: varchar('landing_path', { length: 100 }).notNull().default('/dashboard'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+  },
+  (table) => [
+    uniqueIndex('roles_tenant_key_unique').on(table.tenantId, table.roleKey),
+    index('roles_tenant_idx').on(table.tenantId),
   ],
 );
 

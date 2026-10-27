@@ -10,6 +10,7 @@ type DataCheck = {
 };
 
 const TENANT_TABLES = [
+  'roles',
   'users',
   'teams',
   'customers',
@@ -46,6 +47,7 @@ const orphanChecks: DataCheck[] = [
   ['commissions', 'policy_id', 'policies', 'id'],
   ['commission_rates', 'agent_id', 'agents', 'id'],
   ['commission_rates', 'product_id', 'products', 'id'],
+  ['roles', 'tenant_id', 'tenants', 'id'],
   ['tenant_domains', 'tenant_id', 'tenants', 'id'],
   ['subscriptions', 'tenant_id', 'tenants', 'id'],
   ['subscriptions', 'plan_id', 'plans', 'id'],
@@ -133,6 +135,28 @@ const coreChecks: DataCheck[] = [
     sql: `SELECT 1 FROM tenant_domains
           WHERE is_primary = 1
           GROUP BY tenant_id HAVING COUNT(*) > 1 LIMIT 1`,
+  },
+  {
+    code: 'data_tenant_without_admin_role',
+    message: 'A tenant has no admin role.',
+    severity: 'warning',
+    sql: `SELECT 1 FROM tenants t
+          WHERE t.deleted_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1 FROM roles r WHERE r.tenant_id = t.id AND r.is_admin = 1
+            )
+          LIMIT 1`,
+  },
+  {
+    code: 'data_user_without_role',
+    message: 'A user references a role that does not exist in its tenant.',
+    severity: 'warning',
+    sql: `SELECT 1 FROM users u
+          WHERE NOT EXISTS (
+            SELECT 1 FROM roles r
+            WHERE r.tenant_id = u.tenant_id AND r.role_key = u.role
+          )
+          LIMIT 1`,
   },
   {
     code: 'data_tenant_without_primary_domain',

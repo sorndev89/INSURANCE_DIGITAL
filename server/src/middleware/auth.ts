@@ -41,3 +41,20 @@ export const requireRole =
     }
     next();
   };
+
+export const requirePermission =
+  (permission: string): RequestHandler =>
+  (req, _res, next) => {
+    if (!req.auth) return next(ApiError.unauthorized());
+    if (!req.tenant) return next(ApiError.badRequest('Tenant context is required'));
+
+    const role = req.tenant.roles.find((item) => item.key === req.auth?.role);
+    if (!role) {
+      return next(ApiError.forbidden('Role is no longer available'));
+    }
+    if (role.isAdmin) return next();
+    if (role.permissions.includes('*') || role.permissions.includes(permission)) {
+      return next();
+    }
+    return next(ApiError.forbidden('Insufficient permissions'));
+  };

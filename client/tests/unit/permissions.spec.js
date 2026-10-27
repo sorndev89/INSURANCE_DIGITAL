@@ -9,14 +9,25 @@ describe('permissions', () => {
 
   it('limits staff to operational permissions', () => {
     expect(hasPermission('staff', PERM.POLICY_CREATE)).toBe(true)
+    expect(hasPermission('staff', PERM.AGENT_MANAGE)).toBe(true)
+    expect(hasPermission('staff', PERM.TEAM_MANAGE)).toBe(true)
+    expect(hasPermission('staff', PERM.COMMISSION_PAY)).toBe(true)
     expect(hasPermission('staff', PERM.USER_MANAGE)).toBe(false)
     expect(hasPermission('staff', PERM.SETTINGS_MANAGE)).toBe(false)
   })
 
   it('limits agent to own sales workflow', () => {
     expect(hasPermission('agent', PERM.POLICY_CREATE)).toBe(true)
+    expect(hasPermission('agent', PERM.POLICY_UPDATE)).toBe(true)
+    expect(hasPermission('agent', PERM.CLAIM_PROCESS)).toBe(true)
     expect(hasPermission('agent', PERM.FINANCE_VIEW)).toBe(false)
     expect(hasPermission('agent', PERM.USER_MANAGE)).toBe(false)
+  })
+
+  it('keeps role management for admin only', () => {
+    expect(getRolePermissions('admin')).toEqual(['*'])
+    expect(hasPermission('admin', PERM.ROLE_MANAGE)).toBe(true)
+    expect(hasPermission('staff', PERM.ROLE_MANAGE)).toBe(false)
   })
 
   it('limits customer to self-service permissions', () => {

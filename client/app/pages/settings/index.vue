@@ -3,21 +3,35 @@
     <PageHeader title="ຕັ້ງຄ່າລະບົບ" description="ຄຸ້ມຄອງ ແລະ ປັບແຕ່ງການເຮັດວຽກຂອງລະບົບ." />
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <button
-        v-for="setting in settings"
-        :key="setting.title"
-        type="button"
-        class="rounded-xl border border-line bg-surface p-5 text-left shadow-card transition-colors hover:border-primary"
-        @click="toast.info(setting.title)"
-      >
-        <span
-          class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary-text"
+      <template v-for="setting in settings" :key="setting.title">
+        <NuxtLink
+          v-if="setting.to"
+          :to="setting.to"
+          class="rounded-xl border border-line bg-surface p-5 text-left shadow-card transition-colors hover:border-primary"
         >
-          <BaseIcon :name="setting.icon" size="lg" />
-        </span>
-        <p class="mt-4 text-sm font-bold">{{ setting.title }}</p>
-        <p class="mt-1 text-xs text-muted">{{ setting.description }}</p>
-      </button>
+          <span
+            class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary-text"
+          >
+            <BaseIcon :name="setting.icon" size="lg" />
+          </span>
+          <p class="mt-4 text-sm font-bold">{{ setting.title }}</p>
+          <p class="mt-1 text-xs text-muted">{{ setting.description }}</p>
+        </NuxtLink>
+        <button
+          v-else
+          type="button"
+          class="rounded-xl border border-line bg-surface p-5 text-left shadow-card transition-colors hover:border-primary"
+          @click="toast.info(setting.title)"
+        >
+          <span
+            class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary-text"
+          >
+            <BaseIcon :name="setting.icon" size="lg" />
+          </span>
+          <p class="mt-4 text-sm font-bold">{{ setting.title }}</p>
+          <p class="mt-1 text-xs text-muted">{{ setting.description }}</p>
+        </button>
+      </template>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -163,7 +177,7 @@ const resetCurrency = async () => {
 
 const settings = [
   { title: 'ຂໍ້ມູນບໍລິສັດ', description: 'ທີ່ຢູ່, ເບີໂທ, ໂລໂກ້', icon: 'business' },
-  { title: 'ຈັດການສິດທິ', description: 'Role ແລະ ການເຂົ້າເຖິງ', icon: 'verified_user' },
+  { title: 'ຈັດການສິດທິ', description: 'Role ແລະ ການເຂົ້າເຖິງ', icon: 'verified_user', to: '/roles' },
   { title: 'ການແຈ້ງເຕືອນ', description: 'Email ແລະ SMS Alerts', icon: 'notifications_active' },
   { title: 'Backup ຂໍ້ມູນ', description: 'ສຳຮອງ ແລະ ກູ້ຄືນ', icon: 'cloud_upload' },
 ]

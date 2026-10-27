@@ -1,4 +1,3 @@
-import { ROLE_LANDING } from '~/config/permissions'
 import { useAuthStore } from '~/stores/auth'
 import { useTenantStore } from '~/stores/tenant'
 import { useAuth } from '~/composables/api/useAuth'
@@ -15,6 +14,11 @@ const PUBLIC_ROUTES = new Set([
 ])
 
 const TENANT_STANDALONE = new Set(['/tenant-not-found', '/maintenance', '/select-company'])
+
+let sessionSynchronized = false
+
+const isUnauthorized = (error) =>
+  error?.response?.status === 401 || error?.statusCode === 401 || error?.status === 401
 
 export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.dev && to.path.startsWith('/dev')) return
@@ -58,7 +62,19 @@ export default defineNuxtRouteMiddleware(async (to) => {
     })
   }
 
+  if (auth.isAuthenticated && !sessionSynchronized) {
+    sessionSynchronized = true
+    try {
+      await useAuth().me()
+    } catch (error) {
+      if (isUnauthorized(error)) {
+        auth.logout()
+        return navigateTo({ path: '/login', query: { redirect: to.fullPath } })
+      }
+    }
+  }
+
   if (auth.isAuthenticated && (PUBLIC_ROUTES.has(to.path) || to.path === '/')) {
-    return navigateTo(ROLE_LANDING[auth.role] || '/dashboard')
+    return navigateTo(auth.landingPath || '/dashboard')
   }
 })

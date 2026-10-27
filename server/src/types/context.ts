@@ -2,6 +2,17 @@ import type { PlanLimits, TenantSettings } from '../db/schema.js';
 
 export type TenantStatus = 'active' | 'trial' | 'suspended';
 
+export type TenantRoleContext = {
+  id: number;
+  key: string;
+  name: string;
+  description: string | null;
+  permissions: string[];
+  isSystem: boolean;
+  isAdmin: boolean;
+  landingPath: string;
+};
+
 export type TenantContext = {
   id: number;
   slug: string;
@@ -12,6 +23,7 @@ export type TenantContext = {
   features: string[];
   limits: PlanLimits | null;
   hostname: string | null;
+  roles: TenantRoleContext[];
 };
 
 export type AuthContext = {

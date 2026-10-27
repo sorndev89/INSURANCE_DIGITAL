@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ApiError } from './errors.js';
 import {
+  optionalAvatar,
   parseCurrencyDisplay,
   requireEmail,
   requireHostname,
@@ -64,4 +65,19 @@ test('parseCurrencyDisplay rejects unsupported values', () => {
   assert.throws(() => parseCurrencyDisplay({ symbol: 'usd', position: 'prefix' }));
   assert.throws(() => parseCurrencyDisplay({ symbol: 'kip', position: 'middle' }));
   assert.throws(() => parseCurrencyDisplay('kip'));
+});
+
+test('optionalAvatar accepts data urls and upload urls', () => {
+  assert.equal(optionalAvatar(null), null);
+  assert.equal(optionalAvatar(''), null);
+  const dataUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+  assert.equal(optionalAvatar(dataUrl), dataUrl);
+  assert.equal(optionalAvatar('/uploads/1/avatar.png'), '/uploads/1/avatar.png');
+  assert.equal(optionalAvatar('https://cdn.example.com/a.png'), 'https://cdn.example.com/a.png');
+});
+
+test('optionalAvatar rejects unsafe or non-image values', () => {
+  assert.throws(() => optionalAvatar('javascript:alert(1)'));
+  assert.throws(() => optionalAvatar('data:text/html;base64,PHNjcmlwdD4='));
+  assert.throws(() => optionalAvatar('x'.repeat(65001)));
 });

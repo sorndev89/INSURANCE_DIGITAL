@@ -182,6 +182,7 @@ SAIYFON_INSURANCE_DIGITAL/
 | ການຊຳລະ | `/finance/payments` | ໃບຮັບເງິນ, ຊ່ອງທາງຊຳລະ, ສະຖານະ |
 | ລາຍງານ | `/reports` | 10 ລາຍງານ: ສະຫຼຸບ, ຂາຍ, ປະກັນໄພ, ສະເໜີລາຄາ, ເຄມ, ລູກຄ້າ, ຕົວແທນ, ທີມ, ຄອມມິດຊັ່ນ, ການເງິນ + PDF/XLSX |
 | ຜູ້ໃຊ້ງານ | `/users` | ຈັດການຜູ້ໃຊ້, ບົດບາດ, ສະຖານະ |
+| ສິດ ແລະ ບົດບາດ | `/roles` | CRUD ບົດບາດ (system/custom), ເບິ່ງສິດແບບ permission-centric ແລະ ເປີດ/ປິດສິດຕໍ່ບົດບາດ |
 | ຕັ້ງຄ່າ | `/settings` | ຂໍ້ມູນບໍລິສັດ, ສິດທິ, ການແຈ້ງເຕືອນ, backup |
 | ໂປຣໄຟລ໌ | `/profile` | ຂໍ້ມູນຜູ້ໃຊ້, ອອກຈາກລະບົບ |
 | Dev catalog | `/dev/components`, `/dev/tokens` | ສະເພາະ dev: ຕົວຢ່າງ component ແລະ design token |
@@ -250,8 +251,14 @@ totalPremium   = netPremium + vatAmount + 20,000   # ຄ່າທະບຽນ LA
 | `agent` | ຂາຍ/ສ້າງປະກັນໄພ, ສະເໜີລາຄາ, ລູກຄ້າ, ເບິ່ງຄອມມິດຊັ່ນ, ແຈ້ງເຄມ | `/home` |
 | `customer` | ເບິ່ງ/ຊື້ປະກັນໄພ, ສະເໜີລາຄາ, ແຈ້ງເຄມ, ຊຳລະ, ໂປຣໄຟລ໌ | `/home` |
 
-ສິດຖືກກຳນົດຢູ່ `client/app/config/permissions.js` ແລະ ກວດຜ່ານ
-`middleware/auth.global.js` + `middleware/permission.global.js`.
+ສິດຖືກກຳນົດໃນຕາຕະລາງ `roles` ຕໍ່ tenant ແລະ ກວດຜ່ານ
+`middleware/auth.global.js` + `middleware/permission.global.js` ຝັ່ງ client,
+ພ້ອມ `requirePermission()` ຝັ່ງ server.
+
+- System roles: `admin`, `staff`, `agent`, `customer` — ລຶບບໍ່ໄດ້; `admin` ມີສິດເຕັມ `*` ແລະ ແກ້ບໍ່ໄດ້.
+- Custom roles: ສ້າງ/ແກ້/ລຶບໄດ້ທີ່ `/roles`; ລຶບບໍ່ໄດ້ຖ້າຍັງມີຜູ້ໃຊ້.
+- ສິດລະບົບ (`user.*`, `settings.manage`, `role.manage`) ມອບໃຫ້ custom role ບໍ່ໄດ້.
+- ການປ່ຽນສິດຈະ invalidate tenant cache ແລະ ມີຜົນຫຼັງ `/me`/login ຫຼື app boot refresh.
 
 ---
 
@@ -275,7 +282,8 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 
 | ຕາຕະລາງ | ໜ້າທີ່ / ຂໍ້ມູນຫຼັກ |
 |---|---|
-| `users` | ຜູ້ໃຊ້ tenant, role, phone, status; unique `(tenant_id, email)`, `(tenant_id, username)` |
+| `users` | ຜູ້ໃຊ້ tenant, name, role key, phone, avatar, status; unique `(tenant_id, email)`, `(tenant_id, username)` |
+| `roles` | ບົດບາດຕໍ່ tenant: role_key, name, permissions (JSON), is_system, is_admin, landing_path; unique `(tenant_id, role_key)` |
 | `teams` | ທີມຂາຍ, ຫົວໜ້າ, ສະມາຊິກ, ຍອດຂາຍ |
 | `customers` | ຂໍ້ມູນລູກຄ້າ/ຜູ້ເອົາປະກັນ, ເອກະສານ, ຮູບບັດ |
 | `agents` | ລະຫັດຕົວແທນ, ທີມ, ລະດັບ, credit limit, sales target, commission/tax rate |
@@ -335,10 +343,14 @@ Schema ຢູ່ `server/src/db/schema.ts` ແລະ migration ຢູ່ `server
 | GET | `/api/tenant/users` | ລາຍການຜູ້ໃຊ້ (admin) |
 | GET | `/api/tenant/users/stats` | ສະຖິຕິຜູ້ໃຊ້ |
 | POST/PATCH | `/api/tenant/users` · `/:id` | ສ້າງ/ແກ້ໄຂຜູ້ໃຊ້ (admin, ມີ plan limit) |
+| GET/POST/PATCH/DELETE | `/api/tenant/roles` · `/:id` | CRUD ບົດບາດ ແລະ ສິດ (admin) |
+| GET | `/api/tenant/roles/permissions` | permission catalog ສຳລັບໜ້າ `/roles` |
+| GET | `/api/tenant/roles/options` | ລາຍຊື່ບົດບາດສຳລັບ dropdown ຜູ້ໃຊ້ |
 | GET | `/api/tenant/dashboard` | ຂໍ້ມູນ dashboard |
 | GET | `/api/tenant/customers` · `/stats` · `/:id` | ລູກຄ້າ |
 | POST/PATCH | `/api/tenant/customers` | ສ້າງ/ແກ້ໄຂລູກຄ້າ |
 | GET | `/api/tenant/agents` · `/stats` · `/:id` | ຕົວແທນ |
+| GET | `/api/tenant/agents/options` | ລາຍຊື່ຕົວແທນແບບຫຍໍ້ (ສຳລັບ wizard) |
 | GET/POST | `/api/tenant/teams` | ທີມ |
 | GET | `/api/tenant/companies`, `/api/tenant/products` | ຂໍ້ມູນອ້າງອີງ |
 | GET | `/api/tenant/policies` · `/stats` · `/:id` | ປະກັນໄພ |
@@ -1042,7 +1054,7 @@ DB_DOCTOR_AUDIT=true
 | MFA / billing / per-agent row scoping | ຍັງບໍ່ມີ |
 
 **ຂໍ້ຈຳກັດທີ່ຮູ້:**
-- ຟອມຫຼັກ (ລູກຄ້າ, ຕົວແທນ, ທີມ, invoice, payment, profile, ອັບໂຫຼດເອກະສານ) ເຊື່ອມ API ຈິງແລ້ວ; ການຈັດການຜູ້ໃຊ້ ແລະ ບາງໜ້າຮອງຍັງເປັນ toast/placeholder.
+- ຟອມຫຼັກ (ລູກຄ້າ, ຕົວແທນ, ທີມ, invoice, payment, profile, ຜູ້ໃຊ້, ອັບໂຫຼດເອກະສານ) ເຊື່ອມ API ຈິງແລ້ວ; ບາງໜ້າຮອງຍັງເປັນ toast/placeholder.
 - Settings ເປັນ UI placeholder ບາງສ່ວນ; ຍັງບໍ່ໄດ້ເຊື່ອມ CRUD ຄົບ.
 - i18n ໃຊ້ຄຳສັບລາວຜ່ານ glossary ແລະ `useT()` ເທົ່ານັ້ນ ຍັງບໍ່ໄດ້ຕິດ `@nuxtjs/i18n`.
 - System Health ໃນ admin ຍັງເປັນຂໍ້ມູນ static/mock.

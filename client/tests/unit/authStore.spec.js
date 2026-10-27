@@ -68,6 +68,25 @@ describe('auth store session handling', () => {
     expect(auth.isAuthenticated).toBe(true)
   })
 
+  it('uses server-provided role name, permissions and landing path', () => {
+    auth.setSession(
+      {
+        user: { ...user, role: 'custom_ops' },
+        token: 'jwt-1',
+        roleName: 'ທີມປະຕິບັດງານ',
+        permissions: ['policy.view'],
+        landingPath: '/policies',
+      },
+      true,
+    )
+
+    expect(auth.role).toBe('custom_ops')
+    expect(auth.roleLabel).toBe('ທີມປະຕິບັດງານ')
+    expect(auth.landingPath).toBe('/policies')
+    expect(auth.can('policy.view')).toBe(true)
+    expect(auth.can('policy.create')).toBe(false)
+  })
+
   it('clears all session state on logout', () => {
     auth.setSession({ user, token: 'jwt-3' }, true, { impersonating: true })
     auth.logout()
