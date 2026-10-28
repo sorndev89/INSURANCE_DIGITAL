@@ -36,11 +36,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      useMock: false,
+      useMock: true,
       apiBase: 'http://localhost:5055/api',
-      mockDelay: 450,
+      mockDelay: 220,
       mockFailureRate: 0,
-      tenantMode: 'auto',
+      tenantMode: 'mock',
       defaultTenantSlug: 'saiyfon',
       defaultTenantName: 'ສາຍຝົນ ປະກັນໄພ',
       defaultBrandColor: '#047857',
@@ -51,8 +51,8 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'lo' },
-      title: 'ລະບົບຄຸ້ມຄອງການປະກັນໄພ',
-      titleTemplate: '%s · ລະບົບປະກັນໄພ',
+      title: 'ສາຍຝົນ ບຣອກເກີ ດິຈິຕອນ',
+      titleTemplate: '%s · ສາຍຝົນ ປະກັນໄພ',
       meta: [
         { charset: 'utf-8' },
         {

@@ -5,10 +5,10 @@
     >
       <p>© {{ year }} {{ tenant.brandName }}. ສະຫງວນລິຂະສິດ.</p>
       <div class="flex items-center gap-4">
-        <NuxtLink to="/settings" class="transition-colors hover:text-primary-text"
+        <NuxtLink to="/profile" class="transition-colors hover:text-primary-text"
           >ນະໂຍບາຍ</NuxtLink
         >
-        <NuxtLink to="/settings" class="transition-colors hover:text-primary-text"
+        <NuxtLink to="/profile" class="transition-colors hover:text-primary-text"
           >ເງື່ອນໄຂ</NuxtLink
         >
         <span class="hidden text-line sm:inline">|</span>

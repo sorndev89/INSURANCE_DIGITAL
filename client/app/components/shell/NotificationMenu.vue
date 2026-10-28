@@ -26,10 +26,15 @@
         type="button"
         role="menuitem"
         class="flex w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-surface-muted"
-        @click="markRead(item.id)"
+        @click="openItem(item, close)"
       >
         <span
-          class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-text"
+          class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+          :class="
+            item.type === 'birthday'
+              ? 'bg-warning/10 text-warning'
+              : 'bg-primary/10 text-primary-text'
+          "
         >
           <BaseIcon :name="item.icon" size="sm" />
         </span>
@@ -40,7 +45,7 @@
           >
             {{ item.title }}
           </span>
-          <span class="mt-0.5 block text-xs text-muted">{{ item.time }}</span>
+          <span class="mt-0.5 block truncate text-xs text-muted">{{ item.message }}</span>
         </span>
         <span
           v-if="!item.read"
@@ -62,41 +67,15 @@
 </template>
 
 <script setup>
-const notifications = ref([
-  {
-    id: 1,
-    title: 'ປະກັນໄພ P-2024-001234 ໃກ້ໝົດອາຍຸ',
-    time: '10 ນາທີກ່ອນ',
-    icon: 'schedule',
-    read: false,
-  },
-  {
-    id: 2,
-    title: 'ມີເຄມໃໝ່ລໍຖ້າກວດສອບ',
-    time: '1 ຊົ່ວໂມງກ່ອນ',
-    icon: 'assignment_late',
-    read: false,
-  },
-  {
-    id: 3,
-    title: 'ການຊຳລະເງິນສຳເລັດ',
-    time: 'ມື້ວານນີ້',
-    icon: 'check_circle',
-    read: true,
-  },
-])
+import { navigateTo } from '#app'
+import { useNotifications } from '~/composables/useNotifications'
 
-const unreadCount = computed(() => notifications.value.filter((item) => !item.read).length)
+const { notifications, unreadCount, markRead, markAllRead } = useNotifications()
 
-const markRead = (id) => {
-  const item = notifications.value.find((notification) => notification.id === id)
-  if (item) item.read = true
-}
-
-const markAllRead = () => {
-  notifications.value.forEach((item) => {
-    item.read = true
-  })
+const openItem = (item, close) => {
+  markRead(item.id)
+  close()
+  if (item.to) navigateTo(item.to)
 }
 
 const handleMarkAllRead = (close) => {

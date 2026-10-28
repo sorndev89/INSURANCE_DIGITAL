@@ -12,33 +12,59 @@ export const navigationGroups = [
         roles: ['agent', 'customer'],
       },
       {
-        label: 'ພາບລວມລະບົບ',
+        label: 'ພາບລວມທຸລະກິດ',
         icon: 'dashboard',
         to: '/dashboard',
         permission: PERM.DASHBOARD_VIEW,
+        roles: ['admin', 'staff'],
       },
     ],
   },
   {
-    title: 'ການຂາຍ ແລະ ບໍລິການ',
+    title: 'ການຂາຍ ແລະ ລູກຄ້າ',
     items: [
       {
         label: 'ຈັດການປະກັນໄພ',
         icon: 'description',
         to: '/policies',
         permission: PERM.POLICY_VIEW,
+        roles: ['admin', 'staff'],
       },
       {
-        label: 'ສະເໜີລາຄາ',
-        icon: 'request_quote',
-        to: '/quotations',
-        permission: PERM.QUOTATION_VIEW,
+        label: 'ປະກັນໄພຂອງຂ້ອຍ',
+        icon: 'verified_user',
+        to: '/my-policies',
+        permission: PERM.POLICY_VIEW,
+        roles: ['agent', 'customer'],
       },
       {
         label: 'ຂໍ້ມູນລູກຄ້າ',
         icon: 'people_alt',
         to: '/customers',
         permission: PERM.CUSTOMER_VIEW,
+      },
+      {
+        label: 'ທະບຽນລົດ',
+        icon: 'directions_car',
+        to: '/vehicles',
+        permission: PERM.VEHICLE_VIEW,
+      },
+    ],
+  },
+  {
+    title: 'ຂໍ້ມູນຫຼັກ',
+    items: [
+      {
+        label: 'ບໍລິສັດປະກັນໄພ',
+        icon: 'apartment',
+        to: '/insurers',
+        permission: PERM.INSURER_VIEW,
+      },
+      {
+        label: 'ຜະລິດຕະພັນ & ຄອມມິດຊັ່ນ',
+        icon: 'percent',
+        to: '/insurer-commissions',
+        permission: PERM.INSURER_VIEW,
       },
     ],
   },
@@ -52,12 +78,6 @@ export const navigationGroups = [
         permission: PERM.AGENT_VIEW,
       },
       {
-        label: 'ໂຄງສ້າງທີມ',
-        icon: 'diversity_3',
-        to: '/teams',
-        permission: PERM.TEAM_VIEW,
-      },
-      {
         label: 'ຄ່າຄອມມິດຊັ່ນ',
         icon: 'payments',
         to: '/commissions',
@@ -66,118 +86,113 @@ export const navigationGroups = [
     ],
   },
   {
-    title: 'ເຄມ',
-    items: [
-      {
-        label: 'ລາຍການເຄມ',
-        icon: 'assignment_late',
-        to: '/claims',
-        permission: PERM.CLAIM_VIEW,
-      },
-    ],
-  },
-  {
-    title: 'ການເງິນ',
-    items: [
-      {
-        label: 'ໃບແຈ້ງໜີ້',
-        icon: 'receipt_long',
-        to: '/finance/invoices',
-        permission: PERM.FINANCE_VIEW,
-      },
-      {
-        label: 'ການຊຳລະເງິນ',
-        icon: 'account_balance_wallet',
-        to: '/finance/payments',
-        permission: PERM.FINANCE_VIEW,
-      },
-    ],
-  },
-  {
     title: 'ລາຍງານ',
     items: [
       {
-        label: 'ສະຫຼຸບ',
-        icon: 'summarize',
-        to: '/reports/summary',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍມື້',
+        icon: 'today',
+        to: '/reports/sales/daily',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ຍອດຂາຍ',
-        icon: 'payments',
-        to: '/reports/sales',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍມື້ ແຍກຢູ່ເຊີ',
+        icon: 'groups',
+        to: '/reports/sales/daily-by-user',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ປະກັນໄພ',
-        icon: 'description',
-        to: '/reports/policies',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍເດືອນ',
+        icon: 'calendar_month',
+        to: '/reports/sales/monthly',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ສະເໜີລາຄາ',
-        icon: 'request_quote',
-        to: '/reports/quotations',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍເດືອນ ແຍກຢູ່ເຊີ',
+        icon: 'group',
+        to: '/reports/sales/monthly-by-user',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ເຄມ',
-        icon: 'assignment_late',
-        to: '/reports/claims',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍໄຕມາດ',
+        icon: 'date_range',
+        to: '/reports/sales/quarterly',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ລູກຄ້າ',
-        icon: 'people_alt',
-        to: '/reports/customers',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍໄຕມາດ ແຍກຢູ່ເຊີ',
+        icon: 'groups_2',
+        to: '/reports/sales/quarterly-by-user',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ຕົວແທນ',
-        icon: 'badge',
-        to: '/reports/agents',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍປີ',
+        icon: 'event_note',
+        to: '/reports/sales/annual',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ທີມ',
-        icon: 'diversity_3',
-        to: '/reports/teams',
+        section: 'ລາຍງານຍອດຂາຍ',
+        label: 'ຍອດຂາຍລາຍປີ ແຍກຢູ່ເຊີ',
+        icon: 'group_add',
+        to: '/reports/sales/annual-by-user',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ຄອມມິດຊັ່ນ',
-        icon: 'percent',
-        to: '/reports/commissions',
+        section: 'ລາຍງານ UNDERWRITING',
+        label: 'ຕາມຊ່ວງວັນທີ',
+        icon: 'date_range',
+        to: '/reports/underwriting/date-range',
         permission: PERM.REPORT_VIEW,
       },
       {
-        label: 'ການເງິນ',
-        icon: 'receipt_long',
-        to: '/reports/finance',
+        section: 'ລາຍງານ UNDERWRITING',
+        label: 'ຕາມບໍລິສັດ & ວັນທີ',
+        icon: 'apartment',
+        to: '/reports/underwriting/company',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        section: 'ລາຍງານ UNDERWRITING',
+        label: 'ສັນຍາໃກ້ໝົດອາຍຸ',
+        icon: 'event_busy',
+        to: '/reports/underwriting/expiration',
+        permission: PERM.REPORT_VIEW,
+      },
+      {
+        section: 'ລາຍງານ UNDERWRITING',
+        label: 'ໝົດອາຍຸ ແຍກຕາມຕົວແທນ',
+        icon: 'person_search',
+        to: '/reports/underwriting/expiration-by-agent',
         permission: PERM.REPORT_VIEW,
       },
     ],
   },
   {
-    title: 'ລະບົບ',
+    title: 'ການຕະຫຼາດ',
     items: [
       {
-        label: 'ຜູ້ໃຊ້ງານ',
-        icon: 'manage_accounts',
-        to: '/users',
-        permission: PERM.USER_VIEW,
+        label: 'ໂຄສະນາ & ແບນເນີ',
+        icon: 'campaign',
+        to: '/marketing-banners',
+        permission: PERM.MARKETING_MANAGE,
       },
+    ],
+  },
+  {
+    title: 'ບັນຊີຂອງຂ້ອຍ',
+    items: [
       {
-        label: 'ສິດ ແລະ ບົດບາດ',
-        icon: 'verified_user',
-        to: '/roles',
-        permission: PERM.ROLE_MANAGE,
-      },
-      {
-        label: 'ຕັ້ງຄ່າລະບົບ',
-        icon: 'settings',
-        to: '/settings',
-        permission: PERM.SETTINGS_MANAGE,
+        label: 'ໂປຣໄຟລ໌ & ຄະແນນ',
+        icon: 'person',
+        to: '/profile',
+        permission: PERM.PROFILE_VIEW,
       },
     ],
   },
@@ -187,35 +202,41 @@ export const bottomTabsByRole = {
   admin: [
     { label: 'ພາບລວມ', icon: 'dashboard', to: '/dashboard' },
     { label: 'ປະກັນໄພ', icon: 'description', to: '/policies' },
-    { label: 'ເຄມ', icon: 'assignment_late', to: '/claims' },
-    { label: 'ການເງິນ', icon: 'account_balance_wallet', to: '/finance/payments' },
+    { label: 'ບໍລິສັດ', icon: 'apartment', to: '/insurers' },
     { label: 'ເພີ່ມເຕີມ', icon: 'menu', action: 'more' },
   ],
   staff: [
     { label: 'ພາບລວມ', icon: 'dashboard', to: '/dashboard' },
     { label: 'ປະກັນໄພ', icon: 'description', to: '/policies' },
-    { label: 'ເຄມ', icon: 'assignment_late', to: '/claims' },
-    { label: 'ການເງິນ', icon: 'account_balance_wallet', to: '/finance/payments' },
+    { label: 'ບໍລິສັດ', icon: 'apartment', to: '/insurers' },
     { label: 'ເພີ່ມເຕີມ', icon: 'menu', action: 'more' },
   ],
   agent: [
     { label: 'ໜ້າຫຼັກ', icon: 'home', to: '/home' },
-    { label: 'ປະກັນໄພ', icon: 'description', to: '/policies' },
+    { label: 'ປະກັນໄພ', icon: 'description', to: '/my-policies' },
     { label: 'ຂາຍ', icon: 'add_circle', to: '/policies/create', accent: true },
     { label: 'ຄອມມິດຊັ່ນ', icon: 'payments', to: '/commissions' },
     { label: 'ເພີ່ມເຕີມ', icon: 'menu', action: 'more' },
   ],
   customer: [
     { label: 'ໜ້າຫຼັກ', icon: 'home', to: '/home' },
-    { label: 'ປະກັນໄພ', icon: 'description', to: '/policies' },
+    { label: 'ປະກັນໄພ', icon: 'verified_user', to: '/my-policies' },
     { label: 'ຊື້ປະກັນໄພ', icon: 'add_circle', to: '/policies/create', accent: true },
-    { label: 'ເຄມ', icon: 'assignment_late', to: '/claims' },
     { label: 'ໂປຣໄຟລ໌', icon: 'person', to: '/profile' },
+    { label: 'ເພີ່ມເຕີມ', icon: 'menu', action: 'more' },
   ],
 }
 
-export const findNavigationItem = (path) =>
-  navigationGroups
-    .flatMap((group) => group.items)
-    .filter((item) => path === item.to || path.startsWith(`${item.to}/`))
-    .sort((a, b) => b.to.length - a.to.length)[0]
+export const findNavigationContext = (path) => {
+  let best = null
+  navigationGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      if (path === item.to || path.startsWith(`${item.to}/`)) {
+        if (!best || item.to.length > best.item.to.length) best = { group, item }
+      }
+    })
+  })
+  return best
+}
+
+export const findNavigationItem = (path) => findNavigationContext(path)?.item

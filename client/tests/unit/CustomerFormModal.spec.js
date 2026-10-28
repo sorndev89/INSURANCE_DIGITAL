@@ -66,8 +66,14 @@ describe('CustomerFormModal', () => {
 
     expect(mocks.create).toHaveBeenCalledTimes(1)
     expect(mocks.create).toHaveBeenCalledWith({
+      customerType: 'individual',
       firstName: 'ສົມ',
       lastName: 'ສັກ',
+      fullName: 'ສົມ ສັກ',
+      companyName: '',
+      taxId: '',
+      contactPerson: '',
+      idCardNumber: '',
       phone: '020 5555 1234',
       email: 'som@example.com',
       gender: 'male',
@@ -76,7 +82,7 @@ describe('CustomerFormModal', () => {
       address: 'ບ້ານ ວຽງຈັນ',
       status: 'active',
     })
-    expect(mocks.success).toHaveBeenCalledWith('ເພີ່ມລູກຄ້າສຳເລັດ')
+    expect(mocks.success).toHaveBeenCalledWith('ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ')
     expect(wrapper.emitted('saved')?.[0]).toEqual([{ id: 99, firstName: 'ສົມ', lastName: 'ສັກ' }])
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([false])
   })
@@ -108,8 +114,14 @@ describe('CustomerFormModal', () => {
 
     expect(mocks.create).not.toHaveBeenCalled()
     expect(mocks.update).toHaveBeenCalledWith(5, {
+      customerType: 'individual',
       firstName: 'ນິດຊາ',
       lastName: 'ວົງສາ',
+      fullName: 'ນິດຊາ ວົງສາ',
+      companyName: '',
+      taxId: '',
+      contactPerson: '',
+      idCardNumber: '',
       phone: '020 7777 8888',
       email: 'nid@example.com',
       gender: 'female',

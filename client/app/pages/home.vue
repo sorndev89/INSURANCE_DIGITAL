@@ -2,148 +2,221 @@
   <div class="space-y-4 sm:space-y-6">
     <PageHeader :title="greeting" :description="description">
       <template #actions>
-        <BaseButton v-if="canCreatePolicy" icon="add" @click="navigateTo('/policies/create')">
-          ເຮັດປະກັນໄພໃໝ່
+        <BaseButton icon="add_circle" @click="navigateTo('/policies/create')">
+          ອອກປະກັນໄພໃໝ່
         </BaseButton>
       </template>
     </PageHeader>
 
-    <ErrorState v-if="error" message="ກະລຸນາລອງໃໝ່" @retry="refresh" />
+    <template v-if="isAgent">
+      <div class="rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-primary-text">
+              ຕົວແທນຂາຍຍ່ອຍ · {{ myAgent?.code || '—' }}
+            </p>
+            <p class="mt-1 text-lg font-bold">ຄອມມິດຊັ່ນ 5% ອັດຕະໂນມັດ</p>
+            <p class="mt-0.5 text-xs text-muted">
+              ທຸກສັນຍາທີ່ຂາຍໄດ້ ຈະໄດ້ຮັບຄອມມິດຊັ່ນ ແລະ ຄະແນນ 5,000 Point
+            </p>
+          </div>
+          <BaseBadge tone="success" dot>ໃຊ້ງານຢູ່</BaseBadge>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
+        <StatCard
+          label="ຍອດຂາຍສະສົມ"
+          :value="format.currency(myAgent?.salesYtd || 0)"
+          icon="payments"
+          highlight
+        />
+        <StatCard
+          label="ສັນຍາທີ່ຂາຍໄດ້"
+          :value="format.number(myPolicies.length)"
+          icon="description"
+        />
+        <StatCard
+          label="ຄອມມິດຊັ່ນຄ້າງຈ່າຍ"
+          :value="format.currency(myAgent?.commissionBalance || 0)"
+          icon="account_balance_wallet"
+        />
+        <StatCard
+          label="ຄະແນນສະສົມ"
+          :value="format.number(myAgent?.points || 0)"
+          icon="stars"
+        />
+      </div>
+
+      <BaseCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold">ເປົ້າໝາຍຍອດຂາຍປີນີ້</h2>
+            <span class="text-xs text-muted">{{ progress }}%</span>
+          </div>
+        </template>
+        <div class="h-2.5 overflow-hidden rounded-full bg-surface-muted">
+          <div class="h-full rounded-full bg-primary" :style="{ width: `${progress}%` }" />
+        </div>
+        <div class="mt-2 flex justify-between text-xs text-muted">
+          <span>{{ format.currency(myAgent?.salesYtd || 0) }}</span>
+          <span>{{ format.currency(myAgent?.salesTarget || 0) }}</span>
+        </div>
+      </BaseCard>
+    </template>
 
     <template v-else>
       <div class="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
         <StatCard
-          label="ຍອດຂາຍເດືອນນີ້"
-          :value="format.currency(data?.kpis?.revenueThisMonth || 0)"
-          icon="payments"
-          :trend="`+${data?.kpis?.revenueTrend || 0}%`"
-          :loading="pending"
+          label="ປະກັນໄພຂອງຂ້ອຍ"
+          :value="format.number(myPolicies.length)"
+          icon="description"
         />
         <StatCard
-          label="ປະກັນໄພມີຜົນ"
-          :value="format.number(data?.kpis?.activePolicies || 0)"
+          label="ມີຜົນຢູ່"
+          :value="format.number(activePolicies.length)"
           icon="verified_user"
-          :trend="`+${data?.kpis?.activePoliciesTrend || 0}%`"
-          :loading="pending"
+          trend="ຄຸ້ມຄອງຢູ່"
         />
         <StatCard
-          label="ເຄມລໍຖ້າດຳເນີນການ"
-          :value="format.number(data?.kpis?.pendingApprovals || 0)"
-          icon="assignment_late"
-          trend="ຕ້ອງຕິດຕາມ"
-          trend-tone="warning"
-          :loading="pending"
+          label="ເບ້ຍປະກັນລວມ"
+          :value="format.currency(totalPremium)"
+          icon="payments"
+          highlight
         />
-        <StatCard
-          label="ອັດຕາເຄມ"
-          :value="format.percent(data?.kpis?.claimsRatio || 0)"
-          icon="pie_chart"
-          trend="ຄວບຄຸມຄວາມສ່ຽງ"
-          trend-tone="danger"
-          :loading="pending"
-        />
-      </div>
-
-      <section class="space-y-2.5 sm:space-y-3">
-        <h2 class="text-base sm:text-lg font-bold">ທາງລັດ</h2>
-        <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <NuxtLink
-            v-for="action in quickActions"
-            :key="action.to"
-            :to="action.to"
-            class="flex items-center gap-2 sm:gap-3 rounded-xl border border-line bg-surface p-2.5 sm:p-4 shadow-card transition-all duration-150 active:scale-[0.98] hover:border-primary"
-          >
-            <span
-              class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 text-primary-text"
-            >
-              <span class="sm:hidden">
-                <BaseIcon :name="action.icon" size="md" />
-              </span>
-              <span class="hidden sm:inline-flex">
-                <BaseIcon :name="action.icon" size="lg" />
-              </span>
-            </span>
-            <span class="min-w-0">
-              <span class="block truncate text-xs sm:text-sm font-bold text-foreground">{{
-                action.label
-              }}</span>
-              <span class="mt-0.5 block truncate text-xs text-muted">{{ action.description }}</span>
-            </span>
-          </NuxtLink>
-        </div>
-      </section>
-
-      <div class="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <BaseCard flush>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-bold">ປະກັນໄພໃກ້ໝົດອາຍຸ</h2>
-              <NuxtLink to="/policies" class="text-xs font-bold text-primary-text hover:underline">
-                ເບິ່ງທັງໝົດ
-              </NuxtLink>
-            </div>
-          </template>
-          <div v-if="pending" class="space-y-3 p-4">
-            <BaseSkeleton v-for="index in 3" :key="index" height="lg" />
-          </div>
-          <ul v-else class="divide-y divide-line">
-            <li
-              v-for="policy in data?.expiringPolicies || []"
-              :key="policy.id"
-              class="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div class="min-w-0">
-                <p class="truncate text-sm font-bold">{{ policy.customerName }}</p>
-                <p class="text-xs text-muted">
-                  {{ policy.policyNumber }} · {{ policy.productName }}
-                </p>
-              </div>
-              <span class="shrink-0 text-xs font-bold text-warning">{{
-                format.date(policy.endDate)
-              }}</span>
-            </li>
-          </ul>
-        </BaseCard>
-
-        <BaseCard flush>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-bold">ເຄມລ່າສຸດ</h2>
-              <NuxtLink to="/claims" class="text-xs font-bold text-primary-text hover:underline">
-                ເບິ່ງທັງໝົດ
-              </NuxtLink>
-            </div>
-          </template>
-          <div v-if="pending" class="space-y-3 p-4">
-            <BaseSkeleton v-for="index in 3" :key="index" height="lg" />
-          </div>
-          <ul v-else class="divide-y divide-line">
-            <li
-              v-for="claim in data?.recentClaims || []"
-              :key="claim.id"
-              class="flex items-center justify-between gap-3 px-4 py-3"
-            >
-              <div class="min-w-0">
-                <p class="truncate text-sm font-bold">{{ claim.claimant }}</p>
-                <p class="text-xs text-muted">
-                  {{ claim.claimNumber }} · {{ format.currency(claim.amount) }}
-                </p>
-              </div>
-              <StatusBadge :status="claim.status" />
-            </li>
-          </ul>
-        </BaseCard>
+        <StatCard label="ຄະແນນສະສົມ" :value="format.number(10_000)" icon="stars" />
       </div>
     </template>
+
+    <section class="space-y-2.5 sm:space-y-3">
+      <h2 class="text-base font-bold sm:text-lg">ທາງລັດ</h2>
+      <div class="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+        <NuxtLink
+          v-for="action in quickActions"
+          :key="action.to"
+          :to="action.to"
+          class="flex items-center gap-2 rounded-xl border border-line bg-surface p-2.5 shadow-card transition-all duration-150 hover:border-primary active:scale-[0.98] sm:gap-3 sm:p-4"
+        >
+          <span
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-text sm:h-11 sm:w-11 sm:rounded-xl"
+          >
+            <BaseIcon :name="action.icon" size="md" />
+          </span>
+          <span class="min-w-0">
+            <span class="block truncate text-xs font-bold sm:text-sm">{{ action.label }}</span>
+            <span class="mt-0.5 block truncate text-xs text-muted">{{ action.description }}</span>
+          </span>
+        </NuxtLink>
+      </div>
+    </section>
+
+    <div class="grid gap-4 sm:gap-6 lg:grid-cols-2">
+      <BaseCard flush>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold">ສັນຍາຂອງຂ້ອຍ</h2>
+            <NuxtLink
+              :to="isAgent ? '/policies' : '/my-policies'"
+              class="text-xs font-bold text-primary-text hover:underline"
+            >
+              ເບິ່ງທັງໝົດ
+            </NuxtLink>
+          </div>
+        </template>
+        <ul class="divide-y divide-line">
+          <li
+            v-for="policy in myPolicies.slice(0, 4)"
+            :key="policy.id"
+            class="flex items-center justify-between gap-3 px-4 py-3"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm font-bold">{{ policy.customerName }}</p>
+              <p class="text-xs text-muted">
+                {{ policy.policyNumber }} · {{ policy.companyCode }} · {{ policy.productName }}
+              </p>
+            </div>
+            <StatusBadge :status="policy.status" />
+          </li>
+          <li v-if="!myPolicies.length" class="px-4 py-6 text-center text-sm text-muted">
+            ຍັງບໍ່ມີສັນຍາ
+          </li>
+        </ul>
+      </BaseCard>
+
+      <BaseCard flush>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold">ໂປຣໂມຊັ່ນ ແລະ ຂ່າວສານ</h2>
+            <NuxtLink
+              to="/marketing-banners"
+              class="text-xs font-bold text-primary-text hover:underline"
+            >
+              ຈັດການ
+            </NuxtLink>
+          </div>
+        </template>
+        <ul class="divide-y divide-line">
+          <li v-for="banner in activeBanners.slice(0, 3)" :key="banner.id" class="p-4">
+            <div class="flex items-start gap-3">
+              <span
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-text"
+              >
+                <BaseIcon name="campaign" size="sm" />
+              </span>
+              <div class="min-w-0">
+                <p class="text-sm font-bold">{{ banner.title }}</p>
+                <p class="mt-0.5 text-xs text-muted">{{ banner.subtitle }}</p>
+                <NuxtLink
+                  :to="banner.ctaTo"
+                  class="mt-1 inline-block text-xs font-bold text-primary-text hover:underline"
+                >
+                  {{ banner.ctaLabel }} →
+                </NuxtLink>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </BaseCard>
+    </div>
+
+    <BaseCard>
+      <template #header>
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold">ແຈ້ງເຕືອນວັນເກີດ ແລະ ສັນຍາໃກ້ໝົດອາຍຸ</h2>
+          <BaseBadge tone="warning">{{ notifications.length }} ລາຍການ</BaseBadge>
+        </div>
+      </template>
+      <ul class="divide-y divide-line">
+        <li
+          v-for="item in notifications.slice(0, 4)"
+          :key="item.id"
+          class="flex items-center gap-3 px-1 py-3"
+        >
+          <span
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-text"
+          >
+            <BaseIcon :name="item.icon" size="sm" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-bold">{{ item.title }}</p>
+            <p class="truncate text-xs text-muted">{{ item.message }}</p>
+          </div>
+          <span class="shrink-0 text-xs font-bold text-warning">{{ format.date(item.date) }}</span>
+        </li>
+      </ul>
+    </BaseCard>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { navigateTo } from '#app'
-import { useDashboard } from '~/composables/api/useDashboard'
 import { useAuthStore } from '~/stores/auth'
 import { useFormat } from '~/utils/format'
+import { useNotifications } from '~/composables/useNotifications'
+import { useBanners } from '~/composables/useBanners'
+import { agents } from '~/mocks/agents'
+import { policies } from '~/mocks/policies'
 
 definePageMeta({
   layout: 'admin',
@@ -153,27 +226,51 @@ definePageMeta({
 
 const auth = useAuthStore()
 const format = useFormat()
-const { data, pending, error, refresh } = useDashboard()
+const { notifications } = useNotifications()
+const { activeBanners } = useBanners()
 
-const canCreatePolicy = computed(() => auth.can('policy.create'))
+const isAgent = computed(() => auth.role === 'agent')
+const myAgent = computed(() =>
+  agents.find((agent) => agent.userId && String(agent.userId) === String(auth.user?.id)),
+)
 
-const greeting = computed(() => {
-  const name = auth.displayName
-  return `ສະບາຍດີ, ${name}`
+const myPolicies = computed(() => {
+  if (isAgent.value) {
+    return policies.filter((policy) => policy.agentId === myAgent.value?.id)
+  }
+  if (auth.role === 'customer') {
+    return policies.filter((policy) => policy.customerId === auth.user?.id)
+  }
+  return policies
 })
 
+const activePolicies = computed(() =>
+  myPolicies.value.filter((policy) => policy.status === 'active'),
+)
+const totalPremium = computed(() =>
+  myPolicies.value.reduce((sum, policy) => sum + (policy.totalPremium || 0), 0),
+)
+const progress = computed(() => {
+  if (!myAgent.value?.salesTarget) return 0
+  return Math.min(
+    100,
+    Math.round(((myAgent.value.salesYtd || 0) / myAgent.value.salesTarget) * 100),
+  )
+})
+
+const greeting = computed(() => `ສະບາຍດີ, ${auth.displayName}`)
 const description = computed(() => {
-  if (auth.role === 'customer') return 'ສະຫຼຸບປະກັນໄພ, ເຄມ ແລະ ການຊຳລະຂອງທ່ານ.'
-  if (auth.role === 'agent') return 'ຕິດຕາມຍອດຂາຍ, ລູກຄ້າ ແລະ ຄອມມິດຊັ່ນຂອງທ່ານ.'
-  return 'ສະຫຼຸບຂໍ້ມູນທຸລະກິດ ແລະ ວຽກທີ່ຕ້ອງຕິດຕາມ.'
+  if (isAgent.value) return 'ຕິດຕາມຍອດຂາຍ, ຄອມມິດຊັ່ນ ແລະ ຄະແນນຂອງທ່ານ.'
+  if (auth.role === 'customer') return 'ສະຫຼຸບປະກັນໄພ ແລະ ຄະແນນຂອງທ່ານ.'
+  return 'ພາບລວມທຸລະກິດ ແລະ ວຽກທີ່ຕ້ອງຕິດຕາມ.'
 })
 
 const quickActions = computed(() => {
-  if (auth.role === 'agent') {
+  if (isAgent.value) {
     return [
       {
         label: 'ຂາຍປະກັນໄພ',
-        description: 'ສ້າງປະກັນໄພໃໝ່',
+        description: 'ສ້າງສັນຍາໃໝ່',
         icon: 'add_circle',
         to: '/policies/create',
       },
@@ -181,35 +278,22 @@ const quickActions = computed(() => {
         label: 'ປະກັນໄພຂອງຂ້ອຍ',
         description: 'ຕິດຕາມສະຖານະ',
         icon: 'description',
-        to: '/policies',
+        to: '/my-policies',
       },
-      { label: 'ລູກຄ້າ', description: 'ຈັດການຂໍ້ມູນລູກຄ້າ', icon: 'people_alt', to: '/customers' },
       { label: 'ຄອມມິດຊັ່ນ', description: 'ເບິ່ງລາຍໄດ້', icon: 'payments', to: '/commissions' },
-    ]
-  }
-  if (auth.role === 'customer') {
-    return [
-      {
-        label: 'ຊື້ປະກັນໄພ',
-        description: 'ເລີ່ມຕົ້ນສະເໜີລາຄາ',
-        icon: 'add_circle',
-        to: '/policies/create',
-      },
-      {
-        label: 'ປະກັນໄພຂອງຂ້ອຍ',
-        description: 'ເບິ່ງການຄຸ້ມຄອງ',
-        icon: 'description',
-        to: '/policies',
-      },
-      { label: 'ແຈ້ງເຄມ', description: 'ສົ່ງຄຳຮ້ອງ', icon: 'assignment_late', to: '/claims' },
-      { label: 'ໂປຣໄຟລ໌', description: 'ຂໍ້ມູນສ່ວນຕົວ', icon: 'person', to: '/profile' },
+      { label: 'ໂປຣໄຟລ໌', description: 'ຄະແນນ & ຂໍ້ມູນ', icon: 'person', to: '/profile' },
     ]
   }
   return [
-    { label: 'ປະກັນໄພ', description: 'ຈັດການທັງໝົດ', icon: 'description', to: '/policies' },
-    { label: 'ລູກຄ້າ', description: 'ຂໍ້ມູນລູກຄ້າ', icon: 'people_alt', to: '/customers' },
-    { label: 'ເຄມ', description: 'ກວດສອບ ແລະ ອະນຸມັດ', icon: 'assignment_late', to: '/claims' },
-    { label: 'ລາຍງານ', description: 'ສະຖິຕິທຸລະກິດ', icon: 'analytics', to: '/reports' },
+    { label: 'ຊື້ປະກັນໄພ', description: 'ອອກສັນຍາໃໝ່', icon: 'add_circle', to: '/policies/create' },
+    {
+      label: 'ປະກັນໄພຂອງຂ້ອຍ',
+      description: 'ເບິ່ງໃບຢັ້ງຢືນ',
+      icon: 'verified_user',
+      to: '/my-policies',
+    },
+    { label: 'ແຈ້ງເຕືອນ', description: 'ວັນເກີດ & ໝົດອາຍຸ', icon: 'notifications', to: '/my-policies' },
+    { label: 'ໂປຣໄຟລ໌', description: 'ຄະແນນ & ຂໍ້ມູນ', icon: 'person', to: '/profile' },
   ]
 })
 </script>

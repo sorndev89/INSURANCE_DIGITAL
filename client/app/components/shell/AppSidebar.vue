@@ -54,36 +54,57 @@
           {{ group.title }}
         </p>
         <div class="space-y-1">
-          <NuxtLink
-            v-for="item in group.items"
-            :key="item.to"
-            :to="item.to"
-            :title="collapsed ? item.label : undefined"
-            :aria-current="isActivePath(item.to) ? 'page' : undefined"
-            class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors"
-            :class="[
-              isActivePath(item.to)
-                ? 'bg-primary text-white'
-                : 'text-muted hover:bg-surface-muted hover:text-foreground',
-            ]"
-            @click="handleNavigate"
-          >
-            <BaseIcon
-              :name="item.icon"
-              size="md"
-              class="shrink-0 transition-transform duration-300 ease-in-out"
-              :class="collapsed ? 'translate-x-1.5' : ''"
-            />
-            <span
-              class="min-w-0 truncate transition-all duration-300 ease-in-out"
-              :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-44 opacity-100'"
+          <template v-for="(item, index) in group.items" :key="item.to">
+            <p
+              v-if="!collapsed && item.section && group.items[index - 1]?.section !== item.section"
+              class="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-muted/80"
             >
-              {{ item.label }}
-            </span>
-          </NuxtLink>
+              {{ item.section }}
+            </p>
+            <div
+              v-if="collapsed && item.section && group.items[index - 1]?.section !== item.section"
+              class="my-2 border-t border-line"
+              aria-hidden="true"
+            />
+            <NuxtLink
+              :to="item.to"
+              :title="collapsed ? [item.section, item.label].filter(Boolean).join(' · ') : undefined"
+              :aria-current="isActivePath(item.to) ? 'page' : undefined"
+              class="group flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors"
+              :class="[
+                isActivePath(item.to)
+                  ? 'bg-primary text-white'
+                  : 'text-muted hover:bg-surface-muted hover:text-foreground',
+              ]"
+              @click="handleNavigate"
+            >
+              <BaseIcon
+                :name="item.icon"
+                size="md"
+                class="shrink-0 transition-transform duration-300 ease-in-out"
+                :class="collapsed ? 'translate-x-1.5' : ''"
+              />
+              <span
+                class="min-w-0 truncate transition-all duration-300 ease-in-out"
+                :class="collapsed ? 'max-w-0 opacity-0' : 'max-w-44 opacity-100'"
+              >
+                {{ item.label }}
+              </span>
+            </NuxtLink>
+          </template>
         </div>
       </div>
     </nav>
+
+    <div class="shrink-0 border-t border-line p-3">
+      <NuxtLink
+        to="/profile"
+        class="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-muted transition-colors hover:bg-surface-muted hover:text-primary-text"
+      >
+        <BaseIcon name="shield" size="sm" />
+        <span :class="collapsed ? 'hidden' : 'truncate'">Saiyfon Broker v1.0</span>
+      </NuxtLink>
+    </div>
   </aside>
 </template>
 

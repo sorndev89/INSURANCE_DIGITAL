@@ -14,21 +14,27 @@
           {{ group.title }}
         </p>
         <div class="space-y-1">
-          <NuxtLink
-            v-for="item in group.items"
-            :key="item.to"
-            :to="item.to"
-            class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-bold transition-colors"
-            :class="
-              isActivePath(item.to)
-                ? 'bg-primary text-white'
-                : 'text-muted hover:bg-surface-muted hover:text-foreground'
-            "
-            @click="ui.closeDrawer()"
-          >
-            <BaseIcon :name="item.icon" size="md" />
-            {{ item.label }}
-          </NuxtLink>
+          <template v-for="(item, index) in group.items" :key="item.to">
+            <p
+              v-if="item.section && group.items[index - 1]?.section !== item.section"
+              class="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-muted/80"
+            >
+              {{ item.section }}
+            </p>
+            <NuxtLink
+              :to="item.to"
+              class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-bold transition-colors"
+              :class="
+                isActivePath(item.to)
+                  ? 'bg-primary text-white'
+                  : 'text-muted hover:bg-surface-muted hover:text-foreground'
+              "
+              @click="ui.closeDrawer()"
+            >
+              <BaseIcon :name="item.icon" size="md" />
+              {{ item.label }}
+            </NuxtLink>
+          </template>
         </div>
       </div>
     </div>

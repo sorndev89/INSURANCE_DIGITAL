@@ -48,6 +48,7 @@ const company = { name: 'ບໍລິສັດ ດີ ເອັຊ ພີ ປະ
 describe('buildVehiclePayload', () => {
   it('keeps every vehicle field the backend stores', () => {
     expect(buildVehiclePayload(form.vehicle)).toEqual({
+      category: 'sedan',
       plateNumber: 'ກກ 1234',
       make: 'Toyota',
       model: 'Camry',
@@ -55,6 +56,7 @@ describe('buildVehiclePayload', () => {
       engineNumber: 'ENG-1',
       chassisNumber: 'CHS-1',
       engineCapacity: '2000',
+      seats: null,
       color: 'White',
       usageType: 'private',
     })
@@ -62,6 +64,7 @@ describe('buildVehiclePayload', () => {
 
   it('normalizes blank values and defaults usage to private', () => {
     expect(buildVehiclePayload({ year: 'abc', make: '   ' })).toEqual({
+      category: 'sedan',
       plateNumber: null,
       make: null,
       model: null,
@@ -69,6 +72,7 @@ describe('buildVehiclePayload', () => {
       engineNumber: null,
       chassisNumber: null,
       engineCapacity: null,
+      seats: null,
       color: null,
       usageType: 'private',
     })
@@ -76,13 +80,14 @@ describe('buildVehiclePayload', () => {
 })
 
 describe('resolveAgentId', () => {
-  it('uses the logged-in agent user id, ignoring the form field', () => {
+  it('maps the logged-in agent user id to the agent record id', () => {
     expect(
       resolveAgentId({
         auth: { role: 'agent', user: { id: 33 } },
         selectedAgentId: '9',
+        agents: [{ id: 7, userId: 33 }],
       }),
-    ).toBe(33)
+    ).toBe(7)
   })
 
   it('uses the selected agent for admins and rejects invalid ids', () => {
@@ -97,6 +102,7 @@ describe('buildPolicyPayload', () => {
     const payload = buildPolicyPayload({
       form,
       auth: { role: 'agent', user: { id: 3 }, displayName: 'ຄຳພູ' },
+      agents: [{ id: 3, userId: 3 }],
       product,
       company,
       startDate: '2026-10-26',
@@ -108,6 +114,7 @@ describe('buildPolicyPayload', () => {
     expect(payload.customerIdCardUrl).toContain('id-card.jpg')
     expect(payload.agentId).toBe(3)
     expect(payload.vehicle).toEqual({
+      category: 'sedan',
       plateNumber: 'ກກ 1234',
       make: 'Toyota',
       model: 'Camry',
@@ -115,6 +122,7 @@ describe('buildPolicyPayload', () => {
       engineNumber: 'ENG-1',
       chassisNumber: 'CHS-1',
       engineCapacity: '2000',
+      seats: null,
       color: 'White',
       usageType: 'private',
     })

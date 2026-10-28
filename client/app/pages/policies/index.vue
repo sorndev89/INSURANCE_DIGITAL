@@ -123,7 +123,9 @@
 import { computed } from 'vue'
 import { navigateTo } from '#app'
 import { usePolicies } from '~/composables/api/usePolicies'
+import { useAuthStore } from '~/stores/auth'
 import { useToast } from '~/composables/useToast'
+import { useExport } from '~/composables/useExport'
 import { PRODUCT_TYPES } from '~/utils/constants'
 import { useFormat } from '~/utils/format'
 
@@ -132,6 +134,11 @@ definePageMeta({
   title: 'ຈັດການປະກັນໄພ',
   permission: 'policy.view',
 })
+
+const auth = useAuthStore()
+if (import.meta.client && ['agent', 'customer'].includes(auth.role)) {
+  navigateTo('/my-policies', { replace: true })
+}
 
 const format = useFormat()
 const toast = useToast()
@@ -156,11 +163,29 @@ const columns = [
   { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
 
+const { exportCsv } = useExport()
+
 const exportList = () => {
-  toast.success('ກຳລັງກະກຽມໄຟລ໌ Export')
+  exportCsv({
+    filename: 'policies',
+    columns: [
+      { key: 'policyNumber', label: 'ເລກສັນຍາ' },
+      { key: 'customerName', label: 'ລູກຄ້າ' },
+      { key: 'companyCode', label: 'ບໍລິສັດ' },
+      { key: 'productName', label: 'ຜະລິດຕະພັນ' },
+      { key: 'totalPremium', label: 'ເບ້ຍລວມ' },
+      { key: 'status', label: 'ສະຖານະ' },
+      { key: 'endDate', label: 'ໝົດອາຍຸ' },
+    ],
+    rows: items.value,
+  })
 }
 
 const renew = (policy) => {
+  navigateTo({
+    path: '/policies/create',
+    query: { customerId: policy.customerId, renewalOf: policy.policyNumber },
+  })
   toast.info(`ເລີ່ມການຕໍ່ອາຍຸ ${policy.policyNumber}`)
 }
 </script>

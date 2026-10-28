@@ -212,15 +212,14 @@ const save = async () => {
           ? form.companyName
           : `${form.firstName} ${form.lastName}`.trim(),
     }
-    if (isEdit.value) {
-      await update(props.customer.id, payload)
-      toast.success('ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ')
-    } else {
-      await create(payload)
-      toast.success('ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ')
-    }
+    const saved = isEdit.value
+      ? await update(props.customer.id, payload)
+      : await create(payload)
+    toast.success(
+      isEdit.value ? 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ' : 'ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ',
+    )
     emit('update:modelValue', false)
-    emit('saved')
+    emit('saved', saved)
   } catch (err) {
     toast.error(err?.message || 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນລູກຄ້າໄດ້')
   } finally {

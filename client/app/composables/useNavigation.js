@@ -1,5 +1,10 @@
 import { computed } from 'vue'
-import { bottomTabsByRole, findNavigationItem, navigationGroups } from '~/config/navigation'
+import {
+  bottomTabsByRole,
+  findNavigationContext,
+  findNavigationItem,
+  navigationGroups,
+} from '~/config/navigation'
 import { useAuthStore } from '~/stores/auth'
 
 export const useNavigation = () => {
@@ -23,6 +28,7 @@ export const useNavigation = () => {
     const tabs = bottomTabsByRole[auth.role] || []
     return tabs.filter((tab) => {
       if (!tab.to) return true
+      if (tab.accent) return true
       const item = findNavigationItem(tab.to)
       return !item || canSeeItem(item)
     })
@@ -38,15 +44,21 @@ export const useNavigation = () => {
 
   const breadcrumb = computed(() => {
     const items = []
-    const parent = findNavigationItem(route.path)
-    const current = route.meta.title || parent?.label
+    const context = findNavigationContext(route.path)
+    const current = route.meta.title || context?.item?.label
 
     if (route.path !== homeTo.value) {
       items.push({ label: 'ໜ້າຫຼັກ', to: homeTo.value })
     }
 
-    if (parent && parent.to !== route.path) {
-      items.push({ label: parent.label, to: parent.to })
+    if (context?.group) {
+      const sectionItems = context.item.section
+        ? context.group.items.filter((item) => item.section === context.item.section)
+        : context.group.items
+      const groupFirst = sectionItems[0]?.to
+      if (groupFirst) {
+        items.push({ label: context.item.section || context.group.title, to: groupFirst })
+      }
     }
 
     if (current && current !== items.at(-1)?.label) {

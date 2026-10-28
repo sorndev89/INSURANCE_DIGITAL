@@ -18,7 +18,7 @@
         v-for="item in flatItems"
         :key="item.to"
         :to="item.to"
-        :title="item.label"
+        :title="[item.section, item.label].filter(Boolean).join(' · ')"
         :aria-label="item.label"
         :aria-current="isActivePath(item.to) ? 'page' : undefined"
         class="flex h-11 w-11 items-center justify-center rounded-xl transition-colors"

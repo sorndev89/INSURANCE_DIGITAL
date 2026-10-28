@@ -38,7 +38,7 @@
           </span>
           <span class="min-w-0 flex-1">
             <span class="block truncate text-sm font-bold">{{ item.label }}</span>
-            <span class="block text-xs text-muted">{{ item.to }}</span>
+            <span class="block text-xs text-muted">{{ item.section || item.to }}</span>
           </span>
           <BaseIcon name="arrow_forward" size="sm" class="text-muted" />
         </button>

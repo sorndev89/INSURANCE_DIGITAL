@@ -52,10 +52,13 @@
     </form>
 
     <div class="mt-6 text-center text-sm text-muted">
-      ຍັງບໍ່ມີບັນຊີ?
-      <a href="mailto:info@saiyfon.com" class="font-bold text-primary-text hover:text-primary-dark">
-        ຕິດຕໍ່ຜູ້ດູແລລະບົບ
-      </a>
+      ຕ້ອງການເປັນຕົວແທນຂາຍຍ່ອຍ?
+      <NuxtLink
+        to="/agents/register"
+        class="font-bold text-primary-text hover:text-primary-dark"
+      >
+        ສະໝັກອອນລາຍ
+      </NuxtLink>
     </div>
   </div>
 </template>

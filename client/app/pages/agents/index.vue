@@ -2,9 +2,9 @@
   <div class="space-y-6">
     <PageHeader title="ຈັດການຕົວແທນ" description="ຕິດຕາມຜົນງານ ແລະ ຈັດການຕົວແທນຂາຍ.">
       <template #actions>
-        <BaseButton variant="secondary" icon="star" @click="toast.info('ລາຍການຕົວແທນດີເດັ່ນ')"
-          >Top Performers</BaseButton
-        >
+        <BaseButton variant="secondary" icon="person_add" @click="navigateTo('/agents/register')">
+          ສະໝັກອອນລາຍ
+        </BaseButton>
         <BaseButton icon="person_add" @click="openCreate">ເພີ່ມຕົວແທນ</BaseButton>
       </template>
     </PageHeader>
@@ -64,6 +64,9 @@
       </template>
       <template #cell-salesYtd="{ value }">
         <span class="font-bold tabular-nums">{{ format.currency(value) }}</span>
+      </template>
+      <template #cell-points="{ value }">
+        <span class="font-bold tabular-nums text-primary-text">{{ format.number(value || 0) }}</span>
       </template>
       <template #cell-status="{ value }">
         <StatusBadge :status="value" />
@@ -211,6 +214,7 @@ const columns = [
   { key: 'level', label: 'ລະດັບ', align: 'center', hideOn: ['mobile'] },
   { key: 'commissionRate', label: 'ຄອມມິດຊັ່ນ', align: 'right' },
   { key: 'salesYtd', label: 'ຍອດຂາຍ', align: 'right', sortable: true },
+  { key: 'points', label: 'ຄະແນນ', align: 'right', hideOn: ['mobile'] },
   { key: 'status', label: 'ສະຖານະ', align: 'center' },
 ]
 

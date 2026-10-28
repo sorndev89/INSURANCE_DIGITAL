@@ -50,11 +50,31 @@ export const GENDERS = [
   { value: 'other', label: 'ອື່ນໆ' },
 ]
 
-export const USAGE_TYPES = [
-  { value: 'private', label: 'ສ່ວນຕົວ' },
-  { value: 'commercial', label: 'ທຸລະກິດ/ຮັບຈ້າງ' },
-  { value: 'rental', label: 'ໃຫ້ເຊົ່າ' },
+export const VEHICLE_CATEGORIES = [
+  { value: 'sedan', label: 'ລົດເກັງ', icon: 'directions_car', factor: 1 },
+  { value: 'pickup', label: 'ລົດກະບະ', icon: 'local_shipping', factor: 1.08 },
+  { value: 'suv', label: 'ລົດຈິບ', icon: 'airport_shuttle', factor: 1.12 },
+  { value: 'van', label: 'ລົດຕູ້', icon: 'minor_crash', factor: 1.18 },
+  { value: 'truck', label: 'ລົດບັນທຸກ', icon: 'fire_truck', factor: 1.3 },
+  { value: 'bus', label: 'ລົດເມ', icon: 'directions_bus', factor: 1.4 },
 ]
+
+export const VEHICLE_USAGE_OPTIONS = [
+  {
+    value: 'private',
+    label: 'ລົດສ່ວນຕົວ (Personal Use)',
+    description: 'ໃຊ້ເດີນທາງສ່ວນຕົວ ບໍ່ຮັບຈ້າງ',
+    factor: 1,
+  },
+  {
+    value: 'commercial',
+    label: 'ລົດຮັບຈ້າງ (Commercial / Hire Use)',
+    description: 'ໃຊ້ທຸລະກິດ ຫຼື ຮັບຈ້າງ ມີຄວາມສ່ຽງສູງກວ່າ',
+    factor: 1.25,
+  },
+]
+
+export const USAGE_TYPES = VEHICLE_USAGE_OPTIONS.map(({ value, label }) => ({ value, label }))
 
 export const PAYMENT_METHODS = [
   { value: 'bcel', label: 'BCEL One' },

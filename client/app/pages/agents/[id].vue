@@ -50,6 +50,18 @@
               <dt class="text-xs text-muted">ວົງເງິນສິນເຊື່ອ</dt>
               <dd class="mt-1 text-sm font-bold">{{ format.currency(agent.creditLimit) }}</dd>
             </div>
+            <div>
+              <dt class="text-xs text-muted">ຄະແນນສະສົມ</dt>
+              <dd class="mt-1 text-sm font-bold text-primary-text">
+                {{ format.number(agent.points || 0) }} Point
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-muted">ຄອມມິດຊັ່ນຄ້າງຈ່າຍ</dt>
+              <dd class="mt-1 text-sm font-bold text-warning">
+                {{ format.currency(agent.commissionBalance || 0) }}
+              </dd>
+            </div>
           </dl>
         </BaseCard>
 

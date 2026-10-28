@@ -19,8 +19,31 @@ const login = async (page) => {
 }
 
 test('has no serious or critical accessibility violations', async ({ page }) => {
+  test.setTimeout(120_000)
   await login(page)
-  const routes = ['/dashboard', '/policies', '/claims', '/home', '/settings', '/profile']
+  const routes = [
+    '/dashboard',
+    '/policies',
+    '/insurers',
+    '/insurer-commissions',
+    '/my-policies',
+    '/vehicles',
+    '/marketing-banners',
+    '/home',
+    '/reports/sales/daily',
+    '/reports/sales/daily-by-user',
+    '/reports/sales/monthly',
+    '/reports/sales/monthly-by-user',
+    '/reports/sales/quarterly',
+    '/reports/sales/quarterly-by-user',
+    '/reports/sales/annual',
+    '/reports/sales/annual-by-user',
+    '/reports/underwriting/date-range',
+    '/reports/underwriting/company',
+    '/reports/underwriting/expiration',
+    '/reports/underwriting/expiration-by-agent',
+    '/profile',
+  ]
   for (const route of routes) {
     await page.goto(route)
     await page.waitForTimeout(500)

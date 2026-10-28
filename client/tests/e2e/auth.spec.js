@@ -13,7 +13,7 @@ test('guards private routes and logs in as admin', async ({ page }, testInfo) =>
   await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)dashboard/)
   await login(page)
   await expect(page).toHaveURL(/\/dashboard/)
-  await expect(page.getByRole('heading', { level: 1, name: 'ພາບລວມລະບົບ' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'ພາບລວມທຸລະກິດ' })).toBeVisible()
 
   await page.reload()
   await expect(page).toHaveURL(/\/dashboard/)

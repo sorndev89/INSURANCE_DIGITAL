@@ -7,6 +7,7 @@ import { IMPERSONATE_PARAM, omitQueryKey, readImpersonationToken } from '~/utils
 const PUBLIC_ROUTES = new Set([
   '/',
   '/login',
+  '/agents/register',
   '/forgot-password',
   '/tenant-not-found',
   '/maintenance',

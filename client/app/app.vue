@@ -8,6 +8,7 @@
     <ToastHost />
     <ConfirmDialog />
     <AppDialog />
+    <BannerPopup />
   </div>
 </template>
 

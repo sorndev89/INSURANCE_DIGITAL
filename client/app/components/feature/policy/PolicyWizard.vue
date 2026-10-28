@@ -138,6 +138,52 @@
           <h2 class="text-lg font-bold">2. ຂໍ້ມູນລົດ ຫຼື ຊັບສິນທີ່ຈະຄຸ້ມຄອງ</h2>
           <p class="mt-0.5 text-xs text-muted">ລາຍລະອຽດພາຫະນະຕາມປຶ້ມຄູ່ມືລົດ (Green Book).</p>
         </div>
+
+        <div class="space-y-2">
+          <p class="text-xs font-bold uppercase tracking-wider text-muted">ປະເພດລົດ 6 ໝວດ</p>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            <button
+              v-for="category in VEHICLE_CATEGORIES"
+              :key="category.value"
+              type="button"
+              class="flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center transition-all"
+              :class="
+                form.vehicle.category === category.value
+                  ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                  : 'border-line hover:border-primary/60'
+              "
+              :aria-pressed="form.vehicle.category === category.value"
+              @click="chooseCategory(category.value)"
+            >
+              <BaseIcon
+                :name="category.icon"
+                size="lg"
+                :class="
+                  form.vehicle.category === category.value ? 'text-primary-text' : 'text-muted'
+                "
+              />
+              <span class="text-xs font-bold">{{ category.label }}</span>
+            </button>
+          </div>
+          <p v-if="errors.category" class="text-xs font-bold text-danger" role="alert">
+            {{ errors.category }}
+          </p>
+        </div>
+
+        <div
+          v-if="form.vehicle.category"
+          class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3"
+        >
+          <div class="flex items-center gap-2 text-sm">
+            <BaseIcon name="verified" size="sm" class="text-primary-text" />
+            <span class="text-muted">ການນຳໃຊ້:</span>
+            <span class="font-bold text-primary-text">{{ usageLabel }}</span>
+          </div>
+          <BaseButton variant="ghost" size="sm" icon="tune" @click="usageModalOpen = true">
+            ປ່ຽນການນຳໃຊ້
+          </BaseButton>
+        </div>
+
         <div class="grid gap-4 sm:grid-cols-2">
           <BaseInput
             v-model="form.vehicle.make"
@@ -188,10 +234,12 @@
             :error="errors.engineCapacity"
           />
           <BaseInput v-model="form.vehicle.color" label="ສີລົດ" placeholder="ຂາວ" />
-          <BaseSelect
-            v-model="form.vehicle.usageType"
-            label="ລັກສະນະການນຳໃຊ້"
-            :options="USAGE_TYPES"
+          <BaseNumberInput
+            v-model="form.vehicle.seats"
+            label="ຈຳນວນບ່ອນນັ່ງ"
+            placeholder="5"
+            :min="1"
+            :max="60"
           />
         </div>
       </div>
@@ -295,6 +343,35 @@
             <p class="mt-1 text-sm font-bold">{{ form.vehicle.make }} {{ form.vehicle.model }}</p>
             <p class="text-xs text-muted">
               {{ form.vehicle.plateNumber }} ({{ form.vehicle.plateProvince || 'ລາວ' }})
+            </p>
+            <div class="mt-2 flex flex-wrap gap-1">
+              <BaseBadge tone="primary">{{ categoryLabel }}</BaseBadge>
+              <BaseBadge :tone="form.vehicle.usageType === 'commercial' ? 'warning' : 'success'">
+                {{ usageLabel }}
+              </BaseBadge>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-3 rounded-xl border border-line bg-surface-muted p-4 sm:grid-cols-3">
+          <div>
+            <p class="text-xs text-muted">ລາຄາພື້ນຖານຕາມແຜນ</p>
+            <p class="mt-1 text-sm font-bold tabular-nums">
+              {{ format.currency(selectedProduct?.basePremium || 0) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-muted">
+              ຫຼັງປັບປະເພດ {{ categoryLabel }} ×{{ categoryFactor }}
+            </p>
+            <p class="mt-1 text-sm font-bold tabular-nums">
+              {{ format.currency(categoryAdjustedBase) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-muted">ຫຼັງປັບ {{ usageLabel }} ×{{ usageFactor }}</p>
+            <p class="mt-1 text-sm font-bold tabular-nums">
+              {{ format.currency(premium.basePremium) }}
             </p>
           </div>
         </div>
@@ -408,94 +485,35 @@
         </div>
       </div>
 
-      <!-- STEP 4: ຊຳລະເງິນ ແລະ ອັບໂຫຼດເອກະສານ -->
-      <div v-else-if="currentStep === 4" class="space-y-4">
-        <div>
-          <h2 class="text-lg font-bold">5. ວິທີການຊຳລະເງິນ ແລະ ເອກະສານ</h2>
-          <p class="mt-0.5 text-xs text-muted">
-            ເລືອກຊ່ອງທາງການຊຳລະ ແລະ ອັບໂຫຼດເອກະສານກົມມະທັນຕົວຈິງ.
-          </p>
-        </div>
-
-        <div class="rounded-xl border border-line bg-surface-muted p-4">
-          <p class="text-xs text-muted">ຍອດທີ່ລູກຄ້າຕ້ອງຊຳລະ</p>
-          <p class="mt-1 text-3xl font-bold tabular-nums text-primary-text">
-            {{ format.currency(premium.totalPremium) }}
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <BaseRadio
-            v-for="method in PAYMENT_METHODS"
-            :key="method.value"
-            v-model="form.paymentMethod"
-            :value="method.value"
-            name="payment-method"
-            :label="method.label"
-          />
-        </div>
-
-        <FileUpload
-          v-model="policyDocFile"
-          label="ອັບໂຫຼດໄຟລ໌ກົມມະທັນຕົ້ນສະບັບ ຫຼື ໃບຮັບເງິນ (PDF/Image)"
-          hint="ເອກະສານທີ່ໄດ້ຮັບຈາກບໍລິສັດປະກັນໄພ"
-          auto-upload
-          @uploaded="form.policyDocumentUrl = $event?.url || ''"
+      <!-- STEP 4: ຊຳລະເງິນ BCEL OnePay QR -->
+      <div v-else-if="currentStep === 4">
+        <PolicyPaymentStep
+          :amount="premium.totalPremium"
+          :reference="paymentReference"
+          :submitting="submitting"
+          @pay="submit"
         />
       </div>
 
       <!-- STEP 5: ສຳເລັດການອອກປະກັນໄພ -->
-      <div v-else class="space-y-4 text-center py-6">
-        <div
-          class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-success/10 text-success"
-        >
-          <BaseIcon name="check_circle" size="2xl" />
-        </div>
-        <div>
-          <h2 class="text-2xl font-bold">ອອກປະກັນໄພສຳເລັດ</h2>
-          <p class="mt-1 text-sm text-muted">
-            ບັນທຶກກົມມະທັນ ແລະ ຄຳນວນຄ່ານາຍໜ້າເຂົ້າລະບົບຮຽບຮ້ອຍແລ້ວ.
-          </p>
-        </div>
-        <div
-          class="mx-auto max-w-md rounded-xl border border-line bg-surface-muted p-4 text-left space-y-2 text-sm"
-        >
-          <div class="flex justify-between">
-            <span class="text-muted">ເລກອ້າງອີງ Broker:</span>
-            <span class="font-bold">{{ createdPolicy?.policyNumber }}</span>
-          </div>
-          <div v-if="createdPolicy?.insurerPolicyNumber" class="flex justify-between">
-            <span class="text-muted">ເລກກົມມະທັນບໍລິສັດ:</span>
-            <span class="font-bold text-primary-text">{{ createdPolicy.insurerPolicyNumber }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted">ບໍລິສັດປະກັນ:</span>
-            <span class="font-bold">{{ createdPolicy?.companyName }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted">ເບ້ຍປະກັນລວມ:</span>
-            <span class="font-bold tabular-nums">{{
-              format.currency(createdPolicy?.totalPremium)
-            }}</span>
-          </div>
-          <div class="flex justify-between border-t border-line pt-2">
-            <span class="text-muted">ສະຖານະ:</span>
-            <StatusBadge :status="createdPolicy?.status || 'pending'" />
-          </div>
-        </div>
-        <div class="flex flex-col justify-center gap-2 sm:flex-row pt-4">
-          <BaseButton variant="secondary" icon="download" @click="toast.info('ກຳລັງກະກຽມດາວໂຫຼດ')">
-            ດາວໂຫຼດເອກະສານ
-          </BaseButton>
-          <BaseButton icon="visibility" @click="navigateTo(`/policies/${createdPolicy?.id}`)">
-            ເບິ່ງລາຍລະອຽດກົມມະທັນ
-          </BaseButton>
-        </div>
-      </div>
+      <PolicySuccessStep
+        v-else
+        :policy="createdPolicy"
+        :certificate-number="certificateNumber"
+      />
     </BaseCard>
 
+    <CashbackAlertModal v-model="cashbackOpen" :policy="createdPolicy" :points="POINTS_PER_POLICY" />
+
+    <VehicleUsageModal
+      v-model="usageModalOpen"
+      :category="form.vehicle.category || 'sedan'"
+      :usage="form.vehicle.usageType"
+      @confirm="applyUsage"
+    />
+
     <div
-      v-if="currentStep < 5"
+      v-if="currentStep < 4"
       class="sticky bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] -mx-4 z-30 flex items-center justify-between gap-3 border-t border-line bg-surface/95 p-4 backdrop-blur md:static md:bottom-auto md:mx-0 md:rounded-xl md:border md:p-4"
     >
       <BaseButton v-if="currentStep > 0" variant="secondary" icon="arrow_back" @click="prevStep">
@@ -503,26 +521,28 @@
       </BaseButton>
       <span v-else class="text-sm text-muted">ຂັ້ນຕອນ {{ currentStep + 1 }} / 5</span>
 
-      <BaseButton v-if="currentStep < 4" icon="arrow_forward" @click="nextStep"> ຕໍ່ໄປ </BaseButton>
-      <BaseButton v-else icon="check" :loading="submitting" @click="submit">
-        ຢືນຢັນ ແລະ ບັນທຶກກົມມະທັນ
-      </BaseButton>
+      <BaseButton icon="arrow_forward" @click="nextStep"> ຕໍ່ໄປ </BaseButton>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { navigateTo, useRoute } from '#app'
+import { useRoute } from '#app'
 import { onBeforeRouteLeave } from 'vue-router'
 import {
   CUSTOMER_TYPES,
   GENDERS,
   LAO_PROVINCES,
-  PAYMENT_METHODS,
-  USAGE_TYPES,
+  VEHICLE_CATEGORIES,
 } from '~/utils/constants'
 import { calculatePremium } from '~/utils/premium'
+import {
+  getVehicleCategory,
+  getVehicleUsage,
+  resolveBasePremium,
+} from '~/utils/vehiclePricing'
+import { POINTS_PER_POLICY } from '~/utils/points'
 import { usePolicies } from '~/composables/api/usePolicies'
 import { useQuotations } from '~/composables/api/useQuotations'
 import { useCustomers } from '~/composables/api/useCustomers'
@@ -569,7 +589,8 @@ const currentStep = ref(0)
 const submitting = ref(false)
 const completed = ref(false)
 const createdPolicy = ref(null)
-const policyDocFile = ref(null)
+const usageModalOpen = ref(false)
+const cashbackOpen = ref(false)
 const companyFilter = ref('ALL')
 const companiesList = ref([])
 const productsList = ref([])
@@ -613,6 +634,7 @@ const form = reactive({
   },
   customerId: null,
   vehicle: {
+    category: '',
     make: '',
     model: '',
     year: '',
@@ -646,6 +668,7 @@ const errors = reactive({
   contactPerson: '',
   phone: '',
   address: '',
+  category: '',
   make: '',
   model: '',
   plateNumber: '',
@@ -672,14 +695,48 @@ const selectedProduct = computed(() =>
   productsList.value.find((product) => product.id === Number(form.productId)),
 )
 
-const premium = computed(() =>
-  calculatePremium({
-    basePremium: selectedProduct.value?.basePremium || 0,
+const categoryMeta = computed(() => getVehicleCategory(form.vehicle.category || 'sedan'))
+const usageMeta = computed(() => getVehicleUsage(form.vehicle.usageType))
+const categoryLabel = computed(() => categoryMeta.value.label)
+const usageLabel = computed(() => usageMeta.value.label.split(' (')[0])
+const categoryFactor = computed(() => categoryMeta.value.factor)
+const usageFactor = computed(() => usageMeta.value.factor)
+
+const categoryAdjustedBase = computed(() =>
+  Math.round((Number(selectedProduct.value?.basePremium) || 0) * categoryFactor.value),
+)
+
+const premium = computed(() => {
+  const basePremium = selectedProduct.value
+    ? resolveBasePremium({
+        basePremium: selectedProduct.value.basePremium,
+        category: form.vehicle.category || 'sedan',
+        usage: form.vehicle.usageType,
+      })
+    : 0
+  return calculatePremium({
+    basePremium,
     discountPercent: form.discountPercent,
     brokerCommissionRate: form.brokerCommissionRate,
     agentCommissionRate: form.agentCommissionRate,
-  }),
+  })
+})
+
+const paymentReference = computed(
+  () => `ONEPAY-${String(selectedProduct.value?.companyCode || 'SF').toUpperCase()}-${String(form.startDate).replaceAll('-', '')}`,
 )
+
+const certificateNumber = computed(() => `WEC-${String(Date.now()).slice(-6)}`)
+
+const chooseCategory = (value) => {
+  form.vehicle.category = value
+  errors.category = ''
+  usageModalOpen.value = true
+}
+
+const applyUsage = (value) => {
+  form.vehicle.usageType = value
+}
 
 const selectProduct = (product) => {
   form.productId = product.id
@@ -722,7 +779,8 @@ const validateStep = () => {
   }
 
   if (currentStep.value === 1) {
-    clearErrors(['make', 'model', 'plateNumber', 'year', 'engineCapacity'])
+    clearErrors(['category', 'make', 'model', 'plateNumber', 'year', 'engineCapacity'])
+    errors.category = form.vehicle.category ? '' : 'ກະລຸນາເລືອກປະເພດລົດ'
     errors.make = required(form.vehicle.make)
     errors.model = required(form.vehicle.model)
     errors.plateNumber = required(form.vehicle.plateNumber)
@@ -731,7 +789,12 @@ const validateStep = () => {
       : ''
     errors.engineCapacity = form.vehicle.engineCapacity ? numeric(form.vehicle.engineCapacity) : ''
     return (
-      !errors.make && !errors.model && !errors.plateNumber && !errors.year && !errors.engineCapacity
+      !errors.category &&
+      !errors.make &&
+      !errors.model &&
+      !errors.plateNumber &&
+      !errors.year &&
+      !errors.engineCapacity
     )
   }
 
@@ -766,8 +829,10 @@ const submit = async () => {
   if (!validateStep() || submitting.value) return
   submitting.value = true
   try {
-    const company = companies.find((item) => item.id === selectedProduct.value?.companyId)
-    const chosenAgent = agents.find((item) => item.id === Number(form.agentId))
+    const company = companiesList.value.find(
+      (item) => item.id === selectedProduct.value?.companyId,
+    )
+    const chosenAgent = agentsList.value.find((item) => item.id === Number(form.agentId))
     const payload = buildPolicyPayload({
       form: {
         ...form,
@@ -775,15 +840,22 @@ const submit = async () => {
         agentName: chosenAgent?.name || null,
       },
       auth,
+      agents: agentsList.value,
       product: selectedProduct.value,
       company,
       startDate: form.startDate,
+      endDate: form.endDate,
     })
+
+    await new Promise((resolve) => setTimeout(resolve, 900))
     createdPolicy.value = await create(payload)
     completed.value = true
     currentStep.value = 5
     clearDraft()
     toast.success('ອອກກົມມະທັນສຳເລັດ')
+    if (auth.role === 'agent') {
+      cashbackOpen.value = true
+    }
   } catch (requestError) {
     toast.error(requestError?.message || 'ບໍ່ສາມາດສ້າງປະກັນໄພໄດ້')
   } finally {

@@ -12,6 +12,7 @@ export const addYearsIso = (isoDate, years) => {
 }
 
 export const buildVehiclePayload = (vehicle = {}) => ({
+  category: textOrNull(vehicle.category) || 'sedan',
   plateNumber: textOrNull(vehicle.plateNumber),
   make: textOrNull(vehicle.make),
   model: textOrNull(vehicle.model),
@@ -20,12 +21,22 @@ export const buildVehiclePayload = (vehicle = {}) => ({
   engineNumber: textOrNull(vehicle.engineNumber),
   chassisNumber: textOrNull(vehicle.chassisNumber),
   engineCapacity: textOrNull(vehicle.engineCapacity),
+  seats: Number.isFinite(Number(vehicle.seats)) ? Number(vehicle.seats) : null,
   color: textOrNull(vehicle.color),
   usageType: textOrNull(vehicle.usageType) || 'private',
 })
 
-export const resolveAgentId = ({ auth, selectedAgentId } = {}) => {
-  if (auth?.role === 'agent') return auth.user?.id ?? null
+export const resolveAgentId = ({ auth, selectedAgentId, agents = [] } = {}) => {
+  if (auth?.role === 'agent') {
+    const matched = agents.find(
+      (agent) => agent.userId && String(agent.userId) === String(auth.user?.id),
+    )
+    if (matched) return matched.id
+    const ownAgentId = Number(auth.user?.agentId)
+    if (Number.isInteger(ownAgentId) && ownAgentId > 0) return ownAgentId
+    const selected = Number(selectedAgentId)
+    return Number.isInteger(selected) && selected > 0 ? selected : null
+  }
   const numeric = Number(selectedAgentId)
   return Number.isInteger(numeric) && numeric > 0 ? numeric : null
 }
@@ -47,7 +58,9 @@ export const buildPolicyPayload = ({
   auth,
   product,
   company,
+  agents = [],
   startDate = new Date().toISOString().slice(0, 10),
+  endDate,
 } = {}) => {
   const customer = form?.customer || {}
   const vehiclePayload = buildVehiclePayload(form?.vehicle || {})
@@ -65,6 +78,11 @@ export const buildPolicyPayload = ({
     customerType: form?.customerType || 'individual',
     customerName,
     customerPhone: customer.phone || null,
+    customerDob: customer.dob || null,
+    customerGender: customer.gender || null,
+    customerAddress: customer.address || null,
+    customerOccupation: customer.occupation || null,
+    customerIdCardNumber: customer.idCardNumber || null,
     taxId: isCorporate ? customer.taxId || null : null,
     customerIdCardUrl: customer.idCardUrl || null,
     beneficiary: form?.beneficiary
@@ -73,7 +91,7 @@ export const buildPolicyPayload = ({
           relation: form.beneficiary.relation || null,
         }
       : null,
-    agentId: resolveAgentId({ auth, selectedAgentId: form?.agentId }),
+    agentId: resolveAgentId({ auth, selectedAgentId: form?.agentId, agents }),
     agentName: form?.agentName || auth?.displayName || auth?.user?.name || null,
     insuranceCompanyId: company?.id || product?.companyId || null,
     companyCode: company?.code || product?.companyCode || null,
@@ -86,8 +104,10 @@ export const buildPolicyPayload = ({
     vehiclePlate: vehiclePayload.plateNumber,
     quotationId: Number.isInteger(Number(form?.quotationId)) ? Number(form.quotationId) : null,
     startDate,
-    endDate: addYearsIso(startDate, 1),
+    endDate: endDate || addYearsIso(startDate, 1),
+    basePremium: Number(premium.basePremium) || 0,
     discountPercent: Number(form?.discountPercent) || 0,
+    discountAmount: Number(premium.discountAmount) || 0,
     netPremium: Number(premium.netPremium) || 0,
     vatAmount: Number(premium.vatAmount) || 0,
     registrationFee: Number(premium.registrationFee) || 0,

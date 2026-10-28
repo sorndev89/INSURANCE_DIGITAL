@@ -9,7 +9,7 @@ test('uses the mobile shell and card lists on phones', async ({ page }, testInfo
   await expect(page).toHaveURL(/\/home/)
 
   await expect(page.getByRole('navigation', { name: 'ເມນູລຸ່ມ' })).toBeVisible()
-  await page.goto('/policies')
+  await page.goto('/my-policies')
   await expect(page.locator('table')).toHaveCount(0)
   await expect(page.locator('article[role="listitem"]').first()).toBeVisible()
 

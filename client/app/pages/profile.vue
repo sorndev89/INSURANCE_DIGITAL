@@ -56,6 +56,53 @@
       <template #header>
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
+            <h2 class="text-sm font-bold">ຄະແນນສະສົມ & ຄອມມິດຊັ່ນ</h2>
+            <p class="mt-0.5 text-xs text-muted">
+              1 ສັນຍາ = 5,000 Point ມູນຄ່າ 3,000 ກີບ · ຄອມມິດຊັ່ນ 5%
+            </p>
+          </div>
+          <BaseBadge tone="primary">{{ auth.roleLabel }}</BaseBadge>
+        </div>
+      </template>
+
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-xl border border-line bg-surface-muted p-4">
+          <p class="text-xs text-muted">ຄະແນນສະສົມ</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-primary-text">
+            {{ format.number(pointsBalance) }}
+          </p>
+          <p class="mt-0.5 text-xs text-muted">Point</p>
+        </div>
+        <div class="rounded-xl border border-line bg-surface-muted p-4">
+          <p class="text-xs text-muted">ມູນຄ່າຄະແນນ</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-success">
+            {{ format.currency(pointsValue) }}
+          </p>
+          <p class="mt-0.5 text-xs text-muted">ແລກເປັນເງິນສົດໄດ້</p>
+        </div>
+        <div class="rounded-xl border border-line bg-surface-muted p-4">
+          <p class="text-xs text-muted">ຄອມມິດຊັ່ນຄ້າງຈ່າຍ</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-warning">
+            {{ format.currency(commissionBalance) }}
+          </p>
+          <p class="mt-0.5 text-xs text-muted">ໂອນເຂົ້າ BCEL ອັດຕະໂນມັດ</p>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+        <p class="text-xs text-muted">
+          ແລກຄະແນນເປັນເງິນສົດ ຫຼື ຂອງລາງວັນ (Mockup)
+        </p>
+        <BaseButton variant="secondary" icon="redeem" @click="redeemPoints">
+          ແລກຄະແນນ
+        </BaseButton>
+      </div>
+    </BaseCard>
+
+    <BaseCard>
+      <template #header>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
             <h2 class="text-sm font-bold">ການສະແດງຈຳນວນເງິນ</h2>
             <p class="mt-0.5 text-xs text-muted">
               ເລືອກໃຊ້ຄ່າຂອງບໍລິສັດ ຫຼື ກຳນົດການສະແດງເງິນສ່ວນຕົວສຳລັບບັນຊີນີ້.
@@ -116,6 +163,9 @@ import { useAuthStore } from '~/stores/auth'
 import { useTenantStore } from '~/stores/tenant'
 import { useUiStore } from '~/stores/ui'
 import { useToast } from '~/composables/useToast'
+import { useFormat } from '~/utils/format'
+import { pointsToKip } from '~/utils/points'
+import { agents } from '~/mocks/agents'
 import {
   DEFAULT_CURRENCY_DISPLAY,
   clearUserCurrencyDisplay,
@@ -135,8 +185,24 @@ const auth = useAuthStore()
 const tenant = useTenantStore()
 const ui = useUiStore()
 const toast = useToast()
+const format = useFormat()
 const { logout: signOut, updateProfile } = useAuth()
 const saving = ref(false)
+
+const agentRecord = computed(() =>
+  agents.find((agent) => agent.userId && String(agent.userId) === String(auth.user?.id)),
+)
+const pointsBalance = computed(() => {
+  if (agentRecord.value) return agentRecord.value.points || 0
+  if (auth.role === 'customer') return 10000
+  return 0
+})
+const commissionBalance = computed(() => agentRecord.value?.commissionBalance || 0)
+const pointsValue = computed(() => pointsToKip(pointsBalance.value))
+
+const redeemPoints = () => {
+  toast.info('ໂໝດ Mockup: ຄຳຮ້ອງແລກຄະແນນຖືກສົ່ງເຂົ້າລະບົບແລ້ວ')
+}
 
 const tenantDisplay = computed(
   () => normalizeCurrencyDisplay(tenant.currencyDisplay) || { ...DEFAULT_CURRENCY_DISPLAY },

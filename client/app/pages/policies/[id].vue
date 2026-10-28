@@ -10,13 +10,7 @@
     >
       <template #actions>
         <BaseButton variant="secondary" icon="arrow_back" @click="router.back()">ກັບຄືນ</BaseButton>
-        <BaseButton
-          variant="secondary"
-          icon="report_problem"
-          @click="navigateTo(`/claims/create?policyId=${policy?.id}`)"
-        >
-          ແຈ້ງເຄມໃໝ່
-        </BaseButton>
+        <BaseButton variant="secondary" icon="print" @click="printPolicy">ພິມໃບຢັ້ງຢືນ</BaseButton>
         <BaseButton v-if="policy" icon="autorenew" @click="renew">ຕໍ່ອາຍຸ</BaseButton>
       </template>
     </PageHeader>
@@ -130,6 +124,18 @@
                 <dt class="text-xs text-muted">ທະບຽນລົດ / ຊັບສິນ</dt>
                 <dd class="mt-1 text-sm font-bold">{{ policy.vehiclePlate || '—' }}</dd>
               </div>
+              <div v-if="policy.vehicle">
+                <dt class="text-xs text-muted">ຍີ່ຫໍ້ / ລຸ້ນ</dt>
+                <dd class="mt-1 text-sm font-bold">
+                  {{ policy.vehicle.make }} {{ policy.vehicle.model }} ({{ policy.vehicle.year }})
+                </dd>
+              </div>
+              <div v-if="policy.vehicle">
+                <dt class="text-xs text-muted">ເລກຈັກ / ເລກຖັງ</dt>
+                <dd class="mt-1 font-mono text-xs font-bold">
+                  {{ policy.vehicle.engineNumber || '—' }} / {{ policy.vehicle.chassisNumber || '—' }}
+                </dd>
+              </div>
               <div>
                 <dt class="text-xs text-muted">ວັນເລີ່ມມີຜົນ</dt>
                 <dd class="mt-1 text-sm font-bold">{{ format.date(policy.startDate) }}</dd>
@@ -218,6 +224,24 @@
         <div class="space-y-4 sm:space-y-6">
           <BaseCard>
             <template #header>
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold">Digital Certificate</h2>
+                <BaseBadge tone="success">WEC</BaseBadge>
+              </div>
+            </template>
+            <div class="flex flex-col items-center">
+              <p class="font-mono text-sm font-bold text-primary-text">
+                WEC-{{ String(policy.id).padStart(6, '0') }}
+              </p>
+              <img :src="qrImage" alt="QR ກວດສອບສັນຍາ" class="mt-2 w-32" />
+              <p class="mt-1 text-center text-[11px] text-muted">
+                ສະແກນເພື່ອກວດສອບສັນຍາ
+              </p>
+            </div>
+          </BaseCard>
+
+          <BaseCard>
+            <template #header>
               <h2 class="text-sm font-bold">ສະຖານະກົມມະທັນ</h2>
             </template>
             <div class="space-y-4">
@@ -240,13 +264,8 @@
               <h2 class="text-sm font-bold">ການດຳເນີນການ Broker</h2>
             </template>
             <div class="space-y-2">
-              <BaseButton
-                block
-                variant="primary"
-                icon="report_problem"
-                @click="navigateTo(`/claims/create?policyId=${policy.id}`)"
-              >
-                ແຈ້ງເຄມດ່ວນ
+              <BaseButton block variant="primary" icon="download" @click="printPolicy">
+                ດາວໂຫຼດໃບຢັ້ງຢືນ
               </BaseButton>
               <BaseButton block variant="secondary" icon="print" @click="printPolicy">
                 ພິມໃບຢັ້ງຢືນກົມມະທັນ
@@ -274,7 +293,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { navigateTo, useRoute, useRouter } from '#app'
+import { useRoute, useRouter } from '#app'
+import qrImage from '~/assets/img/qr-placeholder.svg'
 import { usePolicies } from '~/composables/api/usePolicies'
 import { useConfirm } from '~/composables/useConfirm'
 import { useToast } from '~/composables/useToast'
@@ -326,7 +346,9 @@ const load = async () => {
 }
 
 const renew = () => toast.info('ເລີ່ມຂະບວນການຕໍ່ອາຍຸ')
-const printPolicy = () => toast.info('ກຳລັງກະກຽມເອກະສານພິມ')
+const printPolicy = () => {
+  if (import.meta.client) window.print()
+}
 const sharePolicy = () => toast.info('ກຳລັງກະກຽມລິ້ງແຊຣ໌')
 
 const cancelPolicy = async () => {

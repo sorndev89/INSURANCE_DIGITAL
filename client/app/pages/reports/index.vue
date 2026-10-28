@@ -1,6 +1,6 @@
 <script setup>
 definePageMeta({
-  redirect: (route) => ({ path: '/reports/summary', query: route.query }),
+  redirect: (route) => ({ path: '/reports/sales', query: route.query }),
 })
 </script>
 

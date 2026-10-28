@@ -31,7 +31,7 @@
         ຂໍ້ມູນສ່ວນຕົວ
       </NuxtLink>
       <NuxtLink
-        to="/settings"
+        to="/profile"
         role="menuitem"
         class="flex items-center gap-3 rounded-lg px-2 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-surface-muted"
         @click="close()"

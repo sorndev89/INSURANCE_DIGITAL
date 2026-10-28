@@ -22,6 +22,11 @@ export const PERM = {
   TEAM_VIEW: 'team.view',
   TEAM_MANAGE: 'team.manage',
 
+  INSURER_VIEW: 'insurer.view',
+  INSURER_MANAGE: 'insurer.manage',
+  VEHICLE_VIEW: 'vehicle.view',
+  MARKETING_MANAGE: 'marketing.manage',
+
   COMMISSION_VIEW: 'commission.view',
   COMMISSION_PAY: 'commission.pay',
 
@@ -62,6 +67,10 @@ export const ROLE_PERMISSIONS = {
     PERM.AGENT_MANAGE,
     PERM.TEAM_VIEW,
     PERM.TEAM_MANAGE,
+    PERM.INSURER_VIEW,
+    PERM.INSURER_MANAGE,
+    PERM.VEHICLE_VIEW,
+    PERM.MARKETING_MANAGE,
     PERM.COMMISSION_VIEW,
     PERM.COMMISSION_PAY,
     PERM.CLAIM_VIEW,
@@ -203,12 +212,11 @@ export const ROLE_LANDING = {
 }
 
 export const LANDING_PATHS = [
-  { value: '/dashboard', label: 'ພາບລວມລະບົບ' },
+  { value: '/dashboard', label: 'ພາບລວມທຸລະກິດ' },
   { value: '/home', label: 'ໜ້າຫຼັກ' },
-  { value: '/policies', label: 'ປະກັນໄພ' },
-  { value: '/claims', label: 'ເຄມ' },
-  { value: '/finance/payments', label: 'ການຊຳລະເງິນ' },
-  { value: '/reports/summary', label: 'ລາຍງານສະຫຼຸບ' },
+  { value: '/policies', label: 'ຈັດການປະກັນໄພ' },
+  { value: '/insurers', label: 'ບໍລິສັດປະກັນໄພ' },
+  { value: '/reports/sales/monthly', label: 'ລາຍງານຍອດຂາຍ' },
 ]
 
 export const getRolePermissions = (role) => {
